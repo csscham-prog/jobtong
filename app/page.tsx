@@ -99,7 +99,7 @@ export default function Home() {
             <Logo />
 
             {/* 슬로건 — 헤더 중앙, 로고와 동일한 높이감 */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <p style={{ fontSize: 17, fontWeight: 800, color: '#0f2244', letterSpacing: '-0.3px', margin: 0, lineHeight: 1.45, whiteSpace: 'nowrap' }}>
                 합격을 위한 정직한 조언,
               </p>
@@ -276,9 +276,11 @@ export default function Home() {
             <button onClick={() => setStep('landing')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
               <Logo />
             </button>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <p style={{ fontSize: 17, fontWeight: 800, color: '#0f2244', margin: 0, lineHeight: 1.45, whiteSpace: 'nowrap' }}>합격을 위한 정직한 조언,</p>
-              <p style={{ fontSize: 17, fontWeight: 800, color: '#e6a800', margin: 0, lineHeight: 1.45, whiteSpace: 'nowrap' }}>잡통의 바른 자소서 검토</p>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <p style={{ fontSize: 20, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', letterSpacing: '-0.3px' }}>
+                <span style={{ color: '#0f2244' }}>합격을 위한 정직한 조언, </span>
+                <span style={{ color: '#e6a800' }}>잡통의 바른 자소서 검토</span>
+              </p>
             </div>
             <div style={{ width: 120, flexShrink: 0 }} />
           </div>
@@ -382,9 +384,11 @@ export default function Home() {
             <button onClick={() => setStep('landing')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
               <Logo />
             </button>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <p style={{ fontSize: 17, fontWeight: 800, color: '#0f2244', margin: 0, lineHeight: 1.45, whiteSpace: 'nowrap' }}>합격을 위한 정직한 조언,</p>
-              <p style={{ fontSize: 17, fontWeight: 800, color: '#e6a800', margin: 0, lineHeight: 1.45, whiteSpace: 'nowrap' }}>잡통의 바른 자소서 검토</p>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <p style={{ fontSize: 20, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', letterSpacing: '-0.3px' }}>
+                <span style={{ color: '#0f2244' }}>합격을 위한 정직한 조언, </span>
+                <span style={{ color: '#e6a800' }}>잡통의 바른 자소서 검토</span>
+              </p>
             </div>
             <button onClick={() => { setStep('analyze'); setResult(null) }} style={{ fontSize: 13, color: '#888', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', flexShrink: 0 }}>다시 분석하기</button>
           </div>
