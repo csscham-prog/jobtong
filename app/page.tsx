@@ -277,8 +277,8 @@ export default function Home() {
               <Logo />
             </button>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <p style={{ fontSize: 20, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', letterSpacing: '-0.3px' }}>
-                <span style={{ color: '#0f2244' }}>합격을 위한 정직한 조언, </span>
+              <p style={{ fontSize: 40, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', letterSpacing: '-0.5px', lineHeight: 1 }}>
+                <span style={{ color: '#0f2244' }}>합격을 위한 정직한 조언,&nbsp;</span>
                 <span style={{ color: '#e6a800' }}>잡통의 바른 자소서 검토</span>
               </p>
             </div>
@@ -385,8 +385,8 @@ export default function Home() {
               <Logo />
             </button>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <p style={{ fontSize: 20, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', letterSpacing: '-0.3px' }}>
-                <span style={{ color: '#0f2244' }}>합격을 위한 정직한 조언, </span>
+              <p style={{ fontSize: 40, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', letterSpacing: '-0.5px', lineHeight: 1 }}>
+                <span style={{ color: '#0f2244' }}>합격을 위한 정직한 조언,&nbsp;</span>
                 <span style={{ color: '#e6a800' }}>잡통의 바른 자소서 검토</span>
               </p>
             </div>
