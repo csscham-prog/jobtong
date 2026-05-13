@@ -16,25 +16,49 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const prompt = `당신은 10년 경력의 한국 대기업 인사담당자입니다. 아래 자기소개서를 분석해주세요.
+    const prompt = `당신은 10년 경력의 한국 대기업 인사담당자이자 자소서 전문 컨설턴트입니다.
+아래 자기소개서를 분석하고, 구체적인 개선 방향을 제시해주세요.
 
 ${company ? `지원 회사: ${company}` : ''}
 ${position ? `지원 직무: ${position}` : ''}
 
-자기소개서:
+자기소개서 내용:
+"""
 ${content}
+"""
 
-아래 JSON 형식으로만 응답하세요. 다른 텍스트는 절대 포함하지 마세요:
+반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트는 절대 포함하지 마세요.
+모든 피드백은 한국어로 작성하세요.
 
 {
-  "totalScore": 종합점수(0-100 사이 숫자),
-  "summary": "자소서 전체에 대한 총평 (3-4문장, 구체적으로)",
-  "mainIssue": "가장 심각한 문제점 1가지와 개선 방향 (2-3문장, 매우 구체적으로)"
+  "totalScore": 종합점수(0-100 사이 정수),
+  "summary": "자소서 전체에 대한 총평. 3-4문장. 강점과 약점을 균형있게 서술.",
+  "mainIssue": "가장 심각한 문제점 1가지. 왜 문제인지 + 어떻게 개선해야 하는지 2-3문장으로 구체적으로.",
+  "scores": {
+    "logic": 논리성점수(0-100 정수),
+    "specific": 구체성점수(0-100 정수),
+    "fit": 직무적합성점수(0-100 정수),
+    "expression": 표현력점수(0-100 정수)
+  },
+  "improvements": [
+    {
+      "category": "카테고리명(예: 지원동기, 성장과정, 직무역량 등)",
+      "issue": "이 부분의 문제점을 1-2문장으로 설명",
+      "original": "원문에서 문제가 되는 실제 문장이나 표현 (30자 이내로 발췌)",
+      "suggestion": "구체적으로 어떻게 고쳐야 하는지 개선된 방향 제시 (2-3문장)",
+      "addContent": "추가하면 좋을 내용이나 소재 제안 (있을 경우에만, 없으면 빈 문자열)"
+    }
+  ],
+  "strongPoints": [
+    "잘 된 점 1 (1문장)",
+    "잘 된 점 2 (1문장)"
+  ],
+  "finalAdvice": "마지막 종합 조언. 가장 우선적으로 해야 할 것 1가지를 강조해서 2-3문장."
 }`
 
     const message = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 1024,
+      max_tokens: 2048,
       messages: [
         {
           role: 'user',
@@ -43,19 +67,17 @@ ${content}
       ],
     })
 
-    const responseText = message.content[0].type === 'text' 
-      ? message.content[0].text 
-      : ''
+    const responseText =
+      message.content[0].type === 'text' ? message.content[0].text : ''
 
     const jsonMatch = responseText.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
-      throw new Error('AI 응답 파싱 오류')
+      throw new Error('AI 응답 파싱 오류가 발생했습니다.')
     }
 
     const analysisResult = JSON.parse(jsonMatch[0])
 
     return NextResponse.json(analysisResult)
-
   } catch (error: any) {
     console.error('분석 오류:', error)
     return NextResponse.json(
