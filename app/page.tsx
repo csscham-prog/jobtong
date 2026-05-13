@@ -38,6 +38,55 @@ export default function Home() {
   const getScoreBg = (score: number) => score >= 80 ? '#ecfdf5' : score >= 60 ? '#fffbeb' : '#fef2f2'
   const getScoreTextColor = (score: number) => score >= 80 ? '#065f46' : score >= 60 ? '#92400e' : '#991b1b'
 
+  // 잡통 엠블럼 컴포넌트
+  const Emblem = ({ size = 36 }: { size?: number }) => (
+    <div style={{
+      width: size,
+      height: size,
+      background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)',
+      borderRadius: size * 0.25,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'relative',
+      flexShrink: 0,
+    }}>
+      {/* 황금 대각선 장식 */}
+      <div style={{
+        position: 'absolute',
+        top: size * 0.08,
+        right: size * 0.08,
+        width: size * 0.22,
+        height: size * 0.22,
+        background: '#e6a800',
+        borderRadius: '50%',
+      }} />
+      {/* J 글자 */}
+      <span style={{
+        fontSize: size * 0.46,
+        fontWeight: 900,
+        color: '#fff',
+        letterSpacing: '-1px',
+        lineHeight: 1,
+        fontFamily: "'Pretendard', sans-serif",
+      }}>J</span>
+    </div>
+  )
+
+  // 로고 + 텍스트 컴포넌트
+  const Logo = ({ dark = false }: { dark?: boolean }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <Emblem size={36} />
+      <span style={{
+        fontSize: 20,
+        fontWeight: 800,
+        color: dark ? '#fff' : '#0f2244',
+        letterSpacing: '-0.5px',
+        fontFamily: "'Pretendard', sans-serif",
+      }}>잡통</span>
+    </div>
+  )
+
   const base: React.CSSProperties = {
     fontFamily: "'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     background: '#f7f6f3',
@@ -70,11 +119,40 @@ export default function Home() {
         {/* 헤더 */}
         <header style={headerStyle}>
           <div style={headerInner}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 22, fontWeight: 800, color: '#0f2244', letterSpacing: '-0.5px' }}>잡통</span>
-              <span style={{ fontSize: 10, background: '#e6a800', color: '#fff', padding: '2px 8px', borderRadius: 20, fontWeight: 700, letterSpacing: 1 }}>AI</span>
+            <Logo />
+            {/* 슬로건 — 헤더 중앙 */}
+            <div style={{
+              position: 'absolute',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              textAlign: 'center',
+              pointerEvents: 'none',
+            }}>
+              <p style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: '#0f2244',
+                letterSpacing: '-0.2px',
+                margin: 0,
+                lineHeight: 1.5,
+              }}>
+                합격을 위한 정직한 조언,
+              </p>
+              <p style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: '#e6a800',
+                letterSpacing: '-0.2px',
+                margin: 0,
+                lineHeight: 1.5,
+              }}>
+                잡통의 바른 자소서 검토
+              </p>
             </div>
-            <button onClick={() => setStep('analyze')} style={{ background: '#0f2244', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 22px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button
+              onClick={() => setStep('analyze')}
+              style={{ background: '#0f2244', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 22px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}
+            >
               무료 체험하기
             </button>
           </div>
@@ -82,80 +160,73 @@ export default function Home() {
 
         {/* 히어로 */}
         <section style={{ background: 'linear-gradient(160deg, #0a1628 0%, #1a3a6b 60%, #152f58 100%)', color: '#fff', padding: '80px 24px 90px' }}>
-          <div style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.1)', borderRadius: 30, padding: '8px 18px', marginBottom: 32, fontSize: 13, color: '#b8d9ee' }}>
-              <span>✦</span><span>AI 자소서 분석 서비스 — 지금 무료 체험</span>
-            </div>
-            <h1 style={{ fontSize: 'clamp(30px, 5vw, 48px)', fontWeight: 800, lineHeight: 1.25, marginBottom: 24, letterSpacing: '-1px' }}>
+          <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
+            <h1 style={{
+              fontSize: 'clamp(38px, 6vw, 64px)',
+              fontWeight: 900,
+              lineHeight: 1.2,
+              marginBottom: 28,
+              letterSpacing: '-1.5px',
+            }}>
               당신의 진심을<br />
               <span style={{ color: '#f0c040' }}>바르게 담아내는</span> 문장,<br />
               잡통이 함께 고민합니다.
             </h1>
-            <p style={{ fontSize: 17, color: '#b8d9ee', lineHeight: 1.8, marginBottom: 40 }}>
+            <p style={{ fontSize: 19, color: '#b8d9ee', lineHeight: 1.85, marginBottom: 44 }}>
               당신의 강점이 돋보이도록 문장을 다듬고,<br />
               부족한 부분은 정직하게 짚어드립니다.
             </p>
-            <button onClick={() => setStep('analyze')} style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '18px 44px', fontWeight: 800, fontSize: 18, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 8px 32px rgba(230,168,0,0.3)' }}>
+            <button
+              onClick={() => setStep('analyze')}
+              style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '20px 52px', fontWeight: 800, fontSize: 20, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 8px 32px rgba(230,168,0,0.3)' }}
+            >
               무료로 분석 시작하기 →
             </button>
-            <p style={{ color: 'rgba(184,217,238,0.6)', fontSize: 13, marginTop: 14 }}>신용카드 불필요 · 가입 없이 바로 체험</p>
+            <p style={{ color: 'rgba(184,217,238,0.6)', fontSize: 14, marginTop: 16 }}>신용카드 불필요 · 가입 없이 바로 체험</p>
           </div>
         </section>
 
-        {/* 서비스 특징 — 가독성 개선 */}
+        {/* 서비스 특징 */}
         <section style={{ background: '#fff', padding: '72px 24px' }}>
           <div style={{ maxWidth: 960, margin: '0 auto' }}>
-            <h2 style={{ textAlign: 'center', fontSize: 28, fontWeight: 800, color: '#0f2244', marginBottom: 8, letterSpacing: '-0.5px' }}>
+            <h2 style={{ textAlign: 'center', fontSize: 30, fontWeight: 800, color: '#0f2244', marginBottom: 8, letterSpacing: '-0.5px' }}>
               단순 분석을 넘어, 구체적인 처방까지
             </h2>
-            <p style={{ textAlign: 'center', color: '#666', fontSize: 15, marginBottom: 52 }}>
+            <p style={{ textAlign: 'center', color: '#555', fontSize: 16, marginBottom: 52 }}>
               "이 문장을 이렇게 고치세요" — 실행 가능한 피드백을 드립니다
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
               {[
-                {
-                  icon: '🔍',
-                  title: '정직한 진단',
-                  desc: '좋은 점만 말하지 않습니다. 면접관이 실제로 느낄 수 있는 문제점을 솔직하게 짚어드립니다.',
-                },
-                {
-                  icon: '✏️',
-                  title: '문장 단위 개선 제안',
-                  desc: '"이 문장은 이렇게 고치세요", "이런 내용을 추가하세요" — 바로 적용할 수 있는 구체적 방향을 제시합니다.',
-                },
-                {
-                  icon: '✓',
-                  title: '직무 맞춤 분석',
-                  desc: '지원 회사와 직무를 고려해 해당 포지션에서 중요하게 보는 역량 중심으로 분석합니다.',
-                },
+                { icon: '🔍', title: '정직한 진단', desc: '좋은 점만 말하지 않습니다. 면접관이 실제로 느낄 수 있는 문제점을 솔직하게 짚어드립니다.' },
+                { icon: '✏️', title: '문장 단위 개선 제안', desc: '"이 문장은 이렇게 고치세요", "이런 내용을 추가하세요" — 바로 적용할 수 있는 구체적 방향을 제시합니다.' },
+                { icon: '✓', title: '직무 맞춤 분석', desc: '지원 회사와 직무를 고려해 해당 포지션에서 중요하게 보는 역량 중심으로 분석합니다.' },
               ].map((item) => (
                 <div key={item.title} style={{ background: '#f7f6f3', borderRadius: 16, padding: '36px 32px', border: '1px solid #e8e5dc' }}>
-                  <div style={{ fontSize: 36, marginBottom: 20 }}>{item.icon}</div>
-                  <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f2244', marginBottom: 14 }}>{item.title}</h3>
-                  <p style={{ fontSize: 15, color: '#444', lineHeight: 1.8 }}>{item.desc}</p>
+                  <div style={{ fontSize: 40, marginBottom: 20 }}>{item.icon}</div>
+                  <h3 style={{ fontSize: 19, fontWeight: 800, color: '#0f2244', marginBottom: 14 }}>{item.title}</h3>
+                  <p style={{ fontSize: 15, color: '#444', lineHeight: 1.85 }}>{item.desc}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* 가격 비교 — 3단 */}
+        {/* 가격 비교 3단 */}
         <section style={{ background: '#f7f6f3', padding: '72px 24px' }}>
           <div style={{ maxWidth: 980, margin: '0 auto' }}>
-            <h2 style={{ textAlign: 'center', fontSize: 28, fontWeight: 800, color: '#0f2244', marginBottom: 8, letterSpacing: '-0.5px' }}>
+            <h2 style={{ textAlign: 'center', fontSize: 30, fontWeight: 800, color: '#0f2244', marginBottom: 8, letterSpacing: '-0.5px' }}>
               무료 체험 vs 전체 분석
             </h2>
-            <p style={{ textAlign: 'center', color: '#666', fontSize: 15, marginBottom: 52 }}>
+            <p style={{ textAlign: 'center', color: '#555', fontSize: 16, marginBottom: 52 }}>
               전문 컨설턴트의 1/50 가격으로 AI 피드백을
             </p>
-
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
 
               {/* 무료 */}
               <div style={{ background: '#fff', borderRadius: 20, padding: '36px 32px', border: '1.5px solid #e8e5dc' }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#aaa', marginBottom: 12, letterSpacing: 1, textTransform: 'uppercase' }}>무료 체험</div>
-                <div style={{ fontSize: 38, fontWeight: 900, color: '#0f2244', marginBottom: 4 }}>₩0</div>
-                <div style={{ fontSize: 13, color: '#aaa', marginBottom: 28, paddingBottom: 24, borderBottom: '1px solid #f0ede6' }}>지금 바로 체험</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#aaa', marginBottom: 12, letterSpacing: 1 }}>무료 체험</div>
+                <div style={{ fontSize: 40, fontWeight: 900, color: '#0f2244', marginBottom: 4 }}>₩0</div>
+                <div style={{ fontSize: 14, color: '#aaa', marginBottom: 28, paddingBottom: 24, borderBottom: '1px solid #f0ede6' }}>지금 바로 체험</div>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {[
                     { text: '종합 점수', ok: true },
@@ -168,7 +239,7 @@ export default function Home() {
                     { text: '최종 종합 조언', ok: false },
                   ].map(item => (
                     <li key={item.text} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: item.ok ? '#222' : '#bbb' }}>
-                      <span style={{ fontWeight: 800, color: item.ok ? '#10b981' : '#ddd', fontSize: 15, flexShrink: 0 }}>{item.ok ? '✓' : '✗'}</span>
+                      <span style={{ fontWeight: 800, color: item.ok ? '#10b981' : '#ddd', fontSize: 16, flexShrink: 0 }}>{item.ok ? '✓' : '✗'}</span>
                       {item.text}
                     </li>
                   ))}
@@ -180,22 +251,13 @@ export default function Home() {
 
               {/* 1회권 */}
               <div style={{ background: '#fff', borderRadius: 20, padding: '36px 32px', border: '1.5px solid #e8e5dc' }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#aaa', marginBottom: 12, letterSpacing: 1, textTransform: 'uppercase' }}>1회 분석권</div>
-                <div style={{ fontSize: 38, fontWeight: 900, color: '#0f2244', marginBottom: 4 }}>₩2,900</div>
-                <div style={{ fontSize: 13, color: '#aaa', marginBottom: 28, paddingBottom: 24, borderBottom: '1px solid #f0ede6' }}>1회 전체 분석</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#aaa', marginBottom: 12, letterSpacing: 1 }}>1회 분석권</div>
+                <div style={{ fontSize: 40, fontWeight: 900, color: '#0f2244', marginBottom: 4 }}>₩2,900</div>
+                <div style={{ fontSize: 14, color: '#aaa', marginBottom: 28, paddingBottom: 24, borderBottom: '1px solid #f0ede6' }}>1회 전체 분석</div>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {[
-                    '종합 점수',
-                    '전체 총평',
-                    '핵심 문제 1가지',
-                    '항목별 세부 점수',
-                    '문장 단위 개선 제안',
-                    '"이런 내용 추가하세요" 제안',
-                    '잘 된 점 피드백',
-                    '최종 종합 조언',
-                  ].map(item => (
+                  {['종합 점수', '전체 총평', '핵심 문제 1가지', '항목별 세부 점수', '문장 단위 개선 제안', '"이런 내용 추가하세요" 제안', '잘 된 점 피드백', '최종 종합 조언'].map(item => (
                     <li key={item} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: '#222' }}>
-                      <span style={{ fontWeight: 800, color: '#10b981', fontSize: 15, flexShrink: 0 }}>✓</span>
+                      <span style={{ fontWeight: 800, color: '#10b981', fontSize: 16, flexShrink: 0 }}>✓</span>
                       {item}
                     </li>
                   ))}
@@ -205,29 +267,20 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* 5회권 — 추천 */}
+              {/* 5회권 */}
               <div style={{ background: '#0f2244', borderRadius: 20, padding: '36px 32px', border: '1.5px solid #0f2244', position: 'relative' }}>
                 <div style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', background: '#e6a800', color: '#fff', fontSize: 12, fontWeight: 700, padding: '5px 18px', borderRadius: 20, whiteSpace: 'nowrap' }}>
                   ⭐ 추천
                 </div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.4)', marginBottom: 12, letterSpacing: 1, textTransform: 'uppercase' }}>5회 분석권</div>
-                <div style={{ fontSize: 38, fontWeight: 900, color: '#fff', marginBottom: 4 }}>₩9,900</div>
-                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', marginBottom: 28, paddingBottom: 24, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.4)', marginBottom: 12, letterSpacing: 1 }}>5회 분석권</div>
+                <div style={{ fontSize: 40, fontWeight: 900, color: '#fff', marginBottom: 4 }}>₩9,900</div>
+                <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)', marginBottom: 28, paddingBottom: 24, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                   1회당 ₩1,980 · 32% 할인
                 </div>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {[
-                    '종합 점수',
-                    '전체 총평',
-                    '핵심 문제 1가지',
-                    '항목별 세부 점수',
-                    '문장 단위 개선 제안',
-                    '"이런 내용 추가하세요" 제안',
-                    '잘 된 점 피드백',
-                    '최종 종합 조언',
-                  ].map(item => (
+                  {['종합 점수', '전체 총평', '핵심 문제 1가지', '항목별 세부 점수', '문장 단위 개선 제안', '"이런 내용 추가하세요" 제안', '잘 된 점 피드백', '최종 종합 조언'].map(item => (
                     <li key={item} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: 'rgba(255,255,255,0.85)' }}>
-                      <span style={{ fontWeight: 800, color: '#f0c040', fontSize: 15, flexShrink: 0 }}>✓</span>
+                      <span style={{ fontWeight: 800, color: '#f0c040', fontSize: 16, flexShrink: 0 }}>✓</span>
                       {item}
                     </li>
                   ))}
@@ -243,20 +296,23 @@ export default function Home() {
 
         {/* CTA */}
         <section style={{ background: '#0f2244', padding: '72px 24px', textAlign: 'center' }}>
-          <h2 style={{ fontSize: 28, fontWeight: 800, color: '#fff', marginBottom: 16, letterSpacing: '-0.5px' }}>
+          <h2 style={{ fontSize: 30, fontWeight: 800, color: '#fff', marginBottom: 16, letterSpacing: '-0.5px' }}>
             지금 바로 무료로 체험해보세요
           </h2>
-          <p style={{ color: '#b8d9ee', fontSize: 15, marginBottom: 36, lineHeight: 1.7 }}>
+          <p style={{ color: '#b8d9ee', fontSize: 16, marginBottom: 36, lineHeight: 1.8 }}>
             첫 분석은 무료입니다. 총평과 핵심 문제점을 바로 확인하세요.
           </p>
-          <button onClick={() => setStep('analyze')} style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '18px 44px', fontWeight: 800, fontSize: 17, cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button onClick={() => setStep('analyze')} style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '18px 44px', fontWeight: 800, fontSize: 18, cursor: 'pointer', fontFamily: 'inherit' }}>
             무료 분석 시작하기 →
           </button>
         </section>
 
         {/* 푸터 */}
         <footer style={{ background: '#0a1628', color: 'rgba(184,217,238,0.5)', padding: '40px 24px', textAlign: 'center', fontSize: 13 }}>
-          <div style={{ fontWeight: 800, fontSize: 18, color: '#fff', marginBottom: 8 }}>잡통</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 10 }}>
+            <Emblem size={28} />
+            <span style={{ fontWeight: 800, fontSize: 18, color: '#fff' }}>잡통</span>
+          </div>
           <p>AI 자소서 분석 서비스 · 문의: jobtong@gmail.com</p>
           <p style={{ marginTop: 8, color: 'rgba(184,217,238,0.3)' }}>© 2026 잡통. All rights reserved.</p>
         </footer>
@@ -270,8 +326,8 @@ export default function Home() {
       <main style={base}>
         <header style={headerStyle}>
           <div style={headerInner}>
-            <button onClick={() => setStep('landing')} style={{ fontWeight: 800, fontSize: 20, color: '#0f2244', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
-              ← 잡통
+            <button onClick={() => setStep('landing')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              <Logo />
             </button>
             <span style={{ fontSize: 13, color: '#aaa' }}>무료 체험 — 총평 + 핵심 문제 1가지 제공</span>
           </div>
@@ -283,7 +339,7 @@ export default function Home() {
               <span style={{ fontSize: 24 }}>✏️</span>
               <h2 style={{ fontSize: 24, fontWeight: 800, color: '#0f2244', letterSpacing: '-0.5px' }}>자소서 분석 시작</h2>
             </div>
-            <p style={{ color: '#666', fontSize: 15, marginBottom: 36, lineHeight: 1.75 }}>
+            <p style={{ color: '#555', fontSize: 15, marginBottom: 36, lineHeight: 1.8 }}>
               자소서를 붙여넣으면 AI가 즉시 분석해드립니다.<br />
               당신의 강점을 바르게 전달할 수 있도록 정직하게 피드백합니다.
             </p>
@@ -337,7 +393,9 @@ export default function Home() {
       <main style={base}>
         <header style={headerStyle}>
           <div style={headerInner}>
-            <button onClick={() => setStep('landing')} style={{ fontWeight: 800, fontSize: 20, color: '#0f2244', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>← 잡통</button>
+            <button onClick={() => setStep('landing')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              <Logo />
+            </button>
             <button onClick={() => { setStep('analyze'); setResult(null) }} style={{ fontSize: 13, color: '#888', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>다시 분석하기</button>
           </div>
         </header>
@@ -358,7 +416,7 @@ export default function Home() {
           <div style={{ background: '#fff', borderRadius: 20, padding: '32px 36px', border: '1px solid #ece9e1' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
               <span style={{ fontSize: 20 }}>🔍</span>
-              <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0f2244' }}>총평</h3>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f2244' }}>총평</h3>
             </div>
             <p style={{ color: '#333', lineHeight: 1.85, fontSize: 15 }}>{result.summary}</p>
           </div>
@@ -367,7 +425,7 @@ export default function Home() {
           <div style={{ background: '#fffbeb', borderRadius: 20, padding: '32px 36px', border: '2px solid #fde68a' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
               <span style={{ fontSize: 20 }}>⚠️</span>
-              <h3 style={{ fontSize: 17, fontWeight: 800, color: '#92400e' }}>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: '#92400e' }}>
                 핵심 문제
                 <span style={{ fontSize: 11, background: '#fde68a', color: '#92400e', padding: '2px 10px', borderRadius: 20, marginLeft: 8, fontWeight: 700 }}>무료 공개</span>
               </h3>
@@ -403,7 +461,7 @@ export default function Home() {
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: 36, marginBottom: 12 }}>🔒</div>
                 <h3 style={{ fontSize: 20, fontWeight: 800, color: '#0f2244', marginBottom: 10 }}>전체 분석 결과 보기</h3>
-                <p style={{ color: '#666', fontSize: 14, lineHeight: 1.75, marginBottom: 28 }}>
+                <p style={{ color: '#555', fontSize: 14, lineHeight: 1.8, marginBottom: 28 }}>
                   항목별 세부 점수, 문장 단위 개선 제안,<br />
                   "이런 내용 추가하세요" 제안까지<br />
                   결제 후 바로 확인하세요.
