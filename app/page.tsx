@@ -13,47 +13,23 @@ export default function Home() {
   const [fileName, setFileName] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+
+    if (!file.name.toLowerCase().endsWith('.txt')) {
+      setError('TXT 파일만 업로드 가능합니다.')
+      return
+    }
+
     setFileName(file.name)
     setError('')
-
-    // TXT는 브라우저에서 직접 읽기
-    if (file.name.toLowerCase().endsWith('.txt')) {
-      const reader = new FileReader()
-      reader.onload = (ev) => {
-        const text = ev.target?.result as string
-        if (text) setContent(text)
-      }
-      reader.readAsText(file, 'utf-8')
-      return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string
+      if (text) setContent(text)
     }
-
-    // PDF는 서버 API로 파싱
-    if (file.name.toLowerCase().endsWith('.pdf')) {
-      try {
-        setLoading(true)
-        const formData = new FormData()
-        formData.append('file', file)
-        const res = await fetch('/api/parse-file', {
-          method: 'POST',
-          body: formData,
-        })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.error || '파일 읽기 오류')
-        setContent(data.text)
-      } catch (e: any) {
-        setError(e.message)
-        setFileName('')
-      } finally {
-        setLoading(false)
-      }
-      return
-    }
-
-    setError('TXT 또는 PDF 파일만 업로드 가능합니다.')
-    setFileName('')
+    reader.readAsText(file, 'utf-8')
   }
 
   const handleAnalyze = async () => {
@@ -356,7 +332,7 @@ export default function Home() {
                   onClick={() => fileInputRef.current?.click()}
                   style={{ border: '2px dashed #e5e3dc', borderRadius: 12, padding: '20px', textAlign: 'center', cursor: 'pointer', marginBottom: 12, background: fileName ? '#f0fdf4' : '#faf9f7', transition: 'all 0.2s' }}
                 >
-                  <input ref={fileInputRef} type="file" accept=".txt,.pdf" onChange={handleFileUpload} style={{ display: 'none' }} />
+                  <input ref={fileInputRef} type="file" accept=".txt" onChange={handleFileUpload} style={{ display: 'none' }} />
                   <div style={{ fontSize: 28, marginBottom: 8 }}>📄</div>
                   {fileName ? (
                     <>
@@ -365,8 +341,9 @@ export default function Home() {
                     </>
                   ) : (
                     <>
-                      <p style={{ fontSize: 14, fontWeight: 700, color: '#0f2244', margin: 0 }}>파일 업로드</p>
-                      <p style={{ fontSize: 12, color: '#aaa', margin: '4px 0 0' }}>TXT, PDF 파일 지원 · 클릭하여 업로드</p>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: '#0f2244', margin: 0 }}>📄 TXT 파일 업로드</p>
+                      <p style={{ fontSize: 12, color: '#aaa', margin: '4px 0 0' }}>클릭하여 업로드</p>
+                      <p style={{ fontSize: 11, color: '#bbb', margin: '6px 0 0', lineHeight: 1.6 }}>워드/한글 → 다른 이름으로 저장 → 파일 형식: 일반 텍스트(.txt)</p>
                     </>
                   )}
                 </div>
