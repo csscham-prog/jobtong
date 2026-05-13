@@ -100,7 +100,7 @@ export default function Home() {
 
             {/* 슬로건 — 헤더 중앙 */}
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <p style={{ fontSize: 40, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', letterSpacing: '-0.5px', lineHeight: 1 }}>
+              <p className="jobtong-slogan" style={{ fontWeight: 800, margin: 0, letterSpacing: '-0.5px', lineHeight: 1.3, textAlign: 'center' }}>
                 <span style={{ color: '#0f2244' }}>합격을 위한 정직한 조언,&nbsp;</span>
                 <span style={{ color: '#e6a800' }}>잡통의 바른 자소서 검토</span>
               </p>
@@ -252,6 +252,13 @@ export default function Home() {
           </button>
         </section>
 
+        <style>{`
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .jobtong-slogan { font-size: 40px; white-space: nowrap; }
+  @media (max-width: 768px) {
+    .jobtong-slogan { font-size: 18px; white-space: normal; line-height: 1.5 !important; }
+  }
+`}</style>
         {/* 푸터 */}
         <footer style={{ background: '#0a1628', color: 'rgba(184,217,238,0.5)', padding: '40px 24px', textAlign: 'center', fontSize: 13 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 10 }}>
@@ -275,7 +282,7 @@ export default function Home() {
               <Logo />
             </button>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <p style={{ fontSize: 40, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', letterSpacing: '-0.5px', lineHeight: 1 }}>
+              <p className="jobtong-slogan" style={{ fontWeight: 800, margin: 0, letterSpacing: '-0.5px', lineHeight: 1.3, textAlign: 'center' }}>
                 <span style={{ color: '#0f2244' }}>합격을 위한 정직한 조언,&nbsp;</span>
                 <span style={{ color: '#e6a800' }}>잡통의 바른 자소서 검토</span>
               </p>
@@ -368,7 +375,13 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <style>{`
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .jobtong-slogan { font-size: 40px; white-space: nowrap; }
+  @media (max-width: 768px) {
+    .jobtong-slogan { font-size: 18px; white-space: normal; line-height: 1.5 !important; }
+  }
+`}</style>
       </main>
     )
   }
@@ -383,7 +396,7 @@ export default function Home() {
               <Logo />
             </button>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <p style={{ fontSize: 40, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', letterSpacing: '-0.5px', lineHeight: 1 }}>
+              <p className="jobtong-slogan" style={{ fontWeight: 800, margin: 0, letterSpacing: '-0.5px', lineHeight: 1.3, textAlign: 'center' }}>
                 <span style={{ color: '#0f2244' }}>합격을 위한 정직한 조언,&nbsp;</span>
                 <span style={{ color: '#e6a800' }}>잡통의 바른 자소서 검토</span>
               </p>
@@ -470,7 +483,13 @@ export default function Home() {
             다른 자소서 분석하기
           </button>
         </div>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <style>{`
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .jobtong-slogan { font-size: 40px; white-space: nowrap; }
+  @media (max-width: 768px) {
+    .jobtong-slogan { font-size: 18px; white-space: normal; line-height: 1.5 !important; }
+  }
+`}</style>
       </main>
     )
   }
