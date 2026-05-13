@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 
 export default function Home() {
   const [step, setStep] = useState<'landing' | 'analyze' | 'result'>('landing')
@@ -10,9 +10,23 @@ export default function Home() {
   const [result, setResult] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [fileName, setFileName] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setFileName(file.name)
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string
+      if (text) setContent(text)
+    }
+    reader.readAsText(file, 'utf-8')
+  }
 
   const handleAnalyze = async () => {
-    if (!content.trim()) { setError('자소서 내용을 입력해주세요.'); return }
+    if (!content.trim()) { setError('자소서 내용을 입력하거나 파일을 업로드해주세요.'); return }
     if (content.trim().length < 100) { setError('자소서를 100자 이상 입력해주세요.'); return }
     setError('')
     setLoading(true)
@@ -38,77 +52,38 @@ export default function Home() {
   const getScoreBg = (score: number) => score >= 80 ? '#ecfdf5' : score >= 60 ? '#fffbeb' : '#fef2f2'
   const getScoreTextColor = (score: number) => score >= 80 ? '#065f46' : score >= 60 ? '#92400e' : '#991b1b'
 
-  // 잡통 엠블럼 컴포넌트
   const Emblem = ({ size = 36 }: { size?: number }) => (
     <div style={{
-      width: size,
-      height: size,
+      width: size, height: size,
       background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)',
       borderRadius: size * 0.25,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      position: 'relative',
-      flexShrink: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      position: 'relative', flexShrink: 0,
     }}>
-      {/* 황금 대각선 장식 */}
       <div style={{
-        position: 'absolute',
-        top: size * 0.08,
-        right: size * 0.08,
-        width: size * 0.22,
-        height: size * 0.22,
-        background: '#e6a800',
-        borderRadius: '50%',
+        position: 'absolute', top: size * 0.08, right: size * 0.08,
+        width: size * 0.22, height: size * 0.22,
+        background: '#e6a800', borderRadius: '50%',
       }} />
-      {/* J 글자 */}
-      <span style={{
-        fontSize: size * 0.46,
-        fontWeight: 900,
-        color: '#fff',
-        letterSpacing: '-1px',
-        lineHeight: 1,
-        fontFamily: "'Pretendard', sans-serif",
-      }}>J</span>
+      <span style={{ fontSize: size * 0.46, fontWeight: 900, color: '#fff', letterSpacing: '-1px', lineHeight: 1, fontFamily: "'Pretendard', sans-serif" }}>J</span>
     </div>
   )
 
-  // 로고 + 텍스트 컴포넌트
   const Logo = ({ dark = false }: { dark?: boolean }) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
       <Emblem size={36} />
-      <span style={{
-        fontSize: 20,
-        fontWeight: 800,
-        color: dark ? '#fff' : '#0f2244',
-        letterSpacing: '-0.5px',
-        fontFamily: "'Pretendard', sans-serif",
-      }}>잡통</span>
+      <span style={{ fontSize: 20, fontWeight: 800, color: dark ? '#fff' : '#0f2244', letterSpacing: '-0.5px', fontFamily: "'Pretendard', sans-serif" }}>잡통</span>
     </div>
   )
 
   const base: React.CSSProperties = {
     fontFamily: "'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    background: '#f7f6f3',
-    minHeight: '100vh',
+    background: '#f7f6f3', minHeight: '100vh',
   }
 
   const headerStyle: React.CSSProperties = {
-    background: '#fff',
-    borderBottom: '1px solid #ece9e1',
-    position: 'sticky',
-    top: 0,
-    zIndex: 50,
-  }
-
-  const headerInner: React.CSSProperties = {
-    maxWidth: 1000,
-    margin: '0 auto',
-    padding: '0 24px',
-    height: 64,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    background: '#fff', borderBottom: '1px solid #ece9e1',
+    position: 'sticky', top: 0, zIndex: 50,
   }
 
   // ── LANDING ──
@@ -118,41 +93,23 @@ export default function Home() {
 
         {/* 헤더 */}
         <header style={headerStyle}>
-          <div style={headerInner}>
+          <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px', height: 72, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+
+            {/* 로고 */}
             <Logo />
-            {/* 슬로건 — 헤더 중앙 */}
-            <div style={{
-              position: 'absolute',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              textAlign: 'center',
-              pointerEvents: 'none',
-            }}>
-              <p style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: '#0f2244',
-                letterSpacing: '-0.2px',
-                margin: 0,
-                lineHeight: 1.5,
-              }}>
+
+            {/* 슬로건 — 헤더 중앙, 로고와 동일한 높이감 */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <p style={{ fontSize: 17, fontWeight: 800, color: '#0f2244', letterSpacing: '-0.3px', margin: 0, lineHeight: 1.45, whiteSpace: 'nowrap' }}>
                 합격을 위한 정직한 조언,
               </p>
-              <p style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: '#e6a800',
-                letterSpacing: '-0.2px',
-                margin: 0,
-                lineHeight: 1.5,
-              }}>
+              <p style={{ fontSize: 17, fontWeight: 800, color: '#e6a800', letterSpacing: '-0.3px', margin: 0, lineHeight: 1.45, whiteSpace: 'nowrap' }}>
                 잡통의 바른 자소서 검토
               </p>
             </div>
-            <button
-              onClick={() => setStep('analyze')}
-              style={{ background: '#0f2244', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 22px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}
-            >
+
+            {/* 버튼 */}
+            <button onClick={() => setStep('analyze')} style={{ background: '#0f2244', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 22px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', flexShrink: 0 }}>
               무료 체험하기
             </button>
           </div>
@@ -161,13 +118,7 @@ export default function Home() {
         {/* 히어로 */}
         <section style={{ background: 'linear-gradient(160deg, #0a1628 0%, #1a3a6b 60%, #152f58 100%)', color: '#fff', padding: '80px 24px 90px' }}>
           <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
-            <h1 style={{
-              fontSize: 'clamp(38px, 6vw, 64px)',
-              fontWeight: 900,
-              lineHeight: 1.2,
-              marginBottom: 28,
-              letterSpacing: '-1.5px',
-            }}>
+            <h1 style={{ fontSize: 'clamp(38px, 6vw, 64px)', fontWeight: 900, lineHeight: 1.2, marginBottom: 28, letterSpacing: '-1.5px' }}>
               당신의 진심을<br />
               <span style={{ color: '#f0c040' }}>바르게 담아내는</span> 문장,<br />
               잡통이 함께 고민합니다.
@@ -176,13 +127,9 @@ export default function Home() {
               당신의 강점이 돋보이도록 문장을 다듬고,<br />
               부족한 부분은 정직하게 짚어드립니다.
             </p>
-            <button
-              onClick={() => setStep('analyze')}
-              style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '20px 52px', fontWeight: 800, fontSize: 20, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 8px 32px rgba(230,168,0,0.3)' }}
-            >
+            <button onClick={() => setStep('analyze')} style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '20px 52px', fontWeight: 800, fontSize: 20, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 8px 32px rgba(230,168,0,0.3)' }}>
               무료로 분석 시작하기 →
             </button>
-            <p style={{ color: 'rgba(184,217,238,0.6)', fontSize: 14, marginTop: 16 }}>신용카드 불필요 · 가입 없이 바로 체험</p>
           </div>
         </section>
 
@@ -313,7 +260,7 @@ export default function Home() {
             <Emblem size={28} />
             <span style={{ fontWeight: 800, fontSize: 18, color: '#fff' }}>잡통</span>
           </div>
-          <p>AI 자소서 분석 서비스 · 문의: jobtong@gmail.com</p>
+          <p>AI 자소서 분석 서비스 · 문의: csscham@gmail.com</p>
           <p style={{ marginTop: 8, color: 'rgba(184,217,238,0.3)' }}>© 2026 잡통. All rights reserved.</p>
         </footer>
       </main>
@@ -325,11 +272,15 @@ export default function Home() {
     return (
       <main style={base}>
         <header style={headerStyle}>
-          <div style={headerInner}>
+          <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px', height: 72, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
             <button onClick={() => setStep('landing')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
               <Logo />
             </button>
-            <span style={{ fontSize: 13, color: '#aaa' }}>무료 체험 — 총평 + 핵심 문제 1가지 제공</span>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <p style={{ fontSize: 17, fontWeight: 800, color: '#0f2244', margin: 0, lineHeight: 1.45, whiteSpace: 'nowrap' }}>합격을 위한 정직한 조언,</p>
+              <p style={{ fontSize: 17, fontWeight: 800, color: '#e6a800', margin: 0, lineHeight: 1.45, whiteSpace: 'nowrap' }}>잡통의 바른 자소서 검토</p>
+            </div>
+            <div style={{ width: 120, flexShrink: 0 }} />
           </div>
         </header>
 
@@ -340,29 +291,64 @@ export default function Home() {
               <h2 style={{ fontSize: 24, fontWeight: 800, color: '#0f2244', letterSpacing: '-0.5px' }}>자소서 분석 시작</h2>
             </div>
             <p style={{ color: '#555', fontSize: 15, marginBottom: 36, lineHeight: 1.8 }}>
-              자소서를 붙여넣으면 AI가 즉시 분석해드립니다.<br />
-              당신의 강점을 바르게 전달할 수 있도록 정직하게 피드백합니다.
+              자소서를 직접 입력하거나 파일을 업로드해주세요.<br />
+              AI가 즉시 분석하고 정직하게 피드백합니다.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               <div>
-                <label style={{ display: 'block', fontSize: 14, fontWeight: 700, color: '#333', marginBottom: 8 }}>
-                  지원 회사 <span style={{ color: '#aaa', fontWeight: 400 }}>(선택)</span>
-                </label>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 700, color: '#333', marginBottom: 8 }}>지원 회사 <span style={{ color: '#aaa', fontWeight: 400 }}>(선택)</span></label>
                 <input type="text" style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 12, padding: '13px 16px', fontSize: 15, color: '#1a1a1a', background: '#faf9f7', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} placeholder="예: 삼성전자, 카카오, 현대자동차" value={company} onChange={e => setCompany(e.target.value)} />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: 14, fontWeight: 700, color: '#333', marginBottom: 8 }}>
-                  지원 직무 <span style={{ color: '#aaa', fontWeight: 400 }}>(선택)</span>
-                </label>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 700, color: '#333', marginBottom: 8 }}>지원 직무 <span style={{ color: '#aaa', fontWeight: 400 }}>(선택)</span></label>
                 <input type="text" style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 12, padding: '13px 16px', fontSize: 15, color: '#1a1a1a', background: '#faf9f7', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} placeholder="예: 마케팅, 백엔드 개발, 영업관리" value={position} onChange={e => setPosition(e.target.value)} />
               </div>
+
+              {/* 자소서 입력 — 탭 방식 */}
               <div>
-                <label style={{ display: 'block', fontSize: 14, fontWeight: 700, color: '#333', marginBottom: 8 }}>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 700, color: '#333', marginBottom: 12 }}>
                   자소서 내용 <span style={{ color: '#e63946' }}>*</span>
-                  <span style={{ color: '#aaa', fontWeight: 400, marginLeft: 8 }}>{content.length}자</span>
                 </label>
-                <textarea style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 12, padding: '16px', fontSize: 15, color: '#1a1a1a', background: '#faf9f7', outline: 'none', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.8, boxSizing: 'border-box' }} rows={14} placeholder="자소서 내용을 여기에 붙여넣어 주세요. (최소 100자 이상)" value={content} onChange={e => setContent(e.target.value)} />
+
+                {/* 파일 업로드 버튼 */}
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{ border: '2px dashed #e5e3dc', borderRadius: 12, padding: '20px', textAlign: 'center', cursor: 'pointer', marginBottom: 12, background: fileName ? '#f0fdf4' : '#faf9f7', transition: 'all 0.2s' }}
+                >
+                  <input ref={fileInputRef} type="file" accept=".txt,.doc,.docx" onChange={handleFileUpload} style={{ display: 'none' }} />
+                  <div style={{ fontSize: 28, marginBottom: 8 }}>📄</div>
+                  {fileName ? (
+                    <>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: '#10b981', margin: 0 }}>✓ {fileName}</p>
+                      <p style={{ fontSize: 12, color: '#aaa', margin: '4px 0 0' }}>파일이 업로드됐습니다. 아래에서 내용을 확인하거나 수정할 수 있어요.</p>
+                    </>
+                  ) : (
+                    <>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: '#0f2244', margin: 0 }}>파일 업로드</p>
+                      <p style={{ fontSize: 12, color: '#aaa', margin: '4px 0 0' }}>TXT, DOC, DOCX 파일 지원 · 클릭하여 업로드</p>
+                    </>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                  <div style={{ flex: 1, height: 1, background: '#e8e5dc' }} />
+                  <span style={{ fontSize: 12, color: '#aaa', fontWeight: 600 }}>또는 직접 입력</span>
+                  <div style={{ flex: 1, height: 1, background: '#e8e5dc' }} />
+                </div>
+
+                <div style={{ position: 'relative' }}>
+                  <textarea
+                    style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 12, padding: '16px', fontSize: 15, color: '#1a1a1a', background: '#faf9f7', outline: 'none', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.8, boxSizing: 'border-box' }}
+                    rows={14}
+                    placeholder="자소서 내용을 여기에 직접 입력하거나 붙여넣어 주세요. (최소 100자 이상)"
+                    value={content}
+                    onChange={e => { setContent(e.target.value); if (e.target.value !== content) setFileName('') }}
+                  />
+                  <div style={{ position: 'absolute', bottom: 12, right: 16, fontSize: 12, color: '#bbb' }}>
+                    {content.length}자
+                  </div>
+                </div>
               </div>
 
               {error && (
@@ -392,11 +378,15 @@ export default function Home() {
     return (
       <main style={base}>
         <header style={headerStyle}>
-          <div style={headerInner}>
+          <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px', height: 72, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
             <button onClick={() => setStep('landing')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
               <Logo />
             </button>
-            <button onClick={() => { setStep('analyze'); setResult(null) }} style={{ fontSize: 13, color: '#888', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>다시 분석하기</button>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <p style={{ fontSize: 17, fontWeight: 800, color: '#0f2244', margin: 0, lineHeight: 1.45, whiteSpace: 'nowrap' }}>합격을 위한 정직한 조언,</p>
+              <p style={{ fontSize: 17, fontWeight: 800, color: '#e6a800', margin: 0, lineHeight: 1.45, whiteSpace: 'nowrap' }}>잡통의 바른 자소서 검토</p>
+            </div>
+            <button onClick={() => { setStep('analyze'); setResult(null) }} style={{ fontSize: 13, color: '#888', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', flexShrink: 0 }}>다시 분석하기</button>
           </div>
         </header>
 
