@@ -13,16 +13,41 @@ export default function Home() {
   const [fileName, setFileName] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     setFileName(file.name)
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      const text = ev.target?.result as string
-      if (text) setContent(text)
+    setError('')
+
+    // txt는 브라우저에서 직접 읽기
+    if (file.name.toLowerCase().endsWith('.txt')) {
+      const reader = new FileReader()
+      reader.onload = (ev) => {
+        const text = ev.target?.result as string
+        if (text) setContent(text)
+      }
+      reader.readAsText(file, 'utf-8')
+      return
     }
-    reader.readAsText(file, 'utf-8')
+
+    // doc/docx는 서버 API로 파싱
+    try {
+      setLoading(true)
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch('/api/parse-file', {
+        method: 'POST',
+        body: formData,
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || '파일 읽기 오류')
+      setContent(data.text)
+    } catch (e: any) {
+      setError(e.message)
+      setFileName('')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleAnalyze = async () => {
