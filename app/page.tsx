@@ -116,7 +116,7 @@ export default function Home() {
         {/* 히어로 */}
         <section style={{ background: 'linear-gradient(160deg, #0a1628 0%, #1a3a6b 60%, #152f58 100%)', color: '#fff', padding: '80px 24px 90px' }}>
           <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
-            <h1 style={{ fontSize: 'clamp(38px, 6vw, 64px)', fontWeight: 900, lineHeight: 1.2, marginBottom: 28, letterSpacing: '-1.5px' }}>
+            <h1 className="hero-title" style={{ fontWeight: 900, lineHeight: 1.2, marginBottom: 28, letterSpacing: '-1.5px' }}>
               당신의 진심을<br />
               <span style={{ color: '#f0c040' }}>바르게 담아내는</span> 문장,<br />
               잡통이 함께 고민합니다.
@@ -255,8 +255,10 @@ export default function Home() {
         <style>{`
   @keyframes spin { to { transform: rotate(360deg); } }
   .jobtong-slogan { font-size: 40px; white-space: nowrap; }
+  .hero-title { font-size: clamp(38px, 6vw, 64px); }
   @media (max-width: 768px) {
-    .jobtong-slogan { font-size: 18px; white-space: normal; line-height: 1.5 !important; }
+    .jobtong-slogan { display: none; }
+    .hero-title { font-size: 28px; }
   }
 `}</style>
         {/* 푸터 */}
@@ -378,8 +380,10 @@ export default function Home() {
         <style>{`
   @keyframes spin { to { transform: rotate(360deg); } }
   .jobtong-slogan { font-size: 40px; white-space: nowrap; }
+  .hero-title { font-size: clamp(38px, 6vw, 64px); }
   @media (max-width: 768px) {
-    .jobtong-slogan { font-size: 18px; white-space: normal; line-height: 1.5 !important; }
+    .jobtong-slogan { display: none; }
+    .hero-title { font-size: 28px; }
   }
 `}</style>
       </main>
@@ -486,8 +490,10 @@ export default function Home() {
         <style>{`
   @keyframes spin { to { transform: rotate(360deg); } }
   .jobtong-slogan { font-size: 40px; white-space: nowrap; }
+  .hero-title { font-size: clamp(38px, 6vw, 64px); }
   @media (max-width: 768px) {
-    .jobtong-slogan { font-size: 18px; white-space: normal; line-height: 1.5 !important; }
+    .jobtong-slogan { display: none; }
+    .hero-title { font-size: 28px; }
   }
 `}</style>
       </main>
