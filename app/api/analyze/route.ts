@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -7,8 +8,51 @@ const client = new Anthropic({
 
 export async function POST(req: NextRequest) {
   try {
+    // ── 1. 인증 토큰 확인 ──
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: '로그인이 필요합니다.' }, { status: 401 })
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+
+    // ── 2. Supabase로 토큰 검증 ──
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    if (authError || !user) {
+      return NextResponse.json({ error: '유효하지 않은 세션입니다. 다시 로그인해주세요.' }, { status: 401 })
+    }
+
+    // ── 3. 크레딧 확인 ──
     const { company, position, content, type = 'free' } = await req.json()
 
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('free_trial_used, paid_credits, role')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile) {
+      return NextResponse.json({ error: '회원 정보를 찾을 수 없습니다.' }, { status: 403 })
+    }
+
+    // 어드민은 무제한
+    const isAdmin = profile.role === 'admin'
+
+    if (!isAdmin) {
+      if (type === 'free' && profile.free_trial_used) {
+        return NextResponse.json({ error: '무료 체험을 이미 사용하셨습니다.' }, { status: 403 })
+      }
+      if (type === 'paid' && (profile.paid_credits || 0) <= 0) {
+        return NextResponse.json({ error: '분석 크레딧이 없습니다. 구매 후 이용해주세요.' }, { status: 403 })
+      }
+    }
+
+    // ── 4. 자소서 내용 검증 ──
     if (!content || content.trim().length < 100) {
       return NextResponse.json({ error: '자소서를 100자 이상 입력해주세요.' }, { status: 400 })
     }
@@ -72,10 +116,8 @@ ${content}
 
     let analysisResult = null
 
-    // 시도 1: 직접 파싱
     try { analysisResult = JSON.parse(responseText.trim()) } catch (e) {}
 
-    // 시도 2: 중괄호 추출
     if (!analysisResult) {
       try {
         const match = responseText.match(/\{[\s\S]*\}/)
@@ -83,7 +125,6 @@ ${content}
       } catch (e) {}
     }
 
-    // 시도 3: 수동 추출 (최후 수단)
     if (!analysisResult) {
       try {
         const scoreMatch = responseText.match(/"totalScore"\s*:\s*(\d+)/)
@@ -104,6 +145,7 @@ ${content}
     }
 
     return NextResponse.json(analysisResult)
+
   } catch (error: any) {
     console.error('분석 오류:', error)
     return NextResponse.json({ error: error.message || '분석 중 오류가 발생했습니다.' }, { status: 500 })
