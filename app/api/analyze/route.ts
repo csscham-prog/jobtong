@@ -102,14 +102,17 @@ export async function POST(req: NextRequest) {
     // 7. AI 분석
     const message = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: isPaid ? 4096 : 1024,
+      max_tokens: isPaid ? 8192 : 1024,
       messages: [{ role: 'user', content: isPaid ? paidPrompt : freePrompt }],
     })
 
     const responseText = message.content[0].type === 'text' ? message.content[0].text : ''
-    console.log('=== AI 응답 시작 ===')
-    console.log(responseText.substring(0, 500))
-    console.log('=== AI 응답 끝 ===')
+    console.log('=== AI 응답 전체 길이:', responseText.length, '===')
+    console.log('=== AI 응답 앞부분 ===')
+    console.log(responseText.substring(0, 1000))
+    console.log('=== AI 응답 뒷부분 ===')
+    console.log(responseText.substring(responseText.length - 500))
+    console.log('=== 끝 ===')
 
     let analysisResult: any = null
 
