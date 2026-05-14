@@ -432,11 +432,41 @@ export default function PaidResult({ result, company, position, onReanalyze }: P
 
           {/* 최종 조언 */}
           {result.finalAdvice && (
-            <div style={{ padding: '20px 24px', background: '#0f2244', borderRadius: 12 }}>
+            <div style={{ marginBottom: 20, padding: '20px 24px', background: '#0f2244', borderRadius: 12 }}>
               <h2 style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 10 }}>🎯 전문가 최종 조언</h2>
               <p style={{ fontSize: 13, color: '#b8d9ee', lineHeight: 1.8, margin: 0 }}>{result.finalAdvice}</p>
             </div>
           )}
+
+          {/* 최종 제출 전 체크리스트 */}
+          <div style={{ marginBottom: 20, padding: '20px 24px', background: '#f7f6f3', borderRadius: 12, border: '1px solid #ece9e1' }}>
+            <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0f2244', marginBottom: 14 }}>📝 최종 제출 전 체크리스트</h2>
+            {[
+              '지원 직무에서 요구하는 핵심 역량이 명확히 드러나는가?',
+              '추상적 표현 대신 구체적 수치와 사례를 사용했는가?',
+              '각 문단이 하나의 메시지에 집중하고 있는가?',
+              '맞춤법·문장 부호 오류가 없는가?',
+              '분량이 지원 기업의 권장 분량에 맞는가?',
+              '지원 동기가 해당 기업만의 이유로 특화되어 있는가?',
+            ].map((item, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 12px', background: '#fff', borderRadius: 8, marginBottom: 8 }}>
+                <span style={{ color: '#0f2244', fontWeight: 700, flexShrink: 0 }}>☐</span>
+                <span style={{ fontSize: 13, color: '#444', lineHeight: 1.6 }}>{item}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* 이렇게 활용하세요 */}
+          <div style={{ padding: '20px 24px', background: '#fffbeb', borderRadius: 12, border: '1px solid #fde68a' }}>
+            <h2 style={{ fontSize: 15, fontWeight: 800, color: '#92400e', marginBottom: 12 }}>💡 이렇게 활용하세요</h2>
+            {[
+              '이 리포트를 참고해 자소서를 수정하세요',
+              '수정한 자소서를 다시 분석해 점수 변화를 확인하세요',
+              '80점 이상이 될 때까지 반복하면 합격률이 크게 높아집니다',
+            ].map((step, i) => (
+              <p key={i} style={{ fontSize: 13, color: '#92400e', margin: '0 0 8px', lineHeight: 1.7 }}>{i + 1}. {step}</p>
+            ))}
+          </div>
         </div>
       </div>
     </div>
