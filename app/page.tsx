@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import PaidResult from '@/components/PaidResult'
 
 export default function Home() {
   const [step, setStep] = useState<'landing' | 'analyze' | 'result'>('landing')
@@ -409,92 +410,14 @@ export default function Home() {
             <p style={{ color: '#444', lineHeight: 1.85, fontSize: 15 }}>{result.mainIssue}</p>
           </div>
 
-          {/* 유료 전용 결과 */}
-          {isPaid && result.scores && (
-            <>
-              {/* 항목별 점수 */}
-              <div style={{ background: '#fff', borderRadius: 20, padding: '32px 36px', border: '1px solid #ece9e1' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-                  <span style={{ fontSize: 20 }}>📊</span>
-                  <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f2244' }}>항목별 세부 점수</h3>
-                </div>
-                {[
-                  { label: '논리성', key: 'logic' },
-                  { label: '구체성', key: 'specific' },
-                  { label: '직무 적합성', key: 'fit' },
-                  { label: '표현력', key: 'expression' },
-                ].map(item => {
-                  const score = result.scores[item.key] || 0
-                  return (
-                    <div key={item.key} style={{ marginBottom: 16 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, marginBottom: 8 }}>
-                        <span style={{ fontWeight: 700, color: '#333' }}>{item.label}</span>
-                        <span style={{ fontWeight: 700, color: getScoreColor(score) }}>{score}점</span>
-                      </div>
-                      <div style={{ height: 10, background: '#f0ede6', borderRadius: 5 }}>
-                        <div style={{ height: '100%', width: `${score}%`, background: getScoreColor(score), borderRadius: 5, transition: 'width 0.7s' }} />
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-
-              {/* 개선 제안 */}
-              {result.improvements && result.improvements.length > 0 && (
-                <div style={{ background: '#fff', borderRadius: 20, padding: '32px 36px', border: '1px solid #ece9e1' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-                    <span style={{ fontSize: 20 }}>✏️</span>
-                    <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f2244' }}>문장 개선 제안</h3>
-                  </div>
-                  {result.improvements.map((imp: any, i: number) => (
-                    <div key={i} style={{ background: '#f7f6f3', borderRadius: 14, padding: '20px', marginBottom: 16 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#e6a800', marginBottom: 8, letterSpacing: 1 }}>{imp.category}</div>
-                      <p style={{ fontSize: 14, color: '#555', marginBottom: 12, lineHeight: 1.7 }}>{imp.issue}</p>
-                      {imp.original && (
-                        <div style={{ background: '#fef2f2', borderRadius: 8, padding: '10px 14px', marginBottom: 10, fontSize: 13, color: '#991b1b', borderLeft: '3px solid #fecaca' }}>
-                          <span style={{ fontWeight: 700 }}>원문: </span>{imp.original}
-                        </div>
-                      )}
-                      <div style={{ background: '#ecfdf5', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#065f46', borderLeft: '3px solid #6ee7b7', marginBottom: imp.addContent ? 10 : 0 }}>
-                        <span style={{ fontWeight: 700 }}>💡 이렇게 고치세요: </span>{imp.suggestion}
-                      </div>
-                      {imp.addContent && (
-                        <div style={{ background: '#eff6ff', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#1e40af', borderLeft: '3px solid #93c5fd', marginTop: 10 }}>
-                          <span style={{ fontWeight: 700 }}>➕ 이런 내용 추가하세요: </span>{imp.addContent}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* 잘 된 점 */}
-              {result.strongPoints && result.strongPoints.length > 0 && (
-                <div style={{ background: '#ecfdf5', borderRadius: 20, padding: '32px 36px', border: '2px solid #6ee7b7' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                    <span style={{ fontSize: 20 }}>⭐</span>
-                    <h3 style={{ fontSize: 18, fontWeight: 800, color: '#065f46' }}>잘 된 점</h3>
-                  </div>
-                  {result.strongPoints.map((point: string, i: number) => (
-                    <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 10, fontSize: 15, color: '#065f46' }}>
-                      <span style={{ fontWeight: 700, flexShrink: 0 }}>✓</span>
-                      <span style={{ lineHeight: 1.7 }}>{point}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* 최종 조언 */}
-              {result.finalAdvice && (
-                <div style={{ background: '#0f2244', borderRadius: 20, padding: '32px 36px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                    <span style={{ fontSize: 20 }}>🎯</span>
-                    <h3 style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>최종 종합 조언</h3>
-                  </div>
-                  <p style={{ color: '#b8d9ee', lineHeight: 1.85, fontSize: 15 }}>{result.finalAdvice}</p>
-                </div>
-              )}
-            </>
+          {/* 유료 전용 결과 — 프리미엄 컴포넌트 */}
+          {isPaid && (
+            <PaidResult
+              result={result}
+              company={company}
+              position={position}
+              onReanalyze={() => { setStep('analyze'); setResult(null); setContent(''); setFileName('') }}
+            />
           )}
 
           {/* 무료 결과 → 결제 유도 */}
@@ -528,9 +451,11 @@ export default function Home() {
             </div>
           )}
 
-          <button onClick={() => { setStep('analyze'); setResult(null); setContent(''); setFileName('') }} style={{ width: '100%', background: '#fff', color: '#0f2244', border: '2px solid #0f2244', borderRadius: 14, padding: '16px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}>
-            다른 자소서 분석하기
-          </button>
+          {!isPaid && (
+            <button onClick={() => { setStep('analyze'); setResult(null); setContent(''); setFileName('') }} style={{ width: '100%', background: '#fff', color: '#0f2244', border: '2px solid #0f2244', borderRadius: 14, padding: '16px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}>
+              다른 자소서 분석하기
+            </button>
+          )}
         </div>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } } .jobtong-slogan { font-size: 28px; white-space: nowrap; } @media (max-width: 768px) { .jobtong-slogan { display: none; } }`}</style>
       </main>
