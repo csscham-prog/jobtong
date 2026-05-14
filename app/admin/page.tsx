@@ -4,68 +4,111 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 
 export default function AdminPage() {
-  const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [users, setUsers] = useState<any[]>([])
-  const [stats, setStats] = useState<any>(null)
+  const [filteredUsers, setFilteredUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'stats' | 'users'>('stats')
   const [editingUser, setEditingUser] = useState<any>(null)
   const [creditAmount, setCreditAmount] = useState(0)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [periodFilter, setPeriodFilter] = useState<'today' | 'week' | 'month' | 'custom'>('month')
+  const [customStart, setCustomStart] = useState('')
+  const [customEnd, setCustomEnd] = useState('')
+  const [stats, setStats] = useState<any>(null)
+
+  useEffect(() => { checkAdmin() }, [])
 
   useEffect(() => {
-    checkAdmin()
-  }, [])
+    const q = searchQuery.toLowerCase()
+    setFilteredUsers(
+      users.filter(u =>
+        (u.email || '').toLowerCase().includes(q) ||
+        (u.name || '').toLowerCase().includes(q)
+      )
+    )
+  }, [searchQuery, users])
+
+  useEffect(() => {
+    if (users.length > 0) calcStats()
+  }, [users, periodFilter, customStart, customEnd])
 
   const checkAdmin = async () => {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) { window.location.href = '/login'; return }
-
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', session.user.id)
-      .single()
-
-    if (!profileData || profileData.role !== 'admin') {
-      window.location.href = '/'
-      return
-    }
-
-    setUser(session.user)
-    setProfile(profileData)
+    const { data: p } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
+    if (!p || p.role !== 'admin') { window.location.href = '/'; return }
+    setProfile(p)
     await loadData()
     setLoading(false)
   }
 
   const loadData = async () => {
-    // 전체 회원 목록
-    const { data: usersData } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (usersData) setUsers(usersData)
-
-    // 통계
-    const total = usersData?.length || 0
-    const trialUsed = usersData?.filter(u => u.free_trial_used).length || 0
-    const paidUsers = usersData?.filter(u => u.paid_credits > 0).length || 0
-    const totalAnalyses = usersData?.reduce((sum, u) => sum + (u.total_analyses || 0), 0) || 0
-
-    setStats({ total, trialUsed, paidUsers, totalAnalyses })
+    const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: false })
+    if (data) { setUsers(data); setFilteredUsers(data) }
   }
 
-  const handleUpdateCredits = async (userId: string, newCredits: number, resetTrial: boolean) => {
-    await supabase
-      .from('profiles')
-      .update({
-        paid_credits: newCredits,
-        ...(resetTrial ? { free_trial_used: false } : {}),
-      })
-      .eq('id', userId)
+  const getPeriodRange = () => {
+    const now = new Date()
+    const end = new Date(now)
+    end.setHours(23, 59, 59, 999)
+
+    if (periodFilter === 'today') {
+      const start = new Date(now)
+      start.setHours(0, 0, 0, 0)
+      return { start, end }
+    }
+    if (periodFilter === 'week') {
+      const start = new Date(now)
+      start.setDate(now.getDate() - 6)
+      start.setHours(0, 0, 0, 0)
+      return { start, end }
+    }
+    if (periodFilter === 'month') {
+      const start = new Date(now)
+      start.setDate(1)
+      start.setHours(0, 0, 0, 0)
+      return { start, end }
+    }
+    if (periodFilter === 'custom' && customStart && customEnd) {
+      return { start: new Date(customStart), end: new Date(customEnd + 'T23:59:59') }
+    }
+    return null
+  }
+
+  const calcStats = () => {
+    const range = getPeriodRange()
+    const filtered = range
+      ? users.filter(u => {
+          const d = new Date(u.created_at)
+          return d >= range.start && d <= range.end
+        })
+      : users
+
+    const total = users.length
+    const periodNew = filtered.length
+    const trialUsed = users.filter(u => u.free_trial_used).length
+    const paidUsers = users.filter(u => u.paid_credits > 0).length
+    const totalAnalyses = users.reduce((s, u) => s + (u.total_analyses || 0), 0)
+
+    setStats({ total, periodNew, trialUsed, paidUsers, totalAnalyses })
+  }
+
+  const handleUpdateCredits = async (userId: string, credits: number, resetTrial: boolean) => {
+    await supabase.from('profiles').update({
+      paid_credits: credits,
+      ...(resetTrial ? { free_trial_used: false } : {}),
+    }).eq('id', userId)
     await loadData()
     setEditingUser(null)
+  }
+
+  const periodLabel = () => {
+    if (periodFilter === 'today') return '오늘'
+    if (periodFilter === 'week') return '이번 주'
+    if (periodFilter === 'month') return '이번 달'
+    if (periodFilter === 'custom' && customStart && customEnd) return `${customStart} ~ ${customEnd}`
+    return '기간'
   }
 
   const Emblem = () => (
@@ -91,30 +134,20 @@ export default function AdminPage() {
           <span style={{ fontSize: 18, fontWeight: 800 }}>잡통</span>
           <span style={{ background: '#e6a800', color: '#fff', fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 700, marginLeft: 4 }}>ADMIN</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>{profile?.email}</span>
-          <button onClick={() => window.location.href = '/'} style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
-            사이트 보기
-          </button>
-          <button onClick={async () => { await supabase.auth.signOut(); window.location.href = '/' }} style={{ background: 'none', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 8, padding: '8px 14px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
-            로그아웃
-          </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>{profile?.email}</span>
+          <button onClick={() => window.location.href = '/'} style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>사이트 보기</button>
+          <button onClick={async () => { await supabase.auth.signOut(); window.location.href = '/' }} style={{ background: 'none', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 8, padding: '8px 14px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>로그아웃</button>
         </div>
       </header>
 
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 24px' }}>
 
         {/* 탭 */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 28 }}>
-          {[
-            { key: 'stats', label: '📊 통계' },
-            { key: 'users', label: '👥 회원 관리' },
-          ].map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key as any)}
-              style={{ background: activeTab === tab.key ? '#0f2244' : '#fff', color: activeTab === tab.key ? '#fff' : '#555', border: '1px solid #e8e5dc', borderRadius: 10, padding: '10px 20px', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}
-            >
+          {[{ key: 'stats', label: '📊 통계' }, { key: 'users', label: '👥 회원 관리' }].map(tab => (
+            <button key={tab.key} onClick={() => setActiveTab(tab.key as any)}
+              style={{ background: activeTab === tab.key ? '#0f2244' : '#fff', color: activeTab === tab.key ? '#fff' : '#555', border: '1px solid #e8e5dc', borderRadius: 10, padding: '10px 20px', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
               {tab.label}
             </button>
           ))}
@@ -123,97 +156,148 @@ export default function AdminPage() {
         {/* 통계 탭 */}
         {activeTab === 'stats' && stats && (
           <div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
+            {/* 기간 필터 */}
+            <div style={{ background: '#fff', borderRadius: 16, padding: '20px 24px', border: '1px solid #ece9e1', marginBottom: 20 }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#555', margin: '0 0 12px' }}>기간 선택</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                {[
+                  { key: 'today', label: '오늘' },
+                  { key: 'week', label: '이번 주' },
+                  { key: 'month', label: '이번 달' },
+                  { key: 'custom', label: '기간 지정' },
+                ].map(p => (
+                  <button key={p.key} onClick={() => setPeriodFilter(p.key as any)}
+                    style={{ background: periodFilter === p.key ? '#0f2244' : '#f7f6f3', color: periodFilter === p.key ? '#fff' : '#555', border: `1px solid ${periodFilter === p.key ? '#0f2244' : '#e8e5dc'}`, borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                    {p.label}
+                  </button>
+                ))}
+                {periodFilter === 'custom' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                    <input type="date" value={customStart} onChange={e => setCustomStart(e.target.value)}
+                      style={{ border: '1.5px solid #e5e3dc', borderRadius: 8, padding: '7px 10px', fontSize: 13, outline: 'none', fontFamily: 'inherit' }} />
+                    <span style={{ color: '#888', fontSize: 13 }}>~</span>
+                    <input type="date" value={customEnd} onChange={e => setCustomEnd(e.target.value)}
+                      style={{ border: '1.5px solid #e5e3dc', borderRadius: 8, padding: '7px 10px', fontSize: 13, outline: 'none', fontFamily: 'inherit' }} />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 통계 카드 */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 20 }}>
               {[
-                { label: '총 회원 수', value: `${stats.total}명`, color: '#0f2244' },
-                { label: '무료체험 사용', value: `${stats.trialUsed}명`, color: '#e6a800' },
-                { label: '유료 사용자', value: `${stats.paidUsers}명`, color: '#10b981' },
-                { label: '총 분석 건수', value: `${stats.totalAnalyses}건`, color: '#6366f1' },
+                { label: '총 회원 수', value: `${stats.total}명`, sub: '전체 누적', color: '#0f2244' },
+                { label: `신규 가입 (${periodLabel()})`, value: `${stats.periodNew}명`, sub: '기간 내 신규', color: '#6366f1' },
+                { label: '무료체험 사용', value: `${stats.trialUsed}명`, sub: `전환율 ${stats.total ? Math.round(stats.trialUsed / stats.total * 100) : 0}%`, color: '#e6a800' },
+                { label: '유료 사용자', value: `${stats.paidUsers}명`, sub: `전환율 ${stats.total ? Math.round(stats.paidUsers / stats.total * 100) : 0}%`, color: '#10b981' },
+                { label: '총 분석 건수', value: `${stats.totalAnalyses}건`, sub: '전체 누적', color: '#ef4444' },
               ].map(item => (
                 <div key={item.label} style={{ background: '#fff', borderRadius: 16, padding: '24px', border: '1px solid #ece9e1' }}>
-                  <p style={{ fontSize: 13, color: '#888', margin: '0 0 8px' }}>{item.label}</p>
-                  <p style={{ fontSize: 32, fontWeight: 800, color: item.color, margin: 0 }}>{item.value}</p>
+                  <p style={{ fontSize: 12, color: '#888', margin: '0 0 8px', fontWeight: 600 }}>{item.label}</p>
+                  <p style={{ fontSize: 32, fontWeight: 800, color: item.color, margin: '0 0 4px' }}>{item.value}</p>
+                  <p style={{ fontSize: 12, color: '#aaa', margin: 0 }}>{item.sub}</p>
                 </div>
               ))}
             </div>
 
+            {/* 전환 퍼널 */}
             <div style={{ background: '#fff', borderRadius: 16, padding: '24px', border: '1px solid #ece9e1' }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f2244', margin: '0 0 16px' }}>전환율 분석</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <div>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f2244', margin: '0 0 20px' }}>전환 퍼널</h3>
+              {[
+                { label: '회원가입', value: stats.total, max: stats.total, color: '#0f2244' },
+                { label: '무료체험 사용', value: stats.trialUsed, max: stats.total, color: '#e6a800' },
+                { label: '유료 전환', value: stats.paidUsers, max: stats.total, color: '#10b981' },
+              ].map(item => (
+                <div key={item.label} style={{ marginBottom: 16 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
-                    <span style={{ color: '#555' }}>무료체험 전환율</span>
-                    <span style={{ fontWeight: 600 }}>{stats.total ? Math.round(stats.trialUsed / stats.total * 100) : 0}%</span>
+                    <span style={{ color: '#555', fontWeight: 600 }}>{item.label}</span>
+                    <span style={{ fontWeight: 700, color: item.color }}>{item.value}명 ({item.max ? Math.round(item.value / item.max * 100) : 0}%)</span>
                   </div>
-                  <div style={{ height: 8, background: '#f0ede6', borderRadius: 4 }}>
-                    <div style={{ height: '100%', width: `${stats.total ? stats.trialUsed / stats.total * 100 : 0}%`, background: '#e6a800', borderRadius: 4 }} />
+                  <div style={{ height: 10, background: '#f0ede6', borderRadius: 5 }}>
+                    <div style={{ height: '100%', width: `${item.max ? item.value / item.max * 100 : 0}%`, background: item.color, borderRadius: 5, transition: 'width 0.5s' }} />
                   </div>
                 </div>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
-                    <span style={{ color: '#555' }}>유료 전환율</span>
-                    <span style={{ fontWeight: 600 }}>{stats.total ? Math.round(stats.paidUsers / stats.total * 100) : 0}%</span>
-                  </div>
-                  <div style={{ height: 8, background: '#f0ede6', borderRadius: 4 }}>
-                    <div style={{ height: '100%', width: `${stats.total ? stats.paidUsers / stats.total * 100 : 0}%`, background: '#10b981', borderRadius: 4 }} />
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         )}
 
         {/* 회원 관리 탭 */}
         {activeTab === 'users' && (
-          <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', overflow: 'hidden' }}>
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid #f0ede6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f2244', margin: 0 }}>전체 회원 ({users.length}명)</h3>
-              <button onClick={loadData} style={{ background: '#f7f6f3', color: '#555', border: '1px solid #e8e5dc', borderRadius: 8, padding: '8px 14px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
-                새로고침
-              </button>
+          <div>
+            {/* 검색창 */}
+            <div style={{ background: '#fff', borderRadius: 16, padding: '16px 20px', border: '1px solid #ece9e1', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ fontSize: 18 }}>🔍</span>
+              <input
+                type="text"
+                placeholder="이메일 또는 이름으로 검색..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ flex: 1, border: 'none', outline: 'none', fontSize: 15, color: '#333', fontFamily: 'inherit', background: 'transparent' }}
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')}
+                  style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 18, padding: 0 }}>✕</button>
+              )}
             </div>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ background: '#f7f6f3' }}>
-                    {['이메일', '가입일', '무료체험', '잔여횟수', '총분석', '역할', '관리'].map(h => (
-                      <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#888', whiteSpace: 'nowrap' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((u, i) => (
-                    <tr key={u.id} style={{ borderTop: '1px solid #f0ede6', background: i % 2 === 0 ? '#fff' : '#faf9f7' }}>
-                      <td style={{ padding: '12px 16px', fontSize: 14, color: '#333' }}>{u.email || '(이메일 없음)'}</td>
-                      <td style={{ padding: '12px 16px', fontSize: 13, color: '#888', whiteSpace: 'nowrap' }}>
-                        {new Date(u.created_at).toLocaleDateString('ko-KR')}
-                      </td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <span style={{ background: u.free_trial_used ? '#fef2f2' : '#ecfdf5', color: u.free_trial_used ? '#991b1b' : '#065f46', fontSize: 12, padding: '3px 8px', borderRadius: 20, fontWeight: 600 }}>
-                          {u.free_trial_used ? '사용함' : '미사용'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '12px 16px', fontSize: 14, fontWeight: 600, color: u.paid_credits > 0 ? '#0f2244' : '#aaa' }}>
-                        {u.paid_credits || 0}회
-                      </td>
-                      <td style={{ padding: '12px 16px', fontSize: 14, color: '#555' }}>{u.total_analyses || 0}건</td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <span style={{ background: u.role === 'admin' ? '#EEEDFE' : '#f7f6f3', color: u.role === 'admin' ? '#3C3489' : '#888', fontSize: 12, padding: '3px 8px', borderRadius: 20, fontWeight: 600 }}>
-                          {u.role === 'admin' ? 'admin' : 'user'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <button
-                          onClick={() => { setEditingUser(u); setCreditAmount(u.paid_credits || 0) }}
-                          style={{ background: '#0f2244', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}
-                        >
-                          횟수 조정
-                        </button>
-                      </td>
+
+            <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', overflow: 'hidden' }}>
+              <div style={{ padding: '16px 24px', borderBottom: '1px solid #f0ede6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f2244', margin: 0 }}>
+                  회원 목록 {searchQuery ? `(검색결과 ${filteredUsers.length}명)` : `(총 ${users.length}명)`}
+                </h3>
+                <button onClick={loadData} style={{ background: '#f7f6f3', color: '#555', border: '1px solid #e8e5dc', borderRadius: 8, padding: '8px 14px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  새로고침
+                </button>
+              </div>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ background: '#f7f6f3' }}>
+                      {['이메일', '이름', '가입일', '무료체험', '잔여횟수', '총분석', '역할', '관리'].map(h => (
+                        <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#888', whiteSpace: 'nowrap' }}>{h}</th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {filteredUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} style={{ padding: '40px', textAlign: 'center', color: '#aaa', fontSize: 14 }}>
+                          {searchQuery ? '검색 결과가 없습니다.' : '회원이 없습니다.'}
+                        </td>
+                      </tr>
+                    ) : filteredUsers.map((u, i) => (
+                      <tr key={u.id} style={{ borderTop: '1px solid #f0ede6', background: i % 2 === 0 ? '#fff' : '#faf9f7' }}>
+                        <td style={{ padding: '12px 16px', fontSize: 13, color: '#333' }}>{u.email || '(없음)'}</td>
+                        <td style={{ padding: '12px 16px', fontSize: 13, color: '#555' }}>{u.name || '-'}</td>
+                        <td style={{ padding: '12px 16px', fontSize: 12, color: '#888', whiteSpace: 'nowrap' }}>
+                          {new Date(u.created_at).toLocaleDateString('ko-KR')}
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <span style={{ background: u.free_trial_used ? '#fef2f2' : '#ecfdf5', color: u.free_trial_used ? '#991b1b' : '#065f46', fontSize: 11, padding: '3px 8px', borderRadius: 20, fontWeight: 600 }}>
+                            {u.free_trial_used ? '사용함' : '미사용'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px 16px', fontSize: 14, fontWeight: 600, color: u.paid_credits > 0 ? '#0f2244' : '#aaa' }}>
+                          {u.paid_credits || 0}회
+                        </td>
+                        <td style={{ padding: '12px 16px', fontSize: 13, color: '#555' }}>{u.total_analyses || 0}건</td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <span style={{ background: u.role === 'admin' ? '#EEEDFE' : '#f7f6f3', color: u.role === 'admin' ? '#3C3489' : '#888', fontSize: 11, padding: '3px 8px', borderRadius: 20, fontWeight: 600 }}>
+                            {u.role === 'admin' ? 'admin' : 'user'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <button onClick={() => { setEditingUser(u); setCreditAmount(u.paid_credits || 0) }}
+                            style={{ background: '#0f2244', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
+                            횟수 조정
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
@@ -223,41 +307,43 @@ export default function AdminPage() {
       {editingUser && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 24 }}>
           <div style={{ background: '#fff', borderRadius: 20, padding: '32px', width: '100%', maxWidth: 400 }}>
-            <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f2244', margin: '0 0 6px' }}>횟수 조정</h3>
-            <p style={{ fontSize: 14, color: '#888', margin: '0 0 24px' }}>{editingUser.email}</p>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f2244', margin: '0 0 4px' }}>횟수 조정</h3>
+            <p style={{ fontSize: 13, color: '#888', margin: '0 0 24px' }}>{editingUser.email}</p>
 
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#333', marginBottom: 8 }}>유료 잔여 횟수</label>
-              <input
-                type="number"
-                min="0"
-                value={creditAmount}
-                onChange={e => setCreditAmount(parseInt(e.target.value) || 0)}
-                style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 10, padding: '12px 14px', fontSize: 15, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
-              />
+            <div style={{ background: '#f7f6f3', borderRadius: 10, padding: '12px 16px', marginBottom: 16, fontSize: 13, color: '#555' }}>
+              현재 잔여: <strong style={{ color: '#0f2244' }}>{editingUser.paid_credits || 0}회</strong>
+              {' '}/ 무료체험: <strong style={{ color: editingUser.free_trial_used ? '#ef4444' : '#10b981' }}>{editingUser.free_trial_used ? '사용함' : '미사용'}</strong>
             </div>
 
-            <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
-              <button
-                onClick={() => handleUpdateCredits(editingUser.id, creditAmount, false)}
-                style={{ flex: 1, background: '#0f2244', color: '#fff', border: 'none', borderRadius: 10, padding: '12px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}
-              >
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#333', marginBottom: 8 }}>유료 잔여 횟수 설정</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {[1, 3, 5, 10].map(n => (
+                  <button key={n} onClick={() => setCreditAmount(n)}
+                    style={{ flex: 1, background: creditAmount === n ? '#0f2244' : '#f7f6f3', color: creditAmount === n ? '#fff' : '#555', border: '1px solid #ddd', borderRadius: 8, padding: '8px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
+                    {n}회
+                  </button>
+                ))}
+              </div>
+              <input type="number" min="0" value={creditAmount} onChange={e => setCreditAmount(parseInt(e.target.value) || 0)}
+                style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 10, padding: '12px 14px', fontSize: 15, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', marginTop: 8 }} />
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+              <button onClick={() => handleUpdateCredits(editingUser.id, creditAmount, false)}
+                style={{ flex: 1, background: '#0f2244', color: '#fff', border: 'none', borderRadius: 10, padding: '12px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
                 저장
               </button>
-              <button
-                onClick={() => setEditingUser(null)}
-                style={{ flex: 1, background: '#f7f6f3', color: '#555', border: '1px solid #ddd', borderRadius: 10, padding: '12px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}
-              >
+              <button onClick={() => setEditingUser(null)}
+                style={{ flex: 1, background: '#f7f6f3', color: '#555', border: '1px solid #ddd', borderRadius: 10, padding: '12px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
                 취소
               </button>
             </div>
 
             {editingUser.free_trial_used && (
-              <button
-                onClick={() => handleUpdateCredits(editingUser.id, creditAmount, true)}
-                style={{ width: '100%', background: '#fffbeb', color: '#92400e', border: '1px solid #fde68a', borderRadius: 10, padding: '10px', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
-              >
-                무료체험 횟수도 초기화
+              <button onClick={() => handleUpdateCredits(editingUser.id, creditAmount, true)}
+                style={{ width: '100%', background: '#fffbeb', color: '#92400e', border: '1px solid #fde68a', borderRadius: 10, padding: '10px', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+                + 무료체험도 함께 초기화
               </button>
             )}
           </div>
