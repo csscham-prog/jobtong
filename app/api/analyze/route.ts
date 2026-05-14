@@ -155,9 +155,13 @@ ${content}
       }]
     }
 
-    // ── 5. 분석 결과 DB 저장 ──
+    // ── 5. 분석 결과 DB 저장 (service role key 사용) ──
     try {
-      await supabase.from('analyses').insert({
+      const adminSupabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      )
+      const { error: insertError } = await adminSupabase.from('analyses').insert({
         user_id: user.id,
         company: company || null,
         position: position || null,
@@ -167,9 +171,9 @@ ${content}
         analyze_type: type,
         result_json: analysisResult,
       })
+      if (insertError) console.error('분석 저장 오류:', insertError)
     } catch (e) {
       console.error('분석 결과 저장 실패:', e)
-      // 저장 실패해도 결과는 반환
     }
 
     return NextResponse.json(analysisResult)
