@@ -60,14 +60,22 @@ export async function POST(req: NextRequest) {
 
     const isPaid = type === 'paid'
 
-    // 6. 프롬프트 구성
+    // 6. 자소서 내용 안전 처리 — 큰따옴표 등 JSON 파싱 방해 문자 제거
+    const safeContent = content
+      .replace(/"/g, "'")
+      .replace(/\\/g, ' ')
+      .replace(/\r/g, ' ')
+      .replace(/\n/g, ' ')
+      .trim()
+
+    // 7. 프롬프트 구성
     const companyLine = company ? '지원 회사: ' + company : ''
     const positionLine = position ? '지원 직무: ' + position : ''
 
     const freePrompt = '당신은 10년 경력의 한국 대기업 인사담당자입니다.\n' +
       '아래 자기소개서를 분석해주세요.\n\n' +
       companyLine + '\n' + positionLine + '\n\n' +
-      '자기소개서:\n' + content + '\n\n' +
+      '자기소개서:\n' + safeContent + '\n\n' +
       '반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트 없이 JSON만 출력하세요.\n' +
       '문자열 내부에 큰따옴표가 있으면 반드시 작은따옴표로 바꾸세요.\n\n' +
       '{"totalScore":숫자,"summary":"총평 3-4문장","mainIssue":"핵심문제 2-3문장"}'
@@ -75,7 +83,7 @@ export async function POST(req: NextRequest) {
     const paidPrompt = '당신은 15년 경력의 대기업 인사팀장이자 자소서 전문 컨설턴트입니다.\n' +
       '아래 자기소개서를 최고 수준으로 분석하고 전문가 수준의 구체적인 피드백을 제공하세요.\n\n' +
       companyLine + '\n' + positionLine + '\n\n' +
-      '자기소개서:\n' + content + '\n\n' +
+      '자기소개서:\n' + safeContent + '\n\n' +
       '[필수 지침]\n' +
       '1. summary: 4-5문장으로 강점과 약점을 균형있게 상세히 작성\n' +
       '2. mainIssue: 합격을 가장 크게 방해하는 핵심 문제 2-3문장\n' +
