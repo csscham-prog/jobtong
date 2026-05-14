@@ -20,7 +20,17 @@ export default function Home() {
   const [authLoading, setAuthLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      // 로그인 상태 유지 미체크 유저 → 브라우저 재시작 시 로그아웃
+      const keepLogin = localStorage.getItem('jobtong-keep-login') === 'true'
+      const sessionOnly = sessionStorage.getItem('jobtong-session-only') === 'true'
+      if (session?.user && !keepLogin && !sessionOnly) {
+        // sessionStorage가 없다는 건 브라우저가 새로 열린 것 → 로그아웃
+        await supabase.auth.signOut()
+        setUser(null)
+        setAuthLoading(false)
+        return
+      }
       setUser(session?.user ?? null)
       if (session?.user) fetchProfile(session.user.id)
       setAuthLoading(false)
