@@ -71,9 +71,16 @@ export default function Home() {
     if (content.trim().length < 100) { setError('자소서를 100자 이상 입력해주세요.'); return }
     setError(''); setLoading(true); setAnalyzeType(type)
     try {
+      // 로그인 토큰 가져오기
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { window.location.href = '/login'; return }
+
       const res = await fetch('/api/analyze', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({ company, position, content, type }),
       })
       const data = await res.json()
