@@ -390,22 +390,24 @@ export default function Home() {
             <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
               {isPaid && (
                 <button
-                  onClick={() => {
-                    const printArea = document.createElement('div')
-                    printArea.id = 'pdf-print-area-top'
-                    printArea.style.display = 'none'
-                    const src = document.getElementById('pdf-all-content')
-                    if (src) printArea.innerHTML = src.innerHTML
-                    document.body.appendChild(printArea)
-                    const style = document.createElement('style')
-                    style.id = 'print-style-top'
-                    style.innerHTML = '@media print { body > * { display: none !important; } #pdf-print-area-top { display: block !important; } @page { margin: 15mm; size: A4; } * { -webkit-print-color-adjust: exact !important; } }'
-                    document.head.appendChild(style)
-                    window.print()
-                    setTimeout(() => {
-                      document.getElementById('print-style-top')?.remove()
-                      document.getElementById('pdf-print-area-top')?.remove()
-                    }, 1000)
+                  onClick={async () => {
+                    const element = document.getElementById('pdf-all-content')
+                    if (!element) return
+                    if (!(window as any).html2pdf) {
+                      const script = document.createElement('script')
+                      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'
+                      document.head.appendChild(script)
+                      await new Promise(resolve => { script.onload = resolve })
+                    }
+                    const filename = `잡통_자소서분석_${new Date().toLocaleDateString('ko-KR').replace(/\. /g, '-').replace('.', '')}.pdf`
+                    element.style.display = 'block'
+                    await (window as any).html2pdf().set({
+                      margin: [10, 10, 10, 10], filename,
+                      image: { type: 'jpeg', quality: 0.98 },
+                      html2canvas: { scale: 2, useCORS: true },
+                      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    }).from(element).save()
+                    element.style.display = 'none'
                   }}
                   style={{ background: '#fff', color: '#0f2244', border: '1.5px solid #0f2244', borderRadius: 10, padding: '8px 16px', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}>
                   📄 전체 결과 PDF 저장
