@@ -54,21 +54,33 @@ export default function PaidResult({ result, company, position, onReanalyze }: P
   const dashOffset = circumference - (totalScore / 100) * circumference
 
   const handleDownloadPDF = () => {
-    const printContent = document.getElementById('paid-result-content')
-    if (!printContent) return
-
-    const originalBody = document.body.innerHTML
-    document.body.innerHTML = `
-      <style>
-        body { font-family: 'Pretendard', sans-serif; margin: 0; padding: 20px; background: #fff; }
-        * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    // 인쇄용 스타일 추가
+    const style = document.createElement('style')
+    style.id = 'print-style'
+    style.innerHTML = `
+      @media print {
+        body > * { display: none !important; }
+        #pdf-print-area { display: block !important; }
         @page { margin: 15mm; size: A4; }
-      </style>
-      ${printContent.innerHTML}
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      }
     `
+    document.head.appendChild(style)
+
+    // 인쇄 영역 생성
+    const printArea = document.createElement('div')
+    printArea.id = 'pdf-print-area'
+    printArea.style.display = 'none'
+    printArea.innerHTML = document.getElementById('pdf-all-content')?.innerHTML || ''
+    document.body.appendChild(printArea)
+
     window.print()
-    document.body.innerHTML = originalBody
-    window.location.reload()
+
+    // 인쇄 후 정리 (페이지 이동 없음)
+    setTimeout(() => {
+      document.getElementById('print-style')?.remove()
+      document.getElementById('pdf-print-area')?.remove()
+    }, 1000)
   }
 
   return (
@@ -79,9 +91,7 @@ export default function PaidResult({ result, company, position, onReanalyze }: P
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
           <span style={{ background: '#e6a800', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>PREMIUM REPORT</span>
           <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-          <button onClick={handleDownloadPDF} style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', borderRadius: 8, padding: '5px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5 }}>
-            📄 PDF 저장
-          </button>
+
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20 }}>
           <div>
@@ -115,8 +125,9 @@ export default function PaidResult({ result, company, position, onReanalyze }: P
         </div>
       </div>
 
-      {/* 탭 네비게이션 */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 20, background: '#f0ede6', borderRadius: 14, padding: 4 }}>
+      {/* 탭 네비게이션 + PDF 버튼 */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 20, alignItems: 'center' }}>
+        <div style={{ flex: 1, display: 'flex', gap: 6, background: '#f0ede6', borderRadius: 14, padding: 4 }}>
         {[
           { key: 'overview', label: '📋 종합 분석' },
           { key: 'detail', label: '✏️ 문장 개선' },
@@ -127,6 +138,11 @@ export default function PaidResult({ result, company, position, onReanalyze }: P
             {tab.label}
           </button>
         ))}
+        </div>
+        <button onClick={handleDownloadPDF}
+          style={{ background: '#0f2244', color: '#fff', border: 'none', borderRadius: 12, padding: '10px 16px', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', flexShrink: 0 }}>
+          📄 PDF
+        </button>
       </div>
 
       {/* ── 탭 1: 종합 분석 ── */}
@@ -328,11 +344,101 @@ export default function PaidResult({ result, company, position, onReanalyze }: P
       )}
 
       {/* 하단 버튼 */}
-      <div style={{ marginTop: 20 }}>
+      {/* 하단 버튼 영역 */}
+      <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>
+        <button onClick={handleDownloadPDF}
+          style={{ flex: 1, background: '#f7f6f3', color: '#0f2244', border: '1.5px solid #ddd', borderRadius: 14, padding: '16px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          📄 전체 결과 PDF 저장
+        </button>
         <button onClick={onReanalyze}
-          style={{ width: '100%', background: '#fff', color: '#0f2244', border: '2px solid #0f2244', borderRadius: 14, padding: '16px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}>
+          style={{ flex: 1, background: '#0f2244', color: '#fff', border: 'none', borderRadius: 14, padding: '16px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}>
           수정 후 다시 분석하기
         </button>
+      </div>
+
+      {/* 인쇄용 — 모든 탭 내용 포함 (화면에는 안 보임) */}
+      <div id="pdf-all-content" style={{ display: 'none' }}>
+        <div style={{ fontFamily: "'Pretendard', sans-serif", padding: 20 }}>
+          {/* 헤더 */}
+          <div style={{ background: '#0f2244', color: '#fff', borderRadius: 12, padding: '24px 28px', marginBottom: 20 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#e6a800', marginBottom: 8 }}>PREMIUM REPORT · {new Date().toLocaleDateString('ko-KR')}</div>
+            <h1 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 4px' }}>자기소개서 정밀 분석 리포트</h1>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', margin: 0 }}>
+              {company && position ? `${company} · ${position}` : company || position || '지원 직무 전반'}
+            </p>
+            <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
+              <span style={{ fontSize: 40, fontWeight: 900, color: '#fff' }}>{result.totalScore}</span>
+              <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>/ 100점 · {getScoreLabel(result.totalScore)}</span>
+            </div>
+          </div>
+
+          {/* 총평 */}
+          <div style={{ marginBottom: 20, padding: '20px 24px', background: '#f7f6f3', borderRadius: 12 }}>
+            <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0f2244', marginBottom: 10 }}>📋 전문가 총평</h2>
+            <p style={{ fontSize: 13, color: '#333', lineHeight: 1.8, margin: 0 }}>{result.summary}</p>
+          </div>
+
+          {/* 핵심 문제 */}
+          <div style={{ marginBottom: 20, padding: '20px 24px', background: '#fffbeb', borderRadius: 12, border: '1px solid #fde68a' }}>
+            <h2 style={{ fontSize: 15, fontWeight: 800, color: '#92400e', marginBottom: 10 }}>⚠️ 가장 시급한 개선 과제</h2>
+            <p style={{ fontSize: 13, color: '#555', lineHeight: 1.8, margin: 0 }}>{result.mainIssue}</p>
+          </div>
+
+          {/* 점수 */}
+          {result.scores && (
+            <div style={{ marginBottom: 20, padding: '20px 24px', background: '#f7f6f3', borderRadius: 12 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0f2244', marginBottom: 16 }}>📊 역량 진단 점수</h2>
+              {scoreItems.map(item => {
+                const score = result.scores![item.key as keyof Score] || 0
+                return (
+                  <div key={item.key} style={{ marginBottom: 12 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
+                      <span style={{ fontWeight: 600 }}>{item.icon} {item.label}</span>
+                      <span style={{ fontWeight: 700, color: getScoreColor(score) }}>{score}점</span>
+                    </div>
+                    <div style={{ height: 8, background: '#e8e5dc', borderRadius: 4 }}>
+                      <div style={{ height: '100%', width: `${score}%`, background: getScoreColor(score), borderRadius: 4 }} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {/* 문장 개선 */}
+          {result.improvements && result.improvements.length > 0 && (
+            <div style={{ marginBottom: 20 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0f2244', marginBottom: 16 }}>✏️ 문장 개선 제안</h2>
+              {result.improvements.map((imp, i) => (
+                <div key={i} style={{ padding: '18px 20px', background: '#fff', borderRadius: 12, marginBottom: 12, border: '1px solid #ece9e1' }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#0f2244', marginBottom: 8 }}>#{i+1} {imp.category}</div>
+                  <p style={{ fontSize: 12, color: '#555', marginBottom: 10, lineHeight: 1.7 }}>{imp.issue}</p>
+                  {imp.original && <div style={{ background: '#fef2f2', borderRadius: 8, padding: '8px 12px', marginBottom: 8, fontSize: 12, color: '#7f1d1d' }}>BEFORE: "{imp.original}"</div>}
+                  <div style={{ background: '#ecfdf5', borderRadius: 8, padding: '8px 12px', marginBottom: imp.addContent ? 8 : 0, fontSize: 12, color: '#064e3b' }}>AFTER: {imp.suggestion}</div>
+                  {imp.addContent && <div style={{ background: '#eff6ff', borderRadius: 8, padding: '8px 12px', fontSize: 12, color: '#1e40af' }}>추가: {imp.addContent}</div>}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 잘 된 점 */}
+          {result.strongPoints && result.strongPoints.length > 0 && (
+            <div style={{ marginBottom: 20, padding: '20px 24px', background: '#ecfdf5', borderRadius: 12, border: '1px solid #bbf7d0' }}>
+              <h2 style={{ fontSize: 15, fontWeight: 800, color: '#065f46', marginBottom: 12 }}>⭐ 잘 된 점</h2>
+              {result.strongPoints.map((p, i) => (
+                <p key={i} style={{ fontSize: 13, color: '#065f46', margin: '0 0 8px', lineHeight: 1.7 }}>✓ {p}</p>
+              ))}
+            </div>
+          )}
+
+          {/* 최종 조언 */}
+          {result.finalAdvice && (
+            <div style={{ padding: '20px 24px', background: '#0f2244', borderRadius: 12 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 10 }}>🎯 전문가 최종 조언</h2>
+              <p style={{ fontSize: 13, color: '#b8d9ee', lineHeight: 1.8, margin: 0 }}>{result.finalAdvice}</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
