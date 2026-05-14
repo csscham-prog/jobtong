@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
 
 export default function Home() {
   const [step, setStep] = useState<'landing' | 'analyze' | 'result'>('landing')
@@ -12,6 +13,43 @@ export default function Home() {
   const [error, setError] = useState('')
   const [fileName, setFileName] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [user, setUser] = useState<any>(null)
+  const [userProfile, setUserProfile] = useState<any>(null)
+  const [authLoading, setAuthLoading] = useState(true)
+
+  useEffect(() => {
+    // 로그인 상태 확인
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+      if (session?.user) fetchProfile(session.user.id)
+      setAuthLoading(false)
+    })
+
+    // 로그인 상태 변경 감지
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+      if (session?.user) fetchProfile(session.user.id)
+      else setUserProfile(null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single()
+    if (data) setUserProfile(data)
+  }
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    setUser(null)
+    setUserProfile(null)
+    setStep('landing')
+  }
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -35,6 +73,19 @@ export default function Home() {
   const handleAnalyze = async () => {
     if (!content.trim()) { setError('자소서 내용을 입력하거나 파일을 업로드해주세요.'); return }
     if (content.trim().length < 100) { setError('자소서를 100자 이상 입력해주세요.'); return }
+
+    // 로그인 체크
+    if (!user) {
+      window.location.href = '/login'
+      return
+    }
+
+    // 무료체험 or 유료 크레딧 체크
+    if (userProfile?.free_trial_used && userProfile?.paid_credits <= 0) {
+      setError('무료 체험을 이미 사용하셨습니다. 1회권(₩2,900) 또는 5회권(₩9,900)을 구매해주세요.')
+      return
+    }
+
     setError('')
     setLoading(true)
     try {
@@ -47,6 +98,22 @@ export default function Home() {
       if (!res.ok) throw new Error(data.error || '분석 중 오류가 발생했습니다.')
       setResult(data)
       setStep('result')
+
+      // 크레딧 차감
+      if (userProfile) {
+        if (!userProfile.free_trial_used) {
+          await supabase.from('profiles').update({
+            free_trial_used: true,
+            total_analyses: (userProfile.total_analyses || 0) + 1
+          }).eq('id', user.id)
+        } else {
+          await supabase.from('profiles').update({
+            paid_credits: userProfile.paid_credits - 1,
+            total_analyses: (userProfile.total_analyses || 0) + 1
+          }).eq('id', user.id)
+        }
+        fetchProfile(user.id)
+      }
     } catch (e: any) {
       setError(e.message)
     } finally {
@@ -114,9 +181,32 @@ export default function Home() {
             </div>
 
             {/* 버튼 */}
-            <button onClick={() => setStep('analyze')} style={{ background: '#0f2244', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 22px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', flexShrink: 0 }}>
-              무료 체험하기
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+              {user ? (
+                <>
+                  <span style={{ fontSize: 13, color: '#666', whiteSpace: 'nowrap' }}>
+                    {userProfile?.free_trial_used
+                      ? `잔여 ${userProfile?.paid_credits || 0}회`
+                      : '무료 1회 남음'}
+                  </span>
+                  <button onClick={() => setStep('analyze')} style={{ background: '#0f2244', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 18px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+                    분석 시작
+                  </button>
+                  <button onClick={handleLogout} style={{ background: 'none', color: '#aaa', border: '1px solid #ddd', borderRadius: 10, padding: '10px 14px', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+                    로그아웃
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button onClick={() => window.location.href = '/login'} style={{ background: 'none', color: '#0f2244', border: '1.5px solid #0f2244', borderRadius: 10, padding: '10px 18px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+                    로그인
+                  </button>
+                  <button onClick={() => setStep('analyze')} style={{ background: '#0f2244', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 18px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+                    무료 체험
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </header>
 
