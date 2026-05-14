@@ -107,6 +107,9 @@ export async function POST(req: NextRequest) {
     })
 
     const responseText = message.content[0].type === 'text' ? message.content[0].text : ''
+    console.log('=== AI 응답 시작 ===')
+    console.log(responseText.substring(0, 500))
+    console.log('=== AI 응답 끝 ===')
 
     let analysisResult: any = null
 
@@ -137,6 +140,8 @@ export async function POST(req: NextRequest) {
     if (!analysisResult) {
       return NextResponse.json({ error: 'AI 응답 오류가 발생했습니다. 다시 시도해주세요.' }, { status: 500 })
     }
+
+    console.log('=== 파싱결과 improvements수:', analysisResult.improvements?.length || 0, '===')
 
     if (isPaid && (!analysisResult.improvements || analysisResult.improvements.length === 0)) {
       analysisResult.improvements = [{
