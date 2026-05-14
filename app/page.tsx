@@ -381,11 +381,37 @@ export default function Home() {
         <Header />
         <div style={{ maxWidth: 680, margin: '0 auto', padding: '48px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-          {/* 분석 타입 표시 */}
-          <div style={{ textAlign: 'center' }}>
+          {/* 분석 타입 표시 + PDF 버튼 */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ flex: 1 }} />
             <span style={{ background: isPaid ? '#0f2244' : '#f7f6f3', color: isPaid ? '#fff' : '#888', fontSize: 13, fontWeight: 700, padding: '6px 16px', borderRadius: 20 }}>
               {isPaid ? '✓ 전체 분석 결과' : '무료 분석 결과'}
             </span>
+            <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+              {isPaid && (
+                <button
+                  onClick={() => {
+                    const printArea = document.createElement('div')
+                    printArea.id = 'pdf-print-area-top'
+                    printArea.style.display = 'none'
+                    const src = document.getElementById('pdf-all-content')
+                    if (src) printArea.innerHTML = src.innerHTML
+                    document.body.appendChild(printArea)
+                    const style = document.createElement('style')
+                    style.id = 'print-style-top'
+                    style.innerHTML = '@media print { body > * { display: none !important; } #pdf-print-area-top { display: block !important; } @page { margin: 15mm; size: A4; } * { -webkit-print-color-adjust: exact !important; } }'
+                    document.head.appendChild(style)
+                    window.print()
+                    setTimeout(() => {
+                      document.getElementById('print-style-top')?.remove()
+                      document.getElementById('pdf-print-area-top')?.remove()
+                    }, 1000)
+                  }}
+                  style={{ background: '#fff', color: '#0f2244', border: '1.5px solid #0f2244', borderRadius: 10, padding: '8px 16px', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  📄 전체 결과 PDF 저장
+                </button>
+              )}
+            </div>
           </div>
 
           {/* 종합 점수 */}
