@@ -166,7 +166,10 @@ export default function Home() {
               당신의 강점이 돋보이도록 문장을 다듬고,<br />부족한 부분은 정직하게 짚어드립니다.
             </p>
             <button onClick={handleStartAnalyze} style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '20px 52px', fontWeight: 800, fontSize: 20, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 8px 32px rgba(230,168,0,0.3)' }}>
-              무료로 분석 시작하기 →
+              {!user ? '무료로 분석 시작하기 →' :
+               (userProfile?.paid_credits || 0) > 0 ? '전체 분석 시작하기 →' :
+               !userProfile?.free_trial_used ? '무료 분석 시작하기 →' :
+               '분석 시작하기 →'}
             </button>
           </div>
         </section>
@@ -237,9 +240,18 @@ export default function Home() {
         </section>
 
         <section style={{ background: '#0f2244', padding: '72px 24px', textAlign: 'center' }}>
-          <h2 style={{ fontSize: 30, fontWeight: 800, color: '#fff', marginBottom: 16, letterSpacing: '-0.5px' }}>지금 바로 무료로 체험해보세요</h2>
-          <p style={{ color: '#b8d9ee', fontSize: 16, marginBottom: 36, lineHeight: 1.8 }}>첫 분석은 무료입니다. 총평과 핵심 문제점을 바로 확인하세요.</p>
-          <button onClick={handleStartAnalyze} style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '18px 44px', fontWeight: 800, fontSize: 18, cursor: 'pointer', fontFamily: 'inherit' }}>무료 분석 시작하기 →</button>
+          <h2 style={{ fontSize: 30, fontWeight: 800, color: '#fff', marginBottom: 16, letterSpacing: '-0.5px' }}>
+            {!user || !userProfile?.free_trial_used ? '지금 바로 무료로 체험해보세요' : '자소서 분석을 시작해보세요'}
+          </h2>
+          <p style={{ color: '#b8d9ee', fontSize: 16, marginBottom: 36, lineHeight: 1.8 }}>
+            {!user || !userProfile?.free_trial_used ? '첫 분석은 무료입니다. 총평과 핵심 문제점을 바로 확인하세요.' : '합격을 위한 정직한 피드백을 바로 확인하세요.'}
+          </p>
+          <button onClick={handleStartAnalyze} style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '18px 44px', fontWeight: 800, fontSize: 18, cursor: 'pointer', fontFamily: 'inherit' }}>
+            {!user ? '무료로 분석 시작하기 →' :
+             (userProfile?.paid_credits || 0) > 0 ? '전체 분석 시작하기 →' :
+             !userProfile?.free_trial_used ? '무료 분석 시작하기 →' :
+             '분석 시작하기 →'}
+          </button>
         </section>
 
         <style>{`
