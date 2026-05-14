@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -16,49 +16,29 @@ export default function LoginPage() {
   const [forgotEmail, setForgotEmail] = useState('')
   const [forgotLoading, setForgotLoading] = useState(false)
 
-  // 페이지 로드 시: 저장된 아이디 불러오기
+  // 페이지 로드 시: 저장된 아이디 / 로그인 유지 여부 불러오기
   useEffect(() => {
     const savedEmail = localStorage.getItem('jobtong-saved-email')
     const savedKeepLogin = localStorage.getItem('jobtong-keep-login') === 'true'
-    if (savedEmail) {
-      setEmail(savedEmail)
-      setSaveId(true)
-    }
-    if (savedKeepLogin) {
-      setKeepLogin(true)
-    }
+    if (savedEmail) { setEmail(savedEmail); setSaveId(true) }
+    if (savedKeepLogin) setKeepLogin(true)
   }, [])
-
-  const getSupabase = () => createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      auth: {
-        persistSession: keepLogin,
-        storageKey: 'jobtong-auth',
-      }
-    }
-  )
 
   const handleEmailAuth = async () => {
     if (!email || !password) { setError('이메일과 비밀번호를 입력해주세요.'); return }
     setLoading(true); setError('')
 
     // 아이디 저장 처리
-    if (saveId) {
-      localStorage.setItem('jobtong-saved-email', email)
-    } else {
-      localStorage.removeItem('jobtong-saved-email')
-    }
+    if (saveId) localStorage.setItem('jobtong-saved-email', email)
+    else localStorage.removeItem('jobtong-saved-email')
 
     // 로그인 상태 유지 처리
-    if (keepLogin) {
-      localStorage.setItem('jobtong-keep-login', 'true')
-    } else {
+    // 체크 안 한 경우 → 로그인 후 sessionStorage에 플래그 저장 → page.tsx에서 탭 닫힘 감지 후 로그아웃
+    if (keepLogin) localStorage.setItem('jobtong-keep-login', 'true')
+    else {
       localStorage.removeItem('jobtong-keep-login')
+      sessionStorage.setItem('jobtong-session-only', 'true') // 브라우저 종료 시 로그아웃 플래그
     }
-
-    const supabase = getSupabase()
 
     if (isSignUp) {
       const { error } = await supabase.auth.signUp({
@@ -79,11 +59,6 @@ export default function LoginPage() {
   const handleForgotPassword = async () => {
     if (!forgotEmail) { setError('이메일을 입력해주세요.'); return }
     setForgotLoading(true); setError('')
-
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
     const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
       redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
     })
@@ -134,7 +109,6 @@ export default function LoginPage() {
             <p style={{ fontSize: 14, color: '#888', textAlign: 'center', marginBottom: 28, lineHeight: 1.7 }}>
               가입하신 이메일 주소를 입력하시면<br />비밀번호 재설정 링크를 보내드립니다.
             </p>
-
             <input
               type="email"
               placeholder="가입한 이메일"
@@ -144,18 +118,8 @@ export default function LoginPage() {
               autoComplete="off"
               style={{ ...inputStyle, marginBottom: 16 }}
             />
-
-            {error && (
-              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', borderRadius: 10, padding: '12px 14px', fontSize: 13, marginBottom: 12 }}>
-                {error}
-              </div>
-            )}
-            {message && (
-              <div style={{ background: '#ecfdf5', border: '1px solid #6ee7b7', color: '#065f46', borderRadius: 10, padding: '12px 14px', fontSize: 13, marginBottom: 12 }}>
-                {message}
-              </div>
-            )}
-
+            {error && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', borderRadius: 10, padding: '12px 14px', fontSize: 13, marginBottom: 12 }}>{error}</div>}
+            {message && <div style={{ background: '#ecfdf5', border: '1px solid #6ee7b7', color: '#065f46', borderRadius: 10, padding: '12px 14px', fontSize: 13, marginBottom: 12 }}>{message}</div>}
             <button
               onClick={handleForgotPassword}
               disabled={forgotLoading}
@@ -163,7 +127,6 @@ export default function LoginPage() {
             >
               {forgotLoading ? '발송 중...' : '재설정 링크 발송'}
             </button>
-
             <p style={{ textAlign: 'center', fontSize: 14, color: '#888', marginTop: 20 }}>
               <button
                 onClick={() => { setShowForgot(false); setError(''); setMessage(''); setForgotEmail('') }}
@@ -183,7 +146,6 @@ export default function LoginPage() {
               {isSignUp ? '가입 후 무료 체험 1회를 드립니다!' : '잡통에 오신 것을 환영합니다'}
             </p>
 
-            {/* 입력 필드 — autoComplete 차단으로 브라우저 자동완성 방지 */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
               <input
                 type="email"
@@ -237,16 +199,8 @@ export default function LoginPage() {
               </div>
             )}
 
-            {error && (
-              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', borderRadius: 10, padding: '12px 14px', fontSize: 13, marginBottom: 12 }}>
-                {error}
-              </div>
-            )}
-            {message && (
-              <div style={{ background: '#ecfdf5', border: '1px solid #6ee7b7', color: '#065f46', borderRadius: 10, padding: '12px 14px', fontSize: 13, marginBottom: 12 }}>
-                {message}
-              </div>
-            )}
+            {error && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', borderRadius: 10, padding: '12px 14px', fontSize: 13, marginBottom: 12 }}>{error}</div>}
+            {message && <div style={{ background: '#ecfdf5', border: '1px solid #6ee7b7', color: '#065f46', borderRadius: 10, padding: '12px 14px', fontSize: 13, marginBottom: 12 }}>{message}</div>}
 
             <button
               onClick={handleEmailAuth}
