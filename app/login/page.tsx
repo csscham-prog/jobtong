@@ -11,18 +11,6 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
 
-  const handleKakaoLogin = async () => {
-    setLoading(true)
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'kakao',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
-    if (error) setError(error.message)
-    setLoading(false)
-  }
-
   const handleEmailAuth = async () => {
     if (!email || !password) {
       setError('이메일과 비밀번호를 입력해주세요.')
@@ -76,25 +64,6 @@ export default function LoginPage() {
         <p style={{ fontSize: 14, color: '#888', textAlign: 'center', marginBottom: 28 }}>
           {isSignUp ? '가입 후 무료 체험 1회를 드립니다!' : '잡통에 오신 것을 환영합니다'}
         </p>
-
-        {/* 카카오 로그인 */}
-        <button
-          onClick={handleKakaoLogin}
-          disabled={loading}
-          style={{ width: '100%', background: '#FEE500', color: '#191919', border: 'none', borderRadius: 12, padding: '14px', fontWeight: 700, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 16 }}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#191919">
-            <path d="M12 3C7.03 3 3 6.36 3 10.5c0 2.64 1.67 4.97 4.2 6.35L6.1 20.5c-.1.37.35.66.65.44L11 18.1c.33.03.66.05 1 .05 4.97 0 9-3.36 9-7.5S16.97 3 12 3z"/>
-          </svg>
-          카카오로 {isSignUp ? '가입' : '로그인'}하기
-        </button>
-
-        {/* 구분선 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-          <div style={{ flex: 1, height: 1, background: '#e8e5dc' }} />
-          <span style={{ fontSize: 12, color: '#aaa' }}>또는 이메일로</span>
-          <div style={{ flex: 1, height: 1, background: '#e8e5dc' }} />
-        </div>
 
         {/* 이메일 입력 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
