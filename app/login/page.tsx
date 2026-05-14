@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
 export default function LoginPage() {
@@ -10,18 +10,31 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  const [saveId, setSaveId] = useState(false)
   const [keepLogin, setKeepLogin] = useState(false)
   const [showForgot, setShowForgot] = useState(false)
   const [forgotEmail, setForgotEmail] = useState('')
   const [forgotLoading, setForgotLoading] = useState(false)
 
-  // 로그인 상태 유지 여부에 따라 persistSession 다르게 설정
+  // 페이지 로드 시: 저장된 아이디 불러오기
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('jobtong-saved-email')
+    const savedKeepLogin = localStorage.getItem('jobtong-keep-login') === 'true'
+    if (savedEmail) {
+      setEmail(savedEmail)
+      setSaveId(true)
+    }
+    if (savedKeepLogin) {
+      setKeepLogin(true)
+    }
+  }, [])
+
   const getSupabase = () => createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       auth: {
-        persistSession: keepLogin,         // 체크 시 localStorage, 미체크 시 메모리(탭 닫으면 소멸)
+        persistSession: keepLogin,
         storageKey: 'jobtong-auth',
       }
     }
@@ -30,6 +43,20 @@ export default function LoginPage() {
   const handleEmailAuth = async () => {
     if (!email || !password) { setError('이메일과 비밀번호를 입력해주세요.'); return }
     setLoading(true); setError('')
+
+    // 아이디 저장 처리
+    if (saveId) {
+      localStorage.setItem('jobtong-saved-email', email)
+    } else {
+      localStorage.removeItem('jobtong-saved-email')
+    }
+
+    // 로그인 상태 유지 처리
+    if (keepLogin) {
+      localStorage.setItem('jobtong-keep-login', 'true')
+    } else {
+      localStorage.removeItem('jobtong-keep-login')
+    }
 
     const supabase = getSupabase()
 
@@ -53,7 +80,6 @@ export default function LoginPage() {
     if (!forgotEmail) { setError('이메일을 입력해주세요.'); return }
     setForgotLoading(true); setError('')
 
-    // 비밀번호 재설정은 persistSession 무관하므로 기본 클라이언트 사용
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -64,6 +90,18 @@ export default function LoginPage() {
     if (error) setError('이메일 발송에 실패했습니다. 다시 시도해주세요.')
     else setMessage('비밀번호 재설정 링크를 이메일로 발송했습니다. 메일함을 확인해주세요!')
     setForgotLoading(false)
+  }
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 12,
+    padding: '13px 16px', fontSize: 15, color: '#1a1a1a',
+    background: '#faf9f7', outline: 'none', fontFamily: 'inherit',
+    boxSizing: 'border-box',
+  }
+
+  const checkboxRowStyle: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', gap: 8,
+    cursor: 'pointer', fontSize: 14, color: '#555', userSelect: 'none',
   }
 
   const Emblem = () => (
@@ -103,7 +141,8 @@ export default function LoginPage() {
               value={forgotEmail}
               onChange={e => setForgotEmail(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleForgotPassword()}
-              style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 12, padding: '13px 16px', fontSize: 15, color: '#1a1a1a', background: '#faf9f7', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', marginBottom: 16 }}
+              autoComplete="off"
+              style={{ ...inputStyle, marginBottom: 16 }}
             />
 
             {error && (
@@ -144,6 +183,7 @@ export default function LoginPage() {
               {isSignUp ? '가입 후 무료 체험 1회를 드립니다!' : '잡통에 오신 것을 환영합니다'}
             </p>
 
+            {/* 입력 필드 — autoComplete 차단으로 브라우저 자동완성 방지 */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
               <input
                 type="email"
@@ -151,7 +191,8 @@ export default function LoginPage() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleEmailAuth()}
-                style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 12, padding: '13px 16px', fontSize: 15, color: '#1a1a1a', background: '#faf9f7', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
+                autoComplete="off"
+                style={inputStyle}
               />
               <input
                 type="password"
@@ -159,22 +200,34 @@ export default function LoginPage() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleEmailAuth()}
-                style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 12, padding: '13px 16px', fontSize: 15, color: '#1a1a1a', background: '#faf9f7', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
+                autoComplete="new-password"
+                style={inputStyle}
               />
             </div>
 
-            {/* 로그인 상태 유지 + 비밀번호 찾기 */}
+            {/* 체크박스 + 비밀번호 찾기 — 로그인 화면에만 표시 */}
             {!isSignUp && (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14, color: '#555', userSelect: 'none' }}>
-                  <input
-                    type="checkbox"
-                    checked={keepLogin}
-                    onChange={e => setKeepLogin(e.target.checked)}
-                    style={{ width: 16, height: 16, accentColor: '#0f2244', cursor: 'pointer' }}
-                  />
-                  로그인 상태 유지
-                </label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <label style={checkboxRowStyle}>
+                    <input
+                      type="checkbox"
+                      checked={saveId}
+                      onChange={e => setSaveId(e.target.checked)}
+                      style={{ width: 16, height: 16, accentColor: '#0f2244', cursor: 'pointer' }}
+                    />
+                    아이디 저장
+                  </label>
+                  <label style={checkboxRowStyle}>
+                    <input
+                      type="checkbox"
+                      checked={keepLogin}
+                      onChange={e => setKeepLogin(e.target.checked)}
+                      style={{ width: 16, height: 16, accentColor: '#0f2244', cursor: 'pointer' }}
+                    />
+                    로그인 상태 유지
+                  </label>
+                </div>
                 <button
                   onClick={() => { setShowForgot(true); setError(''); setMessage('') }}
                   style={{ color: '#888', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}
