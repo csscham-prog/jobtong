@@ -58,11 +58,11 @@ export default function Home() {
   }
 
   // 어떤 분석 타입인지 계산
-  const getAnalyzeMode = () => {
+  const getAnalyzeMode = (): 'login' | 'paid' | 'both' | 'free' | 'purchase' => {
     if (!user) return 'login'
     if ((userProfile?.paid_credits || 0) > 0) return 'paid'
-    if (!userProfile?.free_trial_used) return 'both' // 무료+유료 둘 다 선택 가능
-    return 'purchase' // 무료 사용, 유료 없음 → 결제 필요
+    if (!userProfile?.free_trial_used) return 'both'
+    return 'purchase'
   }
 
   const handleAnalyze = async (type: 'free' | 'paid') => {
