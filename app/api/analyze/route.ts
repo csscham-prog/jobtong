@@ -147,6 +147,23 @@ ${content}
       }]
     }
 
+    // ── 5. 분석 결과 DB 저장 ──
+    try {
+      await supabase.from('analyses').insert({
+        user_id: user.id,
+        company: company || null,
+        position: position || null,
+        content_length: content.trim().length,
+        total_score: analysisResult.totalScore,
+        is_free_trial: !isPaid,
+        analyze_type: type,
+        result_json: analysisResult,
+      })
+    } catch (e) {
+      console.error('분석 결과 저장 실패:', e)
+      // 저장 실패해도 결과는 반환
+    }
+
     return NextResponse.json(analysisResult)
 
   } catch (error: any) {
