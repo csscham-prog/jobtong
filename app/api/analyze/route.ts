@@ -69,7 +69,7 @@ ${company ? `\n지원 회사: ${company}` : ''}${position ? `\n지원 직무: ${
 자기소개서:
 ${content}`
 
-    const freeTools: Anthropic.Messages.Tool[] = [{
+    const freeTools = [{
       name: 'analyze_resume_free',
       description: '자소서를 분석하여 총평과 핵심 문제를 반환합니다.',
       input_schema: {
@@ -83,7 +83,7 @@ ${content}`
       },
     }]
 
-    const paidTools: Anthropic.Messages.Tool[] = [{
+    const paidTools = [{
       name: 'analyze_resume',
       description: '자소서를 심층 분석하여 전문가 수준의 상세 피드백을 반환합니다.',
       input_schema: {
