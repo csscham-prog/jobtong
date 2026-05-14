@@ -359,7 +359,7 @@ export default function Home() {
 
         <style>{`
   @keyframes spin { to { transform: rotate(360deg); } }
-  .jobtong-slogan { font-size: 40px; white-space: nowrap; }
+  .jobtong-slogan { font-size: 28px; white-space: nowrap; }
   .hero-title { font-size: clamp(38px, 6vw, 64px); }
   @media (max-width: 768px) {
     .jobtong-slogan { display: none; }
@@ -485,7 +485,7 @@ export default function Home() {
         </div>
         <style>{`
   @keyframes spin { to { transform: rotate(360deg); } }
-  .jobtong-slogan { font-size: 40px; white-space: nowrap; }
+  .jobtong-slogan { font-size: 28px; white-space: nowrap; }
   .hero-title { font-size: clamp(38px, 6vw, 64px); }
   @media (max-width: 768px) {
     .jobtong-slogan { display: none; }
@@ -595,7 +595,7 @@ export default function Home() {
         </div>
         <style>{`
   @keyframes spin { to { transform: rotate(360deg); } }
-  .jobtong-slogan { font-size: 40px; white-space: nowrap; }
+  .jobtong-slogan { font-size: 28px; white-space: nowrap; }
   .hero-title { font-size: clamp(38px, 6vw, 64px); }
   @media (max-width: 768px) {
     .jobtong-slogan { display: none; }
