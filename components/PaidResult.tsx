@@ -53,34 +53,33 @@ export default function PaidResult({ result, company, position, onReanalyze }: P
   const circumference = 2 * Math.PI * 54
   const dashOffset = circumference - (totalScore / 100) * circumference
 
-  const handleDownloadPDF = () => {
-    // 인쇄용 스타일 추가
-    const style = document.createElement('style')
-    style.id = 'print-style'
-    style.innerHTML = `
-      @media print {
-        body > * { display: none !important; }
-        #pdf-print-area { display: block !important; }
-        @page { margin: 15mm; size: A4; }
-        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-      }
-    `
-    document.head.appendChild(style)
+  const handleDownloadPDF = async () => {
+    const element = document.getElementById('pdf-all-content')
+    if (!element) return
 
-    // 인쇄 영역 생성
-    const printArea = document.createElement('div')
-    printArea.id = 'pdf-print-area'
-    printArea.style.display = 'none'
-    printArea.innerHTML = document.getElementById('pdf-all-content')?.innerHTML || ''
-    document.body.appendChild(printArea)
+    // html2pdf.js CDN 로드
+    if (!(window as any).html2pdf) {
+      const script = document.createElement('script')
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'
+      document.head.appendChild(script)
+      await new Promise(resolve => { script.onload = resolve })
+    }
 
-    window.print()
+    const filename = `잡통_자소서분석_${new Date().toLocaleDateString('ko-KR').replace(/\. /g, '-').replace('.', '')}.pdf`
 
-    // 인쇄 후 정리 (페이지 이동 없음)
-    setTimeout(() => {
-      document.getElementById('print-style')?.remove()
-      document.getElementById('pdf-print-area')?.remove()
-    }, 1000)
+    const opt = {
+      margin: [10, 10, 10, 10],
+      filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    }
+
+    // 잠깐 보이게 했다가 PDF 생성 후 다시 숨김
+    element.style.display = 'block'
+    await (window as any).html2pdf().set(opt).from(element).save()
+    element.style.display = 'none'
   }
 
   return (
