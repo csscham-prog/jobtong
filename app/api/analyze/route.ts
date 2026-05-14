@@ -16,6 +16,14 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // 자소서 내용에서 JSON 파싱을 방해하는 특수문자 이스케이프
+    const safeContent = content
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"')
+      .replace(/\n/g, '\\n')
+      .replace(/\r/g, '')
+      .replace(/\t/g, ' ')
+
     const prompt = `당신은 10년 경력의 한국 대기업 인사담당자이자 자소서 전문 컨설턴트입니다.
 아래 자기소개서를 분석하고, 구체적인 개선 방향을 제시해주세요.
 
@@ -23,12 +31,13 @@ ${company ? `지원 회사: ${company}` : ''}
 ${position ? `지원 직무: ${position}` : ''}
 
 자기소개서 내용:
-"""
+<자소서>
 ${content}
-"""
+</자소서>
 
 반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트는 절대 포함하지 마세요.
 모든 피드백은 한국어로 작성하세요.
+문자열 값에 큰따옴표(")가 포함될 경우 반드시 이스케이프(\")해주세요.
 
 {
   "totalScore": 종합점수(0-100 사이 정수),
@@ -70,12 +79,38 @@ ${content}
     const responseText =
       message.content[0].type === 'text' ? message.content[0].text : ''
 
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      throw new Error('AI 응답 파싱 오류가 발생했습니다.')
+    // JSON 추출 — 여러 방법으로 시도
+    let analysisResult = null
+
+    // 방법 1: 직접 파싱
+    try {
+      const trimmed = responseText.trim()
+      analysisResult = JSON.parse(trimmed)
+    } catch (e) {}
+
+    // 방법 2: 정규식으로 JSON 블록 추출
+    if (!analysisResult) {
+      try {
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+          analysisResult = JSON.parse(jsonMatch[0])
+        }
+      } catch (e) {}
     }
 
-    const analysisResult = JSON.parse(jsonMatch[0])
+    // 방법 3: 코드블록 안에서 추출
+    if (!analysisResult) {
+      try {
+        const codeMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)\s*```/)
+        if (codeMatch) {
+          analysisResult = JSON.parse(codeMatch[1])
+        }
+      } catch (e) {}
+    }
+
+    if (!analysisResult) {
+      throw new Error('AI 응답 파싱 오류가 발생했습니다. 다시 시도해주세요.')
+    }
 
     return NextResponse.json(analysisResult)
   } catch (error: any) {
