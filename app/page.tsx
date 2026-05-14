@@ -273,7 +273,7 @@ export default function Home() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 10 }}>
             <Emblem size={28} /><span style={{ fontWeight: 800, fontSize: 18, color: '#fff' }}>잡통</span>
           </div>
-          <p>AI 자소서 분석 서비스 · 문의: csscham@gmail.com</p>
+          <p>AI 자소서 분석 서비스 · 문의: barunapplication@gmail.com</p>
           <p style={{ marginTop: 8, color: 'rgba(184,217,238,0.3)' }}>© 2026 잡통. All rights reserved.</p>
         </footer>
       </main>
