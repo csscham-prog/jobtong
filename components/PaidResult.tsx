@@ -53,14 +53,35 @@ export default function PaidResult({ result, company, position, onReanalyze }: P
   const circumference = 2 * Math.PI * 54
   const dashOffset = circumference - (totalScore / 100) * circumference
 
+  const handleDownloadPDF = () => {
+    const printContent = document.getElementById('paid-result-content')
+    if (!printContent) return
+
+    const originalBody = document.body.innerHTML
+    document.body.innerHTML = `
+      <style>
+        body { font-family: 'Pretendard', sans-serif; margin: 0; padding: 20px; background: #fff; }
+        * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        @page { margin: 15mm; size: A4; }
+      </style>
+      ${printContent.innerHTML}
+    `
+    window.print()
+    document.body.innerHTML = originalBody
+    window.location.reload()
+  }
+
   return (
-    <div style={{ fontFamily: "'Pretendard', -apple-system, sans-serif" }}>
+    <div id="paid-result-content" style={{ fontFamily: "'Pretendard', -apple-system, sans-serif" }}>
 
       {/* 상단 레포트 헤더 */}
       <div style={{ background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', borderRadius: 20, padding: '32px 36px', marginBottom: 20, color: '#fff' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
           <span style={{ background: '#e6a800', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>PREMIUM REPORT</span>
           <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+          <button onClick={handleDownloadPDF} style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', borderRadius: 8, padding: '5px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5 }}>
+            📄 PDF 저장
+          </button>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20 }}>
           <div>
