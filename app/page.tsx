@@ -281,13 +281,13 @@ export default function Home() {
 
         <section style={{ background: '#fff', padding: '72px 24px' }}>
           <div style={{ maxWidth: 960, margin: '0 auto' }}>
-            <h2 style={{ textAlign: 'center', fontSize: 30, fontWeight: 800, color: '#0f2244', marginBottom: 8, letterSpacing: '-0.5px' }}>단순 분석을 넘어, 구체적인 처방까지</h2>
-            <p style={{ textAlign: 'center', color: '#555', fontSize: 16, marginBottom: 52 }}>"이 문장을 이렇게 고치세요" — 실행 가능한 피드백을 드립니다</p>
+            <h2 style={{ textAlign: 'center', fontSize: 30, fontWeight: 800, color: '#0f2244', marginBottom: 8, letterSpacing: '-0.5px' }}>단순한 교정을 넘어, 합격의 확신을 드리는 '마지막 한 문장'까지</h2>
+            <p style={{ textAlign: 'center', color: '#555', fontSize: 16, marginBottom: 52 }}>"어떻게 써야 할지" 고민하는 시간을 "어떻게 합격할지" 확신하는 시간으로 바꿔드립니다.</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
               {[
-                { icon: '🔍', title: '정직한 진단', desc: '좋은 점만 말하지 않습니다. 면접관이 실제로 느낄 수 있는 문제점을 솔직하게 짚어드립니다.' },
-                { icon: '✏️', title: '문장 단위 개선 제안', desc: '"이 문장은 이렇게 고치세요", "이런 내용을 추가하세요" — 바로 적용할 수 있는 구체적 방향을 제시합니다.' },
-                { icon: '✓', title: '직무 맞춤 분석', desc: '지원 회사와 직무를 고려해 해당 포지션에서 중요하게 보는 역량 중심으로 분석합니다.' },
+                { icon: '🔍', title: '가감 없는 냉철한 분석', desc: '좋은 말만 나열하는 위로보다, 합격에 꼭 필요한 정직한 조언을 우선합니다. 면접관의 시선에서 당신의 자소서가 가진 약점을 숨김없이 짚어내어, 합격 가능성을 객관적으로 높여드립니다.' },
+                { icon: '✏️', title: '스토리를 완성하는 문장 교정', desc: '모호한 표현은 선명하게, 평범한 경험은 특별하게 다듬습니다. 단순히 오타를 잡는 수준을 넘어, 당신의 진심이 인사담당자에게 바르게 전달되도록 문장 단위로 세밀하게 손봅니다.' },
+                { icon: '✓', title: '전략적인 직무 타겟팅', desc: '모든 회사에 통하는 범용 자소서는 없습니다. 지원하시는 산업군과 포지션에서 요구하는 핵심 역량을 정확히 꿰뚫어, 당신의 커리어가 해당 직무의 정답처럼 보이도록 전략을 설계합니다.' },
               ].map(item => (
                 <div key={item.title} style={{ background: '#f7f6f3', borderRadius: 16, padding: '36px 32px', border: '1px solid #e8e5dc' }}>
                   <div style={{ fontSize: 40, marginBottom: 20 }}>{item.icon}</div>
