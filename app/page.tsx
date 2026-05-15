@@ -202,63 +202,58 @@ export default function Home() {
     return (
       <main style={base}>
         <Header />
-        <section style={{ background: 'linear-gradient(160deg, #0a1628 0%, #1a3a6b 60%, #152f58 100%)', color: '#fff', padding: '80px 24px 90px', position: 'relative', overflow: 'hidden' }}>
+        <section style={{ background: 'linear-gradient(160deg, #0a1628 0%, #1a3a6b 60%, #152f58 100%)', color: '#fff', padding: '80px 24px 90px', position: 'relative' }}>
 
-          {/* 전체 장식 SVG 레이어 — 절대 포지션으로 꽉 채움 */}
-          <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }} viewBox="0 0 1200 500" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+          {/* 눈금자 — 상단 가로 */}
+          <div style={{ position: 'absolute', top: 36, left: '12%', right: '12%', height: 1, background: 'rgba(184,217,238,0.25)', pointerEvents: 'none' }}>
+            <div style={{ position: 'absolute', left: 0, top: -6, width: 2, height: 14, background: 'rgba(184,217,238,0.35)' }} />
+            <div style={{ position: 'absolute', right: 0, top: -6, width: 2, height: 14, background: 'rgba(184,217,238,0.35)' }} />
+            {[16,33,50,66,83].map((pct: number) => (
+              <div key={pct} style={{ position: 'absolute', left: `${pct}%`, top: -4, width: 1, height: 9, background: 'rgba(184,217,238,0.25)' }} />
+            ))}
+          </div>
 
-            {/* 눈금자 — 상단 가로 */}
-            <line x1="150" y1="36" x2="1050" y2="36" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.25"/>
-            <line x1="150" y1="28" x2="150" y2="44" stroke="#b8d9ee" strokeWidth="2" opacity="0.3"/>
-            <line x1="1050" y1="28" x2="1050" y2="44" stroke="#b8d9ee" strokeWidth="2" opacity="0.3"/>
-            <line x1="300" y1="31" x2="300" y2="41" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.2"/>
-            <line x1="450" y1="31" x2="450" y2="41" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.2"/>
-            <line x1="600" y1="31" x2="600" y2="41" stroke="#b8d9ee" strokeWidth="1.5" opacity="0.25"/>
-            <line x1="750" y1="31" x2="750" y2="41" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.2"/>
-            <line x1="900" y1="31" x2="900" y2="41" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.2"/>
+          {/* 눈금자 — 하단 가로 */}
+          <div style={{ position: 'absolute', bottom: 48, left: '16%', right: '16%', height: 1, background: 'rgba(184,217,238,0.2)', pointerEvents: 'none' }}>
+            <div style={{ position: 'absolute', left: 0, top: -6, width: 2, height: 14, background: 'rgba(184,217,238,0.3)' }} />
+            <div style={{ position: 'absolute', right: 0, top: -6, width: 2, height: 14, background: 'rgba(184,217,238,0.3)' }} />
+            {[20,40,60,80].map((pct: number) => (
+              <div key={pct} style={{ position: 'absolute', left: `${pct}%`, top: -4, width: 1, height: 9, background: 'rgba(184,217,238,0.2)' }} />
+            ))}
+          </div>
 
-            {/* 눈금자 — 하단 가로 */}
-            <line x1="200" y1="464" x2="1000" y2="464" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.2"/>
-            <line x1="200" y1="456" x2="200" y2="472" stroke="#b8d9ee" strokeWidth="2" opacity="0.25"/>
-            <line x1="1000" y1="456" x2="1000" y2="472" stroke="#b8d9ee" strokeWidth="2" opacity="0.25"/>
-            <line x1="333" y1="459" x2="333" y2="469" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.18"/>
-            <line x1="466" y1="459" x2="466" y2="469" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.18"/>
-            <line x1="600" y1="459" x2="600" y2="469" stroke="#b8d9ee" strokeWidth="1.5" opacity="0.22"/>
-            <line x1="733" y1="459" x2="733" y2="469" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.18"/>
-            <line x1="866" y1="459" x2="866" y2="469" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.18"/>
+          {/* 눈금자 — 좌측 세로 */}
+          <div style={{ position: 'absolute', left: 48, top: '15%', bottom: '15%', width: 1, background: 'rgba(184,217,238,0.2)', pointerEvents: 'none' }}>
+            <div style={{ position: 'absolute', top: 0, left: -6, width: 14, height: 2, background: 'rgba(184,217,238,0.3)' }} />
+            <div style={{ position: 'absolute', bottom: 0, left: -6, width: 14, height: 2, background: 'rgba(184,217,238,0.3)' }} />
+            {[25,50,75].map((pct: number) => (
+              <div key={pct} style={{ position: 'absolute', top: `${pct}%`, left: -4, width: 9, height: 1, background: 'rgba(184,217,238,0.2)' }} />
+            ))}
+          </div>
 
-            {/* 눈금자 — 좌측 세로 */}
-            <line x1="52" y1="80" x2="52" y2="420" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.2"/>
-            <line x1="44" y1="80" x2="60" y2="80" stroke="#b8d9ee" strokeWidth="2" opacity="0.25"/>
-            <line x1="44" y1="420" x2="60" y2="420" stroke="#b8d9ee" strokeWidth="2" opacity="0.25"/>
-            <line x1="47" y1="165" x2="57" y2="165" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.18"/>
-            <line x1="47" y1="250" x2="57" y2="250" stroke="#b8d9ee" strokeWidth="1.5" opacity="0.22"/>
-            <line x1="47" y1="335" x2="57" y2="335" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.18"/>
+          {/* 눈금자 — 우측 세로 */}
+          <div style={{ position: 'absolute', right: 48, top: '15%', bottom: '15%', width: 1, background: 'rgba(184,217,238,0.2)', pointerEvents: 'none' }}>
+            <div style={{ position: 'absolute', top: 0, left: -6, width: 14, height: 2, background: 'rgba(184,217,238,0.3)' }} />
+            <div style={{ position: 'absolute', bottom: 0, left: -6, width: 14, height: 2, background: 'rgba(184,217,238,0.3)' }} />
+            {[25,50,75].map((pct: number) => (
+              <div key={pct} style={{ position: 'absolute', top: `${pct}%`, left: -4, width: 9, height: 1, background: 'rgba(184,217,238,0.2)' }} />
+            ))}
+          </div>
 
-            {/* 눈금자 — 우측 세로 */}
-            <line x1="1148" y1="80" x2="1148" y2="420" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.2"/>
-            <line x1="1140" y1="80" x2="1156" y2="80" stroke="#b8d9ee" strokeWidth="2" opacity="0.25"/>
-            <line x1="1140" y1="420" x2="1156" y2="420" stroke="#b8d9ee" strokeWidth="2" opacity="0.25"/>
-            <line x1="1143" y1="165" x2="1153" y2="165" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.18"/>
-            <line x1="1143" y1="250" x2="1153" y2="250" stroke="#b8d9ee" strokeWidth="1.5" opacity="0.22"/>
-            <line x1="1143" y1="335" x2="1153" y2="335" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.18"/>
+          {/* 돋보기 — 좌상단 */}
+          <svg style={{ position: 'absolute', top: 48, left: 80, width: 88, height: 88, opacity: 0.22, pointerEvents: 'none' }} viewBox="0 0 88 88" fill="none">
+            <circle cx="36" cy="36" r="26" stroke="#b8d9ee" strokeWidth="4"/>
+            <line x1="56" y1="56" x2="80" y2="80" stroke="#b8d9ee" strokeWidth="5" strokeLinecap="round"/>
+            <line x1="24" y1="36" x2="48" y2="36" stroke="#b8d9ee" strokeWidth="2.5" strokeLinecap="round"/>
+            <line x1="36" y1="24" x2="36" y2="48" stroke="#b8d9ee" strokeWidth="2.5" strokeLinecap="round"/>
+          </svg>
 
-            {/* 돋보기 — 좌상단 */}
-            <g opacity="0.22" transform="translate(90, 70)">
-              <circle cx="36" cy="36" r="26" stroke="#b8d9ee" strokeWidth="4.5" fill="none"/>
-              <line x1="55" y1="55" x2="78" y2="78" stroke="#b8d9ee" strokeWidth="5.5" strokeLinecap="round"/>
-              <line x1="24" y1="36" x2="48" y2="36" stroke="#b8d9ee" strokeWidth="2.5" strokeLinecap="round"/>
-              <line x1="36" y1="24" x2="36" y2="48" stroke="#b8d9ee" strokeWidth="2.5" strokeLinecap="round"/>
-            </g>
-
-            {/* 돋보기 — 우상단 (좌우반전) */}
-            <g opacity="0.18" transform="translate(1010, 55) scale(-1,1) translate(-80,0)">
-              <circle cx="36" cy="36" r="26" stroke="#b8d9ee" strokeWidth="4.5" fill="none"/>
-              <line x1="55" y1="55" x2="78" y2="78" stroke="#b8d9ee" strokeWidth="5.5" strokeLinecap="round"/>
-              <line x1="24" y1="36" x2="48" y2="36" stroke="#b8d9ee" strokeWidth="2.5" strokeLinecap="round"/>
-              <line x1="36" y1="24" x2="36" y2="48" stroke="#b8d9ee" strokeWidth="2.5" strokeLinecap="round"/>
-            </g>
-
+          {/* 돋보기 — 우상단 */}
+          <svg style={{ position: 'absolute', top: 40, right: 80, width: 72, height: 72, opacity: 0.18, pointerEvents: 'none', transform: 'scaleX(-1)' }} viewBox="0 0 88 88" fill="none">
+            <circle cx="36" cy="36" r="26" stroke="#b8d9ee" strokeWidth="4"/>
+            <line x1="56" y1="56" x2="80" y2="80" stroke="#b8d9ee" strokeWidth="5" strokeLinecap="round"/>
+            <line x1="24" y1="36" x2="48" y2="36" stroke="#b8d9ee" strokeWidth="2.5" strokeLinecap="round"/>
+            <line x1="36" y1="24" x2="36" y2="48" stroke="#b8d9ee" strokeWidth="2.5" strokeLinecap="round"/>
           </svg>
 
           {/* 메인 카피 */}
