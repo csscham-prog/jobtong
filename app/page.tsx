@@ -204,65 +204,61 @@ export default function Home() {
         <Header />
         <section style={{ background: 'linear-gradient(160deg, #0a1628 0%, #1a3a6b 60%, #152f58 100%)', color: '#fff', padding: '80px 24px 90px', position: 'relative', overflow: 'hidden' }}>
 
-          {/* 돋보기 SVG — 좌상단 */}
-          <svg style={{ position: 'absolute', top: 32, left: '6%', opacity: 0.18, width: 90, height: 90 }} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="40" cy="40" r="28" stroke="#b8d9ee" strokeWidth="5" fill="none"/>
-            <line x1="62" y1="62" x2="88" y2="88" stroke="#b8d9ee" strokeWidth="6" strokeLinecap="round"/>
-            <line x1="28" y1="40" x2="52" y2="40" stroke="#b8d9ee" strokeWidth="3" strokeLinecap="round"/>
-            <line x1="40" y1="28" x2="40" y2="52" stroke="#b8d9ee" strokeWidth="3" strokeLinecap="round"/>
-          </svg>
+          {/* 전체 장식 SVG 레이어 — 절대 포지션으로 꽉 채움 */}
+          <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }} viewBox="0 0 1200 500" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
 
-          {/* 돋보기 SVG — 우상단 */}
-          <svg style={{ position: 'absolute', top: 24, right: '5%', opacity: 0.15, width: 72, height: 72, transform: 'scaleX(-1)' }} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="40" cy="40" r="28" stroke="#b8d9ee" strokeWidth="5" fill="none"/>
-            <line x1="62" y1="62" x2="88" y2="88" stroke="#b8d9ee" strokeWidth="6" strokeLinecap="round"/>
-            <line x1="28" y1="40" x2="52" y2="40" stroke="#b8d9ee" strokeWidth="3" strokeLinecap="round"/>
-            <line x1="40" y1="28" x2="40" y2="52" stroke="#b8d9ee" strokeWidth="3" strokeLinecap="round"/>
-          </svg>
+            {/* 눈금자 — 상단 가로 */}
+            <line x1="150" y1="36" x2="1050" y2="36" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.25"/>
+            <line x1="150" y1="28" x2="150" y2="44" stroke="#b8d9ee" strokeWidth="2" opacity="0.3"/>
+            <line x1="1050" y1="28" x2="1050" y2="44" stroke="#b8d9ee" strokeWidth="2" opacity="0.3"/>
+            <line x1="300" y1="31" x2="300" y2="41" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.2"/>
+            <line x1="450" y1="31" x2="450" y2="41" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.2"/>
+            <line x1="600" y1="31" x2="600" y2="41" stroke="#b8d9ee" strokeWidth="1.5" opacity="0.25"/>
+            <line x1="750" y1="31" x2="750" y2="41" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.2"/>
+            <line x1="900" y1="31" x2="900" y2="41" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.2"/>
 
-          {/* 눈금자 장식선 — 상단 */}
-          <svg style={{ position: 'absolute', top: 56, left: '50%', transform: 'translateX(-50%)', opacity: 0.12, width: '70%', height: 20 }} viewBox="0 0 700 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <line x1="0" y1="10" x2="700" y2="10" stroke="#b8d9ee" strokeWidth="1.5"/>
-            <line x1="0" y1="4" x2="0" y2="16" stroke="#b8d9ee" strokeWidth="2"/>
-            <line x1="700" y1="4" x2="700" y2="16" stroke="#b8d9ee" strokeWidth="2"/>
-            {[70,140,210,280,350,420,490,560,630].map((x: number) => (
-              <line key={x} x1={x} y1="7" x2={x} y2="13" stroke="#b8d9ee" strokeWidth="1.5"/>
-            ))}
-          </svg>
+            {/* 눈금자 — 하단 가로 */}
+            <line x1="200" y1="464" x2="1000" y2="464" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.2"/>
+            <line x1="200" y1="456" x2="200" y2="472" stroke="#b8d9ee" strokeWidth="2" opacity="0.25"/>
+            <line x1="1000" y1="456" x2="1000" y2="472" stroke="#b8d9ee" strokeWidth="2" opacity="0.25"/>
+            <line x1="333" y1="459" x2="333" y2="469" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.18"/>
+            <line x1="466" y1="459" x2="466" y2="469" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.18"/>
+            <line x1="600" y1="459" x2="600" y2="469" stroke="#b8d9ee" strokeWidth="1.5" opacity="0.22"/>
+            <line x1="733" y1="459" x2="733" y2="469" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.18"/>
+            <line x1="866" y1="459" x2="866" y2="469" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.18"/>
 
-          {/* 눈금자 장식선 — 좌측 세로 */}
-          <svg style={{ position: 'absolute', top: '50%', left: '3%', transform: 'translateY(-50%)', opacity: 0.1, width: 20, height: '60%' }} viewBox="0 0 20 300" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <line x1="10" y1="0" x2="10" y2="300" stroke="#b8d9ee" strokeWidth="1.5"/>
-            <line x1="4" y1="0" x2="16" y2="0" stroke="#b8d9ee" strokeWidth="2"/>
-            <line x1="4" y1="300" x2="16" y2="300" stroke="#b8d9ee" strokeWidth="2"/>
-            {[50,100,150,200,250].map((y: number) => (
-              <line key={y} x1="7" y1={y} x2="13" y2={y} stroke="#b8d9ee" strokeWidth="1.5"/>
-            ))}
-          </svg>
+            {/* 눈금자 — 좌측 세로 */}
+            <line x1="52" y1="80" x2="52" y2="420" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.2"/>
+            <line x1="44" y1="80" x2="60" y2="80" stroke="#b8d9ee" strokeWidth="2" opacity="0.25"/>
+            <line x1="44" y1="420" x2="60" y2="420" stroke="#b8d9ee" strokeWidth="2" opacity="0.25"/>
+            <line x1="47" y1="165" x2="57" y2="165" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.18"/>
+            <line x1="47" y1="250" x2="57" y2="250" stroke="#b8d9ee" strokeWidth="1.5" opacity="0.22"/>
+            <line x1="47" y1="335" x2="57" y2="335" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.18"/>
 
-          {/* 눈금자 장식선 — 우측 세로 */}
-          <svg style={{ position: 'absolute', top: '50%', right: '3%', transform: 'translateY(-50%)', opacity: 0.1, width: 20, height: '60%' }} viewBox="0 0 20 300" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <line x1="10" y1="0" x2="10" y2="300" stroke="#b8d9ee" strokeWidth="1.5"/>
-            <line x1="4" y1="0" x2="16" y2="0" stroke="#b8d9ee" strokeWidth="2"/>
-            <line x1="4" y1="300" x2="16" y2="300" stroke="#b8d9ee" strokeWidth="2"/>
-            {[50,100,150,200,250].map((y: number) => (
-              <line key={y} x1="7" y1={y} x2="13" y2={y} stroke="#b8d9ee" strokeWidth="1.5"/>
-            ))}
-          </svg>
+            {/* 눈금자 — 우측 세로 */}
+            <line x1="1148" y1="80" x2="1148" y2="420" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.2"/>
+            <line x1="1140" y1="80" x2="1156" y2="80" stroke="#b8d9ee" strokeWidth="2" opacity="0.25"/>
+            <line x1="1140" y1="420" x2="1156" y2="420" stroke="#b8d9ee" strokeWidth="2" opacity="0.25"/>
+            <line x1="1143" y1="165" x2="1153" y2="165" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.18"/>
+            <line x1="1143" y1="250" x2="1153" y2="250" stroke="#b8d9ee" strokeWidth="1.5" opacity="0.22"/>
+            <line x1="1143" y1="335" x2="1153" y2="335" stroke="#b8d9ee" strokeWidth="1.2" opacity="0.18"/>
 
-          {/* 눈금자 장식선 — 하단 */}
-          <svg style={{ position: 'absolute', bottom: 52, left: '50%', transform: 'translateX(-50%)', opacity: 0.12, width: '60%', height: 20 }} viewBox="0 0 600 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <line x1="0" y1="10" x2="600" y2="10" stroke="#b8d9ee" strokeWidth="1.5"/>
-            <line x1="0" y1="4" x2="0" y2="16" stroke="#b8d9ee" strokeWidth="2"/>
-            <line x1="600" y1="4" x2="600" y2="16" stroke="#b8d9ee" strokeWidth="2"/>
-            {[60,120,180,240,300,360,420,480,540].map((x: number) => (
-              <line key={x} x1={x} y1="7" x2={x} y2="13" stroke="#b8d9ee" strokeWidth="1.5"/>
-            ))}
-          </svg>
+            {/* 돋보기 — 좌상단 */}
+            <g opacity="0.22" transform="translate(90, 70)">
+              <circle cx="36" cy="36" r="26" stroke="#b8d9ee" strokeWidth="4.5" fill="none"/>
+              <line x1="55" y1="55" x2="78" y2="78" stroke="#b8d9ee" strokeWidth="5.5" strokeLinecap="round"/>
+              <line x1="24" y1="36" x2="48" y2="36" stroke="#b8d9ee" strokeWidth="2.5" strokeLinecap="round"/>
+              <line x1="36" y1="24" x2="36" y2="48" stroke="#b8d9ee" strokeWidth="2.5" strokeLinecap="round"/>
+            </g>
 
-          {/* 다이아몬드 ✦ — 우하단 */}
-          <svg style={{ position: 'absolute', bottom: 36, right: '5%', opacity: 0.25, width: 32, height: 32 }} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16 2 L18.5 13.5 L30 16 L18.5 18.5 L16 30 L13.5 18.5 L2 16 L13.5 13.5 Z" fill="#b8d9ee"/>
+            {/* 돋보기 — 우상단 (좌우반전) */}
+            <g opacity="0.18" transform="translate(1010, 55) scale(-1,1) translate(-80,0)">
+              <circle cx="36" cy="36" r="26" stroke="#b8d9ee" strokeWidth="4.5" fill="none"/>
+              <line x1="55" y1="55" x2="78" y2="78" stroke="#b8d9ee" strokeWidth="5.5" strokeLinecap="round"/>
+              <line x1="24" y1="36" x2="48" y2="36" stroke="#b8d9ee" strokeWidth="2.5" strokeLinecap="round"/>
+              <line x1="36" y1="24" x2="36" y2="48" stroke="#b8d9ee" strokeWidth="2.5" strokeLinecap="round"/>
+            </g>
+
           </svg>
 
           {/* 메인 카피 */}
