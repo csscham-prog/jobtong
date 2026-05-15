@@ -26,6 +26,11 @@ export default function PaymentPage() {
       setUser(session.user)
     })
 
+    // URL 파라미터로 플랜 자동 선택
+    const params = new URLSearchParams(window.location.search)
+    const plan = params.get('plan')
+    if (plan === 'plan_1' || plan === 'plan_5') setSelectedPlan(plan)
+
     // 토스페이먼츠 SDK 로드
     const script = document.createElement('script')
     script.src = 'https://js.tosspayments.com/v1/payment'
