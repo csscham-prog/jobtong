@@ -58,36 +58,6 @@ export default function AdminPage() {
     if (data) { setUsers(data); setFilteredUsers(data) }
   }
 
-  const getPaymentRange = (period: string, cStart: string, cEnd: string) => {
-    const now = new Date()
-    const end = new Date(now); end.setHours(23, 59, 59, 999)
-    if (period === 'today') { const start = new Date(now); start.setHours(0,0,0,0); return { start, end } }
-    if (period === 'week') { const start = new Date(now); start.setDate(now.getDate()-6); start.setHours(0,0,0,0); return { start, end } }
-    if (period === 'month') { const start = new Date(now); start.setDate(1); start.setHours(0,0,0,0); return { start, end } }
-    if (period === 'custom' && cStart && cEnd) return { start: new Date(cStart), end: new Date(cEnd + 'T23:59:59') }
-    return null
-  }
-
-  const filteredPayments = (() => {
-    const range = getPaymentRange(paymentPeriod, paymentCustomStart, paymentCustomEnd)
-    if (!range) return payments
-    return payments.filter(p => {
-      const d = new Date(p.created_at)
-      return d >= range.start && d <= range.end
-    })
-  })()
-
-  const loadPayments = async () => {
-    setPaymentsLoading(true)
-    const { data } = await supabase
-      .from('payments')
-      .select('*, profiles(email)')
-      .eq('status', 'success')
-      .order('created_at', { ascending: false })
-    if (data) setPayments(data)
-    setPaymentsLoading(false)
-  }
-
   const getPeriodRange = () => {
     const now = new Date()
     const end = new Date(now)
@@ -132,6 +102,27 @@ export default function AdminPage() {
     const totalAnalyses = users.reduce((s, u) => s + (u.total_analyses || 0), 0)
 
     setStats({ total, periodNew, trialUsed, paidUsers, totalAnalyses })
+  }
+
+  const loadPayments = async () => {
+    setPaymentsLoading(true)
+    const { data } = await supabase
+      .from('payments')
+      .select('*, profiles(email)')
+      .eq('status', 'success')
+      .order('created_at', { ascending: false })
+    if (data) setPayments(data)
+    setPaymentsLoading(false)
+  }
+
+  const getPaymentRange = () => {
+    const now = new Date()
+    const end = new Date(now); end.setHours(23, 59, 59, 999)
+    if (paymentPeriod === 'today') { const start = new Date(now); start.setHours(0,0,0,0); return { start, end } }
+    if (paymentPeriod === 'week') { const start = new Date(now); start.setDate(now.getDate()-6); start.setHours(0,0,0,0); return { start, end } }
+    if (paymentPeriod === 'month') { const start = new Date(now); start.setDate(1); start.setHours(0,0,0,0); return { start, end } }
+    if (paymentPeriod === 'custom' && paymentCustomStart && paymentCustomEnd) return { start: new Date(paymentCustomStart), end: new Date(paymentCustomEnd + 'T23:59:59') }
+    return null
   }
 
   const handleToggleMaintenance = async () => {
@@ -226,89 +217,163 @@ export default function AdminPage() {
         {/* 통계 탭 */}
         {activeTab === 'stats' && stats && (
           <div>
-          <div>
             {/* 기간 필터 */}
             <div style={{ background: '#fff', borderRadius: 16, padding: '20px 24px', border: '1px solid #ece9e1', marginBottom: 20 }}>
               <p style={{ fontSize: 13, fontWeight: 700, color: '#555', margin: '0 0 12px' }}>기간 선택</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-                {[{ key: 'today', label: '오늘' }, { key: 'week', label: '이번 주' }, { key: 'month', label: '이번 달' }, { key: 'custom', label: '기간 지정' }].map(p => (
-                  <button key={p.key} onClick={() => setPaymentPeriod(p.key as any)}
-                    style={{ background: paymentPeriod === p.key ? '#0f2244' : '#f7f6f3', color: paymentPeriod === p.key ? '#fff' : '#555', border: `1px solid ${paymentPeriod === p.key ? '#0f2244' : '#e8e5dc'}`, borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                {[
+                  { key: 'today', label: '오늘' },
+                  { key: 'week', label: '이번 주' },
+                  { key: 'month', label: '이번 달' },
+                  { key: 'custom', label: '기간 지정' },
+                ].map(p => (
+                  <button key={p.key} onClick={() => setPeriodFilter(p.key as any)}
+                    style={{ background: periodFilter === p.key ? '#0f2244' : '#f7f6f3', color: periodFilter === p.key ? '#fff' : '#555', border: `1px solid ${periodFilter === p.key ? '#0f2244' : '#e8e5dc'}`, borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                     {p.label}
                   </button>
                 ))}
-                {paymentPeriod === 'custom' && (
+                {periodFilter === 'custom' && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-                    <input type="date" value={paymentCustomStart} onChange={e => setPaymentCustomStart(e.target.value)}
+                    <input type="date" value={customStart} onChange={e => setCustomStart(e.target.value)}
                       style={{ border: '1.5px solid #e5e3dc', borderRadius: 8, padding: '7px 10px', fontSize: 13, outline: 'none', fontFamily: 'inherit' }} />
                     <span style={{ color: '#888', fontSize: 13 }}>~</span>
-                    <input type="date" value={paymentCustomEnd} onChange={e => setPaymentCustomEnd(e.target.value)}
+                    <input type="date" value={customEnd} onChange={e => setCustomEnd(e.target.value)}
                       style={{ border: '1.5px solid #e5e3dc', borderRadius: 8, padding: '7px 10px', fontSize: 13, outline: 'none', fontFamily: 'inherit' }} />
                   </div>
                 )}
               </div>
             </div>
 
+            {/* 통계 카드 */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 20 }}>
               {[
-                { label: '총 결제 건수', value: `${filteredPayments.length}건`, color: '#0f2244' },
-                { label: '총 결제 금액', value: `₩${filteredPayments.reduce((s, p) => s + (p.amount || 0), 0).toLocaleString()}`, color: '#10b981' },
-                { label: '1회권 결제', value: `${filteredPayments.filter(p => p.plan_type === 'plan_1').length}건`, color: '#6366f1' },
-                { label: '5회권 결제', value: `${filteredPayments.filter(p => p.plan_type === 'plan_5').length}건`, color: '#e6a800' },
+                { label: '총 회원 수', value: `${stats.total}명`, sub: '전체 누적', color: '#0f2244' },
+                { label: `신규 가입 (${periodLabel()})`, value: `${stats.periodNew}명`, sub: '기간 내 신규', color: '#6366f1' },
+                { label: '무료체험 사용', value: `${stats.trialUsed}명`, sub: `전환율 ${stats.total ? Math.round(stats.trialUsed / stats.total * 100) : 0}%`, color: '#e6a800' },
+                { label: '유료 사용자', value: `${stats.paidUsers}명`, sub: `전환율 ${stats.total ? Math.round(stats.paidUsers / stats.total * 100) : 0}%`, color: '#10b981' },
+                { label: '총 분석 건수', value: `${stats.totalAnalyses}건`, sub: '전체 누적', color: '#ef4444' },
               ].map(item => (
                 <div key={item.label} style={{ background: '#fff', borderRadius: 16, padding: '24px', border: '1px solid #ece9e1' }}>
                   <p style={{ fontSize: 12, color: '#888', margin: '0 0 8px', fontWeight: 600 }}>{item.label}</p>
-                  <p style={{ fontSize: 28, fontWeight: 800, color: item.color, margin: 0 }}>{item.value}</p>
+                  <p style={{ fontSize: 32, fontWeight: 800, color: item.color, margin: '0 0 4px' }}>{item.value}</p>
+                  <p style={{ fontSize: 12, color: '#aaa', margin: 0 }}>{item.sub}</p>
                 </div>
               ))}
             </div>
-            <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', overflow: 'hidden' }}>
-              <div style={{ padding: '16px 24px', borderBottom: '1px solid #f0ede6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f2244', margin: 0 }}>결제 명단 ({filteredPayments.length}건)</h3>
-                <button onClick={loadPayments} style={{ background: '#f7f6f3', color: '#555', border: '1px solid #e8e5dc', borderRadius: 8, padding: '8px 14px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>새로고침</button>
-              </div>
-              {paymentsLoading ? (
-                <div style={{ padding: '40px', textAlign: 'center', color: '#aaa' }}>로딩 중...</div>
-              ) : (
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                      <tr style={{ background: '#f7f6f3' }}>
-                        {['결제일', '이메일', '플랜', '결제 금액', '충전 횟수', '구분'].map(h => (
-                          <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#888', whiteSpace: 'nowrap' }}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredPayments.length === 0 ? (
-                        <tr><td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: '#aaa', fontSize: 14 }}>결제 내역이 없습니다.</td></tr>
-                      ) : filteredPayments.map((p, i) => (
-                        <tr key={p.id} style={{ borderTop: '1px solid #f0ede6', background: i % 2 === 0 ? '#fff' : '#faf9f7' }}>
-                          <td style={{ padding: '12px 16px', fontSize: 12, color: '#888', whiteSpace: 'nowrap' }}>
-                            {new Date(p.created_at).toLocaleDateString('ko-KR')} {new Date(p.created_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
-                          </td>
-                          <td style={{ padding: '12px 16px', fontSize: 13, color: '#333' }}>{p.profiles?.email || '-'}</td>
-                          <td style={{ padding: '12px 16px' }}>
-                            <span style={{ background: p.plan_type === 'plan_5' ? '#fffbeb' : '#f0f0ff', color: p.plan_type === 'plan_5' ? '#92400e' : '#3C3489', fontSize: 12, padding: '3px 10px', borderRadius: 20, fontWeight: 700 }}>
-                              {p.plan_name || p.plan_type}
-                            </span>
-                          </td>
-                          <td style={{ padding: '12px 16px', fontSize: 14, fontWeight: 700, color: '#10b981' }}>₩{(p.amount || 0).toLocaleString()}</td>
-                          <td style={{ padding: '12px 16px', fontSize: 13, fontWeight: 600, color: '#0f2244' }}>{p.credits}회</td>
-                          <td style={{ padding: '12px 16px' }}>
-                            <span style={{ background: p.is_test ? '#fef2f2' : '#ecfdf5', color: p.is_test ? '#991b1b' : '#065f46', fontSize: 11, padding: '3px 8px', borderRadius: 20, fontWeight: 600 }}>
-                              {p.is_test ? '테스트' : '실결제'}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+
+            {/* 전환 퍼널 */}
+            <div style={{ background: '#fff', borderRadius: 16, padding: '24px', border: '1px solid #ece9e1' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f2244', margin: '0 0 20px' }}>전환 퍼널</h3>
+              {[
+                { label: '회원가입', value: stats.total, max: stats.total, color: '#0f2244' },
+                { label: '무료체험 사용', value: stats.trialUsed, max: stats.total, color: '#e6a800' },
+                { label: '유료 전환', value: stats.paidUsers, max: stats.total, color: '#10b981' },
+              ].map(item => (
+                <div key={item.label} style={{ marginBottom: 16 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
+                    <span style={{ color: '#555', fontWeight: 600 }}>{item.label}</span>
+                    <span style={{ fontWeight: 700, color: item.color }}>{item.value}명 ({item.max ? Math.round(item.value / item.max * 100) : 0}%)</span>
+                  </div>
+                  <div style={{ height: 10, background: '#f0ede6', borderRadius: 5 }}>
+                    <div style={{ height: '100%', width: `${item.max ? item.value / item.max * 100 : 0}%`, background: item.color, borderRadius: 5, transition: 'width 0.5s' }} />
+                  </div>
                 </div>
-              )}
+              ))}
             </div>
           </div>
         )}
+
+
+        {/* 결제 내역 탭 */}
+        {activeTab === 'payments' && (() => {
+          const range = getPaymentRange()
+          const fp = range ? payments.filter(p => { const d = new Date(p.created_at); return d >= range.start && d <= range.end }) : payments
+          return (
+            <div>
+              {/* 기간 필터 */}
+              <div style={{ background: '#fff', borderRadius: 16, padding: '20px 24px', border: '1px solid #ece9e1', marginBottom: 20 }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#555', margin: '0 0 12px' }}>기간 선택</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                  {[{ key: 'today', label: '오늘' }, { key: 'week', label: '이번 주' }, { key: 'month', label: '이번 달' }, { key: 'custom', label: '기간 지정' }].map(p => (
+                    <button key={p.key} onClick={() => setPaymentPeriod(p.key as any)}
+                      style={{ background: paymentPeriod === p.key ? '#0f2244' : '#f7f6f3', color: paymentPeriod === p.key ? '#fff' : '#555', border: `1px solid ${paymentPeriod === p.key ? '#0f2244' : '#e8e5dc'}`, borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                      {p.label}
+                    </button>
+                  ))}
+                  {paymentPeriod === 'custom' && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                      <input type="date" value={paymentCustomStart} onChange={e => setPaymentCustomStart(e.target.value)}
+                        style={{ border: '1.5px solid #e5e3dc', borderRadius: 8, padding: '7px 10px', fontSize: 13, outline: 'none', fontFamily: 'inherit' }} />
+                      <span style={{ color: '#888', fontSize: 13 }}>~</span>
+                      <input type="date" value={paymentCustomEnd} onChange={e => setPaymentCustomEnd(e.target.value)}
+                        style={{ border: '1.5px solid #e5e3dc', borderRadius: 8, padding: '7px 10px', fontSize: 13, outline: 'none', fontFamily: 'inherit' }} />
+                    </div>
+                  )}
+                </div>
+              </div>
+              {/* 요약 카드 */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 20 }}>
+                {[
+                  { label: '총 결제 건수', value: `${fp.length}건`, color: '#0f2244' },
+                  { label: '총 결제 금액', value: `₩${fp.reduce((s: number, p: any) => s + (p.amount || 0), 0).toLocaleString()}`, color: '#10b981' },
+                  { label: '1회권 결제', value: `${fp.filter((p: any) => p.plan_type === 'plan_1').length}건`, color: '#6366f1' },
+                  { label: '5회권 결제', value: `${fp.filter((p: any) => p.plan_type === 'plan_5').length}건`, color: '#e6a800' },
+                ].map(item => (
+                  <div key={item.label} style={{ background: '#fff', borderRadius: 16, padding: '24px', border: '1px solid #ece9e1' }}>
+                    <p style={{ fontSize: 12, color: '#888', margin: '0 0 8px', fontWeight: 600 }}>{item.label}</p>
+                    <p style={{ fontSize: 28, fontWeight: 800, color: item.color, margin: 0 }}>{item.value}</p>
+                  </div>
+                ))}
+              </div>
+              {/* 결제 명단 */}
+              <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', overflow: 'hidden' }}>
+                <div style={{ padding: '16px 24px', borderBottom: '1px solid #f0ede6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f2244', margin: 0 }}>결제 명단 ({fp.length}건)</h3>
+                  <button onClick={loadPayments} style={{ background: '#f7f6f3', color: '#555', border: '1px solid #e8e5dc', borderRadius: 8, padding: '8px 14px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>새로고침</button>
+                </div>
+                {paymentsLoading ? (
+                  <div style={{ padding: '40px', textAlign: 'center', color: '#aaa' }}>로딩 중...</div>
+                ) : (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr style={{ background: '#f7f6f3' }}>
+                          {['결제일', '이메일', '플랜', '결제 금액', '충전 횟수', '구분'].map(h => (
+                            <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#888', whiteSpace: 'nowrap' }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {fp.length === 0 ? (
+                          <tr><td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: '#aaa', fontSize: 14 }}>결제 내역이 없습니다.</td></tr>
+                        ) : fp.map((p: any, i: number) => (
+                          <tr key={p.id} style={{ borderTop: '1px solid #f0ede6', background: i % 2 === 0 ? '#fff' : '#faf9f7' }}>
+                            <td style={{ padding: '12px 16px', fontSize: 12, color: '#888', whiteSpace: 'nowrap' }}>
+                              {new Date(p.created_at).toLocaleDateString('ko-KR')} {new Date(p.created_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+                            </td>
+                            <td style={{ padding: '12px 16px', fontSize: 13, color: '#333' }}>{p.profiles?.email || '-'}</td>
+                            <td style={{ padding: '12px 16px' }}>
+                              <span style={{ background: p.plan_type === 'plan_5' ? '#fffbeb' : '#f0f0ff', color: p.plan_type === 'plan_5' ? '#92400e' : '#3C3489', fontSize: 12, padding: '3px 10px', borderRadius: 20, fontWeight: 700 }}>
+                                {p.plan_name || p.plan_type}
+                              </span>
+                            </td>
+                            <td style={{ padding: '12px 16px', fontSize: 14, fontWeight: 700, color: '#10b981' }}>₩{(p.amount || 0).toLocaleString()}</td>
+                            <td style={{ padding: '12px 16px', fontSize: 13, fontWeight: 600, color: '#0f2244' }}>{p.credits}회</td>
+                            <td style={{ padding: '12px 16px' }}>
+                              <span style={{ background: p.is_test ? '#fef2f2' : '#ecfdf5', color: p.is_test ? '#991b1b' : '#065f46', fontSize: 11, padding: '3px 8px', borderRadius: 20, fontWeight: 600 }}>
+                                {p.is_test ? '테스트' : '실결제'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })()}
 
         {/* 회원 관리 탭 */}
         {activeTab === 'users' && (
