@@ -11,6 +11,9 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<'stats' | 'users' | 'payments'>('stats')
   const [payments, setPayments] = useState<any[]>([])
   const [paymentsLoading, setPaymentsLoading] = useState(false)
+  const [paymentPeriod, setPaymentPeriod] = useState<'today' | 'week' | 'month' | 'custom'>('month')
+  const [paymentCustomStart, setPaymentCustomStart] = useState('')
+  const [paymentCustomEnd, setPaymentCustomEnd] = useState('')
   const [editingUser, setEditingUser] = useState<any>(null)
   const [creditAmount, setCreditAmount] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
@@ -54,6 +57,25 @@ export default function AdminPage() {
     const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: false })
     if (data) { setUsers(data); setFilteredUsers(data) }
   }
+
+  const getPaymentRange = (period: string, cStart: string, cEnd: string) => {
+    const now = new Date()
+    const end = new Date(now); end.setHours(23, 59, 59, 999)
+    if (period === 'today') { const start = new Date(now); start.setHours(0,0,0,0); return { start, end } }
+    if (period === 'week') { const start = new Date(now); start.setDate(now.getDate()-6); start.setHours(0,0,0,0); return { start, end } }
+    if (period === 'month') { const start = new Date(now); start.setDate(1); start.setHours(0,0,0,0); return { start, end } }
+    if (period === 'custom' && cStart && cEnd) return { start: new Date(cStart), end: new Date(cEnd + 'T23:59:59') }
+    return null
+  }
+
+  const filteredPayments = (() => {
+    const range = getPaymentRange(paymentPeriod, paymentCustomStart, paymentCustomEnd)
+    if (!range) return payments
+    return payments.filter(p => {
+      const d = new Date(p.created_at)
+      return d >= range.start && d <= range.end
+    })
+  })()
 
   const loadPayments = async () => {
     setPaymentsLoading(true)
@@ -307,7 +329,7 @@ export default function AdminPage() {
             {/* 결제 목록 */}
             <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', overflow: 'hidden' }}>
               <div style={{ padding: '16px 24px', borderBottom: '1px solid #f0ede6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f2244', margin: 0 }}>결제 명단 (총 {payments.length}건)</h3>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f2244', margin: 0 }}>결제 명단 ({filteredPayments.length}건)</h3>
                 <button onClick={loadPayments} style={{ background: '#f7f6f3', color: '#555', border: '1px solid #e8e5dc', borderRadius: 8, padding: '8px 14px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
                   새로고침
                 </button>
@@ -366,12 +388,34 @@ export default function AdminPage() {
         {/* 결제 내역 탭 */}
         {activeTab === 'payments' && (
           <div>
+            {/* 기간 필터 */}
+            <div style={{ background: '#fff', borderRadius: 16, padding: '20px 24px', border: '1px solid #ece9e1', marginBottom: 20 }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#555', margin: '0 0 12px' }}>기간 선택</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                {[{ key: 'today', label: '오늘' }, { key: 'week', label: '이번 주' }, { key: 'month', label: '이번 달' }, { key: 'custom', label: '기간 지정' }].map(p => (
+                  <button key={p.key} onClick={() => setPaymentPeriod(p.key as any)}
+                    style={{ background: paymentPeriod === p.key ? '#0f2244' : '#f7f6f3', color: paymentPeriod === p.key ? '#fff' : '#555', border: `1px solid ${paymentPeriod === p.key ? '#0f2244' : '#e8e5dc'}`, borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                    {p.label}
+                  </button>
+                ))}
+                {paymentPeriod === 'custom' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                    <input type="date" value={paymentCustomStart} onChange={e => setPaymentCustomStart(e.target.value)}
+                      style={{ border: '1.5px solid #e5e3dc', borderRadius: 8, padding: '7px 10px', fontSize: 13, outline: 'none', fontFamily: 'inherit' }} />
+                    <span style={{ color: '#888', fontSize: 13 }}>~</span>
+                    <input type="date" value={paymentCustomEnd} onChange={e => setPaymentCustomEnd(e.target.value)}
+                      style={{ border: '1.5px solid #e5e3dc', borderRadius: 8, padding: '7px 10px', fontSize: 13, outline: 'none', fontFamily: 'inherit' }} />
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 20 }}>
               {[
-                { label: '총 결제 건수', value: `${payments.length}건`, color: '#0f2244' },
-                { label: '총 결제 금액', value: `₩${payments.reduce((s, p) => s + (p.amount || 0), 0).toLocaleString()}`, color: '#10b981' },
-                { label: '1회권 결제', value: `${payments.filter(p => p.plan_type === 'plan_1').length}건`, color: '#6366f1' },
-                { label: '5회권 결제', value: `${payments.filter(p => p.plan_type === 'plan_5').length}건`, color: '#e6a800' },
+                { label: '총 결제 건수', value: `${filteredPayments.length}건`, color: '#0f2244' },
+                { label: '총 결제 금액', value: `₩${filteredPayments.reduce((s, p) => s + (p.amount || 0), 0).toLocaleString()}`, color: '#10b981' },
+                { label: '1회권 결제', value: `${filteredPayments.filter(p => p.plan_type === 'plan_1').length}건`, color: '#6366f1' },
+                { label: '5회권 결제', value: `${filteredPayments.filter(p => p.plan_type === 'plan_5').length}건`, color: '#e6a800' },
               ].map(item => (
                 <div key={item.label} style={{ background: '#fff', borderRadius: 16, padding: '24px', border: '1px solid #ece9e1' }}>
                   <p style={{ fontSize: 12, color: '#888', margin: '0 0 8px', fontWeight: 600 }}>{item.label}</p>
@@ -381,7 +425,7 @@ export default function AdminPage() {
             </div>
             <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', overflow: 'hidden' }}>
               <div style={{ padding: '16px 24px', borderBottom: '1px solid #f0ede6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f2244', margin: 0 }}>결제 명단 (총 {payments.length}건)</h3>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f2244', margin: 0 }}>결제 명단 ({filteredPayments.length}건)</h3>
                 <button onClick={loadPayments} style={{ background: '#f7f6f3', color: '#555', border: '1px solid #e8e5dc', borderRadius: 8, padding: '8px 14px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>새로고침</button>
               </div>
               {paymentsLoading ? (
@@ -397,9 +441,9 @@ export default function AdminPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {payments.length === 0 ? (
+                      {filteredPayments.length === 0 ? (
                         <tr><td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: '#aaa', fontSize: 14 }}>결제 내역이 없습니다.</td></tr>
-                      ) : payments.map((p, i) => (
+                      ) : filteredPayments.map((p, i) => (
                         <tr key={p.id} style={{ borderTop: '1px solid #f0ede6', background: i % 2 === 0 ? '#fff' : '#faf9f7' }}>
                           <td style={{ padding: '12px 16px', fontSize: 12, color: '#888', whiteSpace: 'nowrap' }}>
                             {new Date(p.created_at).toLocaleDateString('ko-KR')} {new Date(p.created_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
