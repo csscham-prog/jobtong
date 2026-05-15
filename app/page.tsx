@@ -18,18 +18,19 @@ export default function Home() {
   const [user, setUser] = useState<any>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
   const [authLoading, setAuthLoading] = useState(true)
+  const [maintenance, setMaintenance] = useState(false)
 
   useEffect(() => {
+    // 점검 모드 체크 (어드민은 제외)
+    supabase.from('settings').select('value').eq('key', 'maintenance_mode').single()
+      .then(({ data }) => { if (data?.value === 'true') setMaintenance(true) })
+
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      // 로그인 상태 유지 미체크 유저 → 브라우저 재시작 시 로그아웃
       const keepLogin = localStorage.getItem('jobtong-keep-login') === 'true'
       const sessionOnly = sessionStorage.getItem('jobtong-session-only') === 'true'
       if (session?.user && !keepLogin && !sessionOnly) {
-        // sessionStorage가 없다는 건 브라우저가 새로 열린 것 → 로그아웃
         await supabase.auth.signOut()
-        setUser(null)
-        setAuthLoading(false)
-        return
+        setUser(null); setAuthLoading(false); return
       }
       setUser(session?.user ?? null)
       if (session?.user) fetchProfile(session.user.id)
@@ -115,6 +116,31 @@ export default function Home() {
       }
     } catch (e: any) { setError(e.message) }
     finally { setLoading(false) }
+  }
+
+  // 점검 모드 화면 — 어드민은 통과
+  if (maintenance && userProfile?.role !== 'admin') {
+    return (
+      <main style={{ fontFamily: "'Pretendard', -apple-system, sans-serif", background: '#0f2244', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+        <div style={{ textAlign: 'center', color: '#fff' }}>
+          <div style={{ fontSize: 64, marginBottom: 24 }}>🔧</div>
+          <h1 style={{ fontSize: 32, fontWeight: 900, marginBottom: 16, letterSpacing: '-0.5px' }}>서버 점검 중입니다</h1>
+          <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.6)', lineHeight: 1.8, marginBottom: 8 }}>
+            더 나은 서비스를 위해 잠시 점검 중입니다.
+          </p>
+          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>
+            불편을 드려 죄송합니다. 곧 다시 서비스됩니다.
+          </p>
+          <div style={{ marginTop: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+            <div style={{ width: 36, height: 36, background: 'linear-gradient(135deg, #1a3a6b 0%, #0f2244 100%)', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+              <div style={{ position: 'absolute', top: 4, right: 4, width: 8, height: 8, background: '#e6a800', borderRadius: '50%' }} />
+              <span style={{ fontSize: 16, fontWeight: 900, color: '#fff' }}>J</span>
+            </div>
+            <span style={{ fontSize: 20, fontWeight: 800, color: '#fff' }}>잡통</span>
+          </div>
+        </div>
+      </main>
+    )
   }
 
   const getScoreColor = (s: number) => s >= 80 ? '#10b981' : s >= 60 ? '#f59e0b' : '#ef4444'
