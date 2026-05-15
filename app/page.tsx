@@ -202,15 +202,80 @@ export default function Home() {
     return (
       <main style={base}>
         <Header />
-        <section style={{ background: 'linear-gradient(160deg, #0a1628 0%, #1a3a6b 60%, #152f58 100%)', color: '#fff', padding: '80px 24px 90px' }}>
-          <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
-            <h1 className="hero-title" style={{ fontWeight: 900, lineHeight: 1.2, marginBottom: 28, letterSpacing: '-1.5px' }}>
-              당신의 진심을<br /><span style={{ color: '#f0c040' }}>바르게 담아내는</span> 문장,<br />잡통이 함께 고민합니다.
+        <section style={{ background: 'linear-gradient(160deg, #0a1628 0%, #1a3a6b 60%, #152f58 100%)', color: '#fff', padding: '80px 24px 90px', position: 'relative', overflow: 'hidden' }}>
+
+          {/* 돋보기 SVG — 좌상단 */}
+          <svg style={{ position: 'absolute', top: 32, left: '6%', opacity: 0.18, width: 90, height: 90 }} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="40" cy="40" r="28" stroke="#b8d9ee" strokeWidth="5" fill="none"/>
+            <line x1="62" y1="62" x2="88" y2="88" stroke="#b8d9ee" strokeWidth="6" strokeLinecap="round"/>
+            <line x1="28" y1="40" x2="52" y2="40" stroke="#b8d9ee" strokeWidth="3" strokeLinecap="round"/>
+            <line x1="40" y1="28" x2="40" y2="52" stroke="#b8d9ee" strokeWidth="3" strokeLinecap="round"/>
+          </svg>
+
+          {/* 돋보기 SVG — 우상단 */}
+          <svg style={{ position: 'absolute', top: 24, right: '5%', opacity: 0.15, width: 72, height: 72, transform: 'scaleX(-1)' }} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="40" cy="40" r="28" stroke="#b8d9ee" strokeWidth="5" fill="none"/>
+            <line x1="62" y1="62" x2="88" y2="88" stroke="#b8d9ee" strokeWidth="6" strokeLinecap="round"/>
+            <line x1="28" y1="40" x2="52" y2="40" stroke="#b8d9ee" strokeWidth="3" strokeLinecap="round"/>
+            <line x1="40" y1="28" x2="40" y2="52" stroke="#b8d9ee" strokeWidth="3" strokeLinecap="round"/>
+          </svg>
+
+          {/* 눈금자 장식선 — 상단 */}
+          <svg style={{ position: 'absolute', top: 56, left: '50%', transform: 'translateX(-50%)', opacity: 0.12, width: '70%', height: 20 }} viewBox="0 0 700 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="0" y1="10" x2="700" y2="10" stroke="#b8d9ee" strokeWidth="1.5"/>
+            <line x1="0" y1="4" x2="0" y2="16" stroke="#b8d9ee" strokeWidth="2"/>
+            <line x1="700" y1="4" x2="700" y2="16" stroke="#b8d9ee" strokeWidth="2"/>
+            {[70,140,210,280,350,420,490,560,630].map((x: number) => (
+              <line key={x} x1={x} y1="7" x2={x} y2="13" stroke="#b8d9ee" strokeWidth="1.5"/>
+            ))}
+          </svg>
+
+          {/* 눈금자 장식선 — 좌측 세로 */}
+          <svg style={{ position: 'absolute', top: '50%', left: '3%', transform: 'translateY(-50%)', opacity: 0.1, width: 20, height: '60%' }} viewBox="0 0 20 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="10" y1="0" x2="10" y2="300" stroke="#b8d9ee" strokeWidth="1.5"/>
+            <line x1="4" y1="0" x2="16" y2="0" stroke="#b8d9ee" strokeWidth="2"/>
+            <line x1="4" y1="300" x2="16" y2="300" stroke="#b8d9ee" strokeWidth="2"/>
+            {[50,100,150,200,250].map((y: number) => (
+              <line key={y} x1="7" y1={y} x2="13" y2={y} stroke="#b8d9ee" strokeWidth="1.5"/>
+            ))}
+          </svg>
+
+          {/* 눈금자 장식선 — 우측 세로 */}
+          <svg style={{ position: 'absolute', top: '50%', right: '3%', transform: 'translateY(-50%)', opacity: 0.1, width: 20, height: '60%' }} viewBox="0 0 20 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="10" y1="0" x2="10" y2="300" stroke="#b8d9ee" strokeWidth="1.5"/>
+            <line x1="4" y1="0" x2="16" y2="0" stroke="#b8d9ee" strokeWidth="2"/>
+            <line x1="4" y1="300" x2="16" y2="300" stroke="#b8d9ee" strokeWidth="2"/>
+            {[50,100,150,200,250].map((y: number) => (
+              <line key={y} x1="7" y1={y} x2="13" y2={y} stroke="#b8d9ee" strokeWidth="1.5"/>
+            ))}
+          </svg>
+
+          {/* 눈금자 장식선 — 하단 */}
+          <svg style={{ position: 'absolute', bottom: 52, left: '50%', transform: 'translateX(-50%)', opacity: 0.12, width: '60%', height: 20 }} viewBox="0 0 600 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="0" y1="10" x2="600" y2="10" stroke="#b8d9ee" strokeWidth="1.5"/>
+            <line x1="0" y1="4" x2="0" y2="16" stroke="#b8d9ee" strokeWidth="2"/>
+            <line x1="600" y1="4" x2="600" y2="16" stroke="#b8d9ee" strokeWidth="2"/>
+            {[60,120,180,240,300,360,420,480,540].map((x: number) => (
+              <line key={x} x1={x} y1="7" x2={x} y2="13" stroke="#b8d9ee" strokeWidth="1.5"/>
+            ))}
+          </svg>
+
+          {/* 다이아몬드 ✦ — 우하단 */}
+          <svg style={{ position: 'absolute', bottom: 36, right: '5%', opacity: 0.25, width: 32, height: 32 }} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 2 L18.5 13.5 L30 16 L18.5 18.5 L16 30 L13.5 18.5 L2 16 L13.5 13.5 Z" fill="#b8d9ee"/>
+          </svg>
+
+          {/* 메인 카피 */}
+          <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+            <h1 className="hero-title" style={{ fontWeight: 900, lineHeight: 1.25, marginBottom: 28, letterSpacing: '-1.5px' }}>
+              당신의 이야기를<br />
+              <span style={{ color: '#f0c040' }}>더 특별하게.</span><br />
+              잡통의 정밀 자소서 검토.
             </h1>
             <p style={{ fontSize: 19, color: '#b8d9ee', lineHeight: 1.85, marginBottom: 44 }}>
-              당신의 강점이 돋보이도록 문장을 다듬고,<br />부족한 부분은 정직하게 짚어드립니다.
+              전문가의 눈으로 문장을 다듬고,<br />합격을 위한 정직한 솔루션을 드립니다.
             </p>
-            <button onClick={handleStartAnalyze} style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '20px 52px', fontWeight: 800, fontSize: 20, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 8px 32px rgba(230,168,0,0.3)' }}>
+            <button onClick={handleStartAnalyze} style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '20px 52px', fontWeight: 800, fontSize: 20, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 8px 32px rgba(230,168,0,0.3)', position: 'relative', zIndex: 1 }}>
               {!user ? '무료로 분석 시작하기 →' :
                (userProfile?.paid_credits || 0) > 0 ? '전체 분석 시작하기 →' :
                !userProfile?.free_trial_used ? '무료 분석 시작하기 →' :
