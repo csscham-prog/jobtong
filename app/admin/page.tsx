@@ -8,7 +8,9 @@ export default function AdminPage() {
   const [users, setUsers] = useState<any[]>([])
   const [filteredUsers, setFilteredUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'stats' | 'users'>('stats')
+  const [activeTab, setActiveTab] = useState<'stats' | 'users' | 'payments'>('stats')
+  const [payments, setPayments] = useState<any[]>([])
+  const [paymentsLoading, setPaymentsLoading] = useState(false)
   const [editingUser, setEditingUser] = useState<any>(null)
   const [creditAmount, setCreditAmount] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
@@ -51,6 +53,17 @@ export default function AdminPage() {
   const loadData = async () => {
     const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: false })
     if (data) { setUsers(data); setFilteredUsers(data) }
+  }
+
+  const loadPayments = async () => {
+    setPaymentsLoading(true)
+    const { data } = await supabase
+      .from('payments')
+      .select('*, profiles(email)')
+      .eq('status', 'success')
+      .order('created_at', { ascending: false })
+    if (data) setPayments(data)
+    setPaymentsLoading(false)
   }
 
   const getPeriodRange = () => {
@@ -180,8 +193,8 @@ export default function AdminPage() {
 
         {/* 탭 */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 28 }}>
-          {[{ key: 'stats', label: '📊 통계' }, { key: 'users', label: '👥 회원 관리' }].map(tab => (
-            <button key={tab.key} onClick={() => setActiveTab(tab.key as any)}
+          {[{ key: 'stats', label: '📊 통계' }, { key: 'users', label: '👥 회원 관리' }, { key: 'payments', label: '💳 결제 내역' }].map(tab => (
+            <button key={tab.key} onClick={() => { setActiveTab(tab.key as any); if (tab.key === 'payments') loadPayments() }}
               style={{ background: activeTab === tab.key ? '#0f2244' : '#fff', color: activeTab === tab.key ? '#fff' : '#555', border: '1px solid #e8e5dc', borderRadius: 10, padding: '10px 20px', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
               {tab.label}
             </button>
@@ -253,6 +266,163 @@ export default function AdminPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* 결제 내역 탭 */}
+        {activeTab === 'payments' && (
+          <div>
+            {/* 결제 요약 카드 */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 20 }}>
+              {[
+                {
+                  label: '총 결제 건수',
+                  value: `${payments.length}건`,
+                  color: '#0f2244',
+                },
+                {
+                  label: '총 결제 금액',
+                  value: `₩${payments.reduce((s, p) => s + (p.amount || 0), 0).toLocaleString()}`,
+                  color: '#10b981',
+                },
+                {
+                  label: '1회권 결제',
+                  value: `${payments.filter(p => p.plan_type === 'plan_1').length}건`,
+                  color: '#6366f1',
+                },
+                {
+                  label: '5회권 결제',
+                  value: `${payments.filter(p => p.plan_type === 'plan_5').length}건`,
+                  color: '#e6a800',
+                },
+              ].map(item => (
+                <div key={item.label} style={{ background: '#fff', borderRadius: 16, padding: '24px', border: '1px solid #ece9e1' }}>
+                  <p style={{ fontSize: 12, color: '#888', margin: '0 0 8px', fontWeight: 600 }}>{item.label}</p>
+                  <p style={{ fontSize: 28, fontWeight: 800, color: item.color, margin: 0 }}>{item.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* 결제 목록 */}
+            <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', overflow: 'hidden' }}>
+              <div style={{ padding: '16px 24px', borderBottom: '1px solid #f0ede6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f2244', margin: 0 }}>결제 명단 (총 {payments.length}건)</h3>
+                <button onClick={loadPayments} style={{ background: '#f7f6f3', color: '#555', border: '1px solid #e8e5dc', borderRadius: 8, padding: '8px 14px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  새로고침
+                </button>
+              </div>
+              {paymentsLoading ? (
+                <div style={{ padding: '40px', textAlign: 'center', color: '#aaa' }}>로딩 중...</div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ background: '#f7f6f3' }}>
+                        {['결제일', '이메일', '플랜', '결제 금액', '충전 횟수', '구분'].map(h => (
+                          <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#888', whiteSpace: 'nowrap' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {payments.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: '#aaa', fontSize: 14 }}>결제 내역이 없습니다.</td>
+                        </tr>
+                      ) : payments.map((p, i) => (
+                        <tr key={p.id} style={{ borderTop: '1px solid #f0ede6', background: i % 2 === 0 ? '#fff' : '#faf9f7' }}>
+                          <td style={{ padding: '12px 16px', fontSize: 12, color: '#888', whiteSpace: 'nowrap' }}>
+                            {new Date(p.created_at).toLocaleDateString('ko-KR')} {new Date(p.created_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+                          </td>
+                          <td style={{ padding: '12px 16px', fontSize: 13, color: '#333' }}>
+                            {p.profiles?.email || '-'}
+                          </td>
+                          <td style={{ padding: '12px 16px' }}>
+                            <span style={{ background: p.plan_type === 'plan_5' ? '#fffbeb' : '#f0f0ff', color: p.plan_type === 'plan_5' ? '#92400e' : '#3C3489', fontSize: 12, padding: '3px 10px', borderRadius: 20, fontWeight: 700 }}>
+                              {p.plan_name || p.plan_type}
+                            </span>
+                          </td>
+                          <td style={{ padding: '12px 16px', fontSize: 14, fontWeight: 700, color: '#10b981' }}>
+                            ₩{(p.amount || 0).toLocaleString()}
+                          </td>
+                          <td style={{ padding: '12px 16px', fontSize: 13, fontWeight: 600, color: '#0f2244' }}>
+                            {p.credits}회
+                          </td>
+                          <td style={{ padding: '12px 16px' }}>
+                            <span style={{ background: p.is_test ? '#fef2f2' : '#ecfdf5', color: p.is_test ? '#991b1b' : '#065f46', fontSize: 11, padding: '3px 8px', borderRadius: 20, fontWeight: 600 }}>
+                              {p.is_test ? '테스트' : '실결제'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 결제 내역 탭 */}
+        {activeTab === 'payments' && (
+          <div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 20 }}>
+              {[
+                { label: '총 결제 건수', value: `${payments.length}건`, color: '#0f2244' },
+                { label: '총 결제 금액', value: `₩${payments.reduce((s, p) => s + (p.amount || 0), 0).toLocaleString()}`, color: '#10b981' },
+                { label: '1회권 결제', value: `${payments.filter(p => p.plan_type === 'plan_1').length}건`, color: '#6366f1' },
+                { label: '5회권 결제', value: `${payments.filter(p => p.plan_type === 'plan_5').length}건`, color: '#e6a800' },
+              ].map(item => (
+                <div key={item.label} style={{ background: '#fff', borderRadius: 16, padding: '24px', border: '1px solid #ece9e1' }}>
+                  <p style={{ fontSize: 12, color: '#888', margin: '0 0 8px', fontWeight: 600 }}>{item.label}</p>
+                  <p style={{ fontSize: 28, fontWeight: 800, color: item.color, margin: 0 }}>{item.value}</p>
+                </div>
+              ))}
+            </div>
+            <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', overflow: 'hidden' }}>
+              <div style={{ padding: '16px 24px', borderBottom: '1px solid #f0ede6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f2244', margin: 0 }}>결제 명단 (총 {payments.length}건)</h3>
+                <button onClick={loadPayments} style={{ background: '#f7f6f3', color: '#555', border: '1px solid #e8e5dc', borderRadius: 8, padding: '8px 14px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>새로고침</button>
+              </div>
+              {paymentsLoading ? (
+                <div style={{ padding: '40px', textAlign: 'center', color: '#aaa' }}>로딩 중...</div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ background: '#f7f6f3' }}>
+                        {['결제일', '이메일', '플랜', '결제 금액', '충전 횟수', '구분'].map(h => (
+                          <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#888', whiteSpace: 'nowrap' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {payments.length === 0 ? (
+                        <tr><td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: '#aaa', fontSize: 14 }}>결제 내역이 없습니다.</td></tr>
+                      ) : payments.map((p, i) => (
+                        <tr key={p.id} style={{ borderTop: '1px solid #f0ede6', background: i % 2 === 0 ? '#fff' : '#faf9f7' }}>
+                          <td style={{ padding: '12px 16px', fontSize: 12, color: '#888', whiteSpace: 'nowrap' }}>
+                            {new Date(p.created_at).toLocaleDateString('ko-KR')} {new Date(p.created_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+                          </td>
+                          <td style={{ padding: '12px 16px', fontSize: 13, color: '#333' }}>{p.profiles?.email || '-'}</td>
+                          <td style={{ padding: '12px 16px' }}>
+                            <span style={{ background: p.plan_type === 'plan_5' ? '#fffbeb' : '#f0f0ff', color: p.plan_type === 'plan_5' ? '#92400e' : '#3C3489', fontSize: 12, padding: '3px 10px', borderRadius: 20, fontWeight: 700 }}>
+                              {p.plan_name || p.plan_type}
+                            </span>
+                          </td>
+                          <td style={{ padding: '12px 16px', fontSize: 14, fontWeight: 700, color: '#10b981' }}>₩{(p.amount || 0).toLocaleString()}</td>
+                          <td style={{ padding: '12px 16px', fontSize: 13, fontWeight: 600, color: '#0f2244' }}>{p.credits}회</td>
+                          <td style={{ padding: '12px 16px' }}>
+                            <span style={{ background: p.is_test ? '#fef2f2' : '#ecfdf5', color: p.is_test ? '#991b1b' : '#065f46', fontSize: 11, padding: '3px 8px', borderRadius: 20, fontWeight: 600 }}>
+                              {p.is_test ? '테스트' : '실결제'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         )}
