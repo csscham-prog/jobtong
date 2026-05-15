@@ -16,6 +16,8 @@ export default function AdminPage() {
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
   const [stats, setStats] = useState<any>(null)
+  const [maintenance, setMaintenance] = useState(false)
+  const [maintenanceLoading, setMaintenanceLoading] = useState(false)
 
   useEffect(() => { checkAdmin() }, [])
 
@@ -40,6 +42,9 @@ export default function AdminPage() {
     if (!p || p.role !== 'admin') { window.location.href = '/'; return }
     setProfile(p)
     await loadData()
+    // 점검 모드 상태 로드
+    const { data: setting } = await supabase.from('settings').select('value').eq('key', 'maintenance_mode').single()
+    if (setting) setMaintenance(setting.value === 'true')
     setLoading(false)
   }
 
@@ -94,6 +99,14 @@ export default function AdminPage() {
     setStats({ total, periodNew, trialUsed, paidUsers, totalAnalyses })
   }
 
+  const handleToggleMaintenance = async () => {
+    setMaintenanceLoading(true)
+    const newVal = !maintenance
+    await supabase.from('settings').update({ value: String(newVal), updated_at: new Date().toISOString() }).eq('key', 'maintenance_mode')
+    setMaintenance(newVal)
+    setMaintenanceLoading(false)
+  }
+
   const handleUpdateCredits = async (userId: string, credits: number, resetTrial: boolean) => {
     await supabase.from('profiles').update({
       paid_credits: credits,
@@ -142,6 +155,28 @@ export default function AdminPage() {
       </header>
 
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 24px' }}>
+
+        {/* 점검 모드 토글 */}
+        <div style={{ background: maintenance ? '#fef2f2' : '#fff', borderRadius: 16, padding: '20px 24px', border: `2px solid ${maintenance ? '#fecaca' : '#ece9e1'}`, marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <span style={{ fontSize: 20 }}>{maintenance ? '🔧' : '✅'}</span>
+              <span style={{ fontSize: 16, fontWeight: 800, color: maintenance ? '#991b1b' : '#0f2244' }}>
+                {maintenance ? '점검 모드 ON — 사용자 접근 차단 중' : '서비스 정상 운영 중'}
+              </span>
+            </div>
+            <p style={{ fontSize: 13, color: '#888', margin: 0 }}>
+              {maintenance ? '일반 사용자에게 점검 화면이 표시됩니다. 어드민은 정상 접속 가능.' : '점검 모드를 켜면 일반 사용자 접속이 차단됩니다.'}
+            </p>
+          </div>
+          <button
+            onClick={handleToggleMaintenance}
+            disabled={maintenanceLoading}
+            style={{ background: maintenance ? '#ef4444' : '#0f2244', color: '#fff', border: 'none', borderRadius: 12, padding: '12px 24px', fontWeight: 700, fontSize: 14, cursor: maintenanceLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: maintenanceLoading ? 0.7 : 1, whiteSpace: 'nowrap', flexShrink: 0, marginLeft: 16 }}
+          >
+            {maintenanceLoading ? '처리 중...' : maintenance ? '점검 모드 OFF' : '점검 모드 ON'}
+          </button>
+        </div>
 
         {/* 탭 */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 28 }}>
