@@ -19,6 +19,31 @@ export default function Home() {
   const [userProfile, setUserProfile] = useState<any>(null)
   const [authLoading, setAuthLoading] = useState(true)
   const [maintenance, setMaintenance] = useState(false)
+  const [appSwitcherOpen, setAppSwitcherOpen] = useState(false)
+
+  // 앱 목록 — 새 앱 추가 시 여기에만 추가하면 됩니다
+  const APP_LIST = [
+    {
+      id: 'jobtong',
+      name: '잡통',
+      emoji: '💼',
+      tag: '자소서 검토',
+      desc: '합격을 위한 정직한 조언',
+      url: 'https://jobtong.vercel.app',
+      color: '#e6a800',
+      current: true,
+    },
+    {
+      id: 'geultong',
+      name: '글통',
+      emoji: '✍️',
+      tag: 'SNS 변환',
+      desc: 'SNS 콘텐츠 자동 변환 서비스',
+      url: 'https://geultong.vercel.app',
+      color: '#8b9fff',
+      current: false,
+    },
+  ]
 
   useEffect(() => {
     // 점검 모드 체크 (어드민은 제외)
@@ -169,7 +194,53 @@ export default function Home() {
   const Header = () => (
     <header style={headerStyle}>
       <div style={headerInner}>
-        <button onClick={() => setStep('landing')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}><Logo /></button>
+        {/* 로고 + 앱 스위처 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, position: 'relative' }}>
+          <button onClick={() => setStep('landing')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}><Logo /></button>
+
+          {/* 앱 스위처 버튼 */}
+          <button
+            onClick={() => setAppSwitcherOpen(prev => !prev)}
+            style={{ background: 'none', border: '1px solid #e5e3dc', borderRadius: 7, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#999', fontSize: 15, flexShrink: 0 }}
+            title="다른 서비스 보기"
+          >
+            ⊞
+          </button>
+
+          {/* 드롭다운 바깥 클릭 닫기 레이어 */}
+          {appSwitcherOpen && (
+            <div
+              onClick={() => setAppSwitcherOpen(false)}
+              style={{ position: 'fixed', inset: 0, zIndex: 150 }}
+            />
+          )}
+
+          {/* 앱 스위처 드롭다운 */}
+          {appSwitcherOpen && (
+            <div style={{ position: 'absolute', top: 44, left: 0, zIndex: 151, background: '#fff', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.12)', border: '1px solid #ece9e1', padding: '10px', minWidth: 260 }}>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#bbb', letterSpacing: '0.08em', padding: '4px 8px 8px', margin: 0 }}>BARUN APPLICATION</p>
+              {APP_LIST.map(app => (
+                <button
+                  key={app.id}
+                  onClick={() => { if (!app.current) window.open(app.url, '_blank'); setAppSwitcherOpen(false) }}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '10px 10px', borderRadius: 10, border: app.current ? `1.5px solid ${app.color}` : '1.5px solid transparent', background: app.current ? `${app.color}12` : 'transparent', cursor: app.current ? 'default' : 'pointer', fontFamily: 'inherit', textAlign: 'left', marginBottom: 4 }}
+                >
+                  <span style={{ fontSize: 22 }}>{app.emoji}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: '#0f2244' }}>{app.name}</span>
+                      {app.current && (
+                        <span style={{ background: app.color, color: '#fff', fontSize: 10, padding: '1px 7px', borderRadius: 20, fontWeight: 700 }}>현재</span>
+                      )}
+                      <span style={{ background: '#f0ede6', color: '#888', fontSize: 10, padding: '1px 7px', borderRadius: 20, fontWeight: 600 }}>{app.tag}</span>
+                    </div>
+                    <p style={{ fontSize: 12, color: '#888', margin: '2px 0 0' }}>{app.desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <p className="jobtong-slogan" style={{ fontWeight: 800, margin: 0, letterSpacing: '-0.5px', lineHeight: 1.3, textAlign: 'center' }}>
             <span style={{ color: '#0f2244' }}>합격을 위한 정직한 조언,&nbsp;</span>
@@ -365,6 +436,39 @@ export default function Home() {
   .hero-title { font-size: clamp(38px, 6vw, 64px); }
   @media (max-width: 768px) { .jobtong-slogan { display: none; } .hero-title { font-size: 28px; } }
 `}</style>
+        {/* 다른 서비스 섹션 */}
+        <section style={{ background: '#f0ede6', padding: '56px 24px' }}>
+          <div style={{ maxWidth: 900, margin: '0 auto' }}>
+            <div style={{ textAlign: 'center', marginBottom: 36 }}>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#bbb', letterSpacing: '0.12em', marginBottom: 10 }}>BARUN APPLICATION</p>
+              <h2 style={{ fontSize: 24, fontWeight: 900, color: '#0f2244', margin: 0, letterSpacing: '-0.5px' }}>바른어플리케이션의 다른 서비스</h2>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 20, flexWrap: 'wrap' }}>
+              {APP_LIST.filter(app => !app.current).map(app => (
+                <div
+                  key={app.id}
+                  onClick={() => window.open(app.url, '_blank')}
+                  style={{ background: '#fff', borderRadius: 20, padding: '28px 28px', border: `2px solid #e5e3dc`, cursor: 'pointer', width: 280, transition: 'border-color 0.2s, box-shadow 0.2s', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = app.color; (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 24px ${app.color}22` }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#e5e3dc'; (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(0,0,0,0.04)' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                    <span style={{ fontSize: 32 }}>{app.emoji}</span>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 18, fontWeight: 900, color: '#0f2244' }}>{app.name}</span>
+                        <span style={{ background: `${app.color}20`, color: app.color, fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 700 }}>{app.tag}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p style={{ fontSize: 14, color: '#555', lineHeight: 1.7, margin: '0 0 14px' }}>{app.desc}</p>
+                  <p style={{ fontSize: 12, color: '#bbb', margin: 0 }}>{app.url.replace('https://', '')}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <footer style={{ background: '#0a1628', color: 'rgba(184,217,238,0.5)', padding: '40px 24px', textAlign: 'center', fontSize: 13 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 10 }}>
             <Emblem size={28} /><span style={{ fontWeight: 800, fontSize: 18, color: '#fff' }}>잡통</span>
