@@ -1,10 +1,10 @@
 'use client'
 
-import { APP_CONFIG } from '@/lib/config'
-import { Emblem } from '@/components/Emblem'
+
 
 export default function PrivacyPage() {
-  const { primary, point } = APP_CONFIG.colors
+  const primary = '#0f2244'
+  const point = '#e6a800'
   const dark = '#0a0f1e'
   const darkCard = 'rgba(255,255,255,0.06)'
   const darkBorder = 'rgba(255,255,255,0.12)'
@@ -15,7 +15,7 @@ export default function PrivacyPage() {
   const sections = [
     {
       title: '제1조 (개인정보의 처리 목적)',
-      content: `${APP_CONFIG.companyName}(이하 "회사")이 운영하는 ${APP_CONFIG.name}(이하 "서비스")는 다음의 목적을 위하여 개인정보를 처리합니다. 처리하고 있는 개인정보는 다음의 목적 이외의 용도로는 이용되지 않으며, 이용 목적이 변경되는 경우에는 개인정보 보호법 제18조에 따라 별도의 동의를 받는 등 필요한 조치를 이행할 예정입니다.
+      content: `${'바른어플리케이션'}(이하 "회사")이 운영하는 ${'잡통'}(이하 "서비스")는 다음의 목적을 위하여 개인정보를 처리합니다. 처리하고 있는 개인정보는 다음의 목적 이외의 용도로는 이용되지 않으며, 이용 목적이 변경되는 경우에는 개인정보 보호법 제18조에 따라 별도의 동의를 받는 등 필요한 조치를 이행할 예정입니다.
 
 1. 회원 가입 및 관리: 회원 가입의사 확인, 회원제 서비스 제공에 따른 본인 식별·인증, 회원자격 유지·관리, 서비스 부정이용 방지 등
 2. 서비스 제공: 자소서 분석 서비스 제공, 분석 결과 제공, 맞춤 피드백 제공
@@ -68,7 +68,7 @@ export default function PrivacyPage() {
 3. 삭제 요구
 4. 처리정지 요구
 
-② 권리 행사는 ${APP_CONFIG.contactEmail}로 이메일을 통해 요청하실 수 있으며, 회사는 이에 대해 지체 없이 조치하겠습니다.`,
+② 권리 행사는 ${'barunapplication@gmail.com'}로 이메일을 통해 요청하실 수 있으며, 회사는 이에 대해 지체 없이 조치하겠습니다.`,
     },
     {
       title: '제7조 (개인정보의 파기)',
@@ -99,7 +99,7 @@ export default function PrivacyPage() {
       content: `① 회사는 개인정보 처리에 관한 업무를 총괄해서 책임지고, 개인정보 처리와 관련한 정보주체의 불만처리 및 피해구제 등을 위하여 아래와 같이 개인정보 보호책임자를 지정하고 있습니다.
 
 - 개인정보 보호책임자: 바른어플리케이션 대표
-- 연락처: ${APP_CONFIG.contactEmail}
+- 연락처: ${'barunapplication@gmail.com'}
 
 ② 정보주체께서는 회사의 서비스를 이용하시면서 발생한 모든 개인정보 보호 관련 문의, 불만처리, 피해구제 등에 관한 사항을 개인정보 보호책임자 및 담당부서로 문의하실 수 있습니다. 회사는 정보주체의 문의에 대해 지체 없이 답변 및 처리해드릴 것입니다.`,
     },
@@ -115,7 +115,10 @@ export default function PrivacyPage() {
       <header style={{ background: 'rgba(10,15,30,0.95)', backdropFilter: 'blur(12px)', borderBottom: `1px solid ${darkBorder}`, padding: '0 24px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 100 }}>
         <button onClick={() => window.location.href = '/'}
           style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', cursor: 'pointer' }}>
-          <Emblem size={34} />
+          <div style={{ width: 34, height: 34, background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', flexShrink: 0 }}>
+            <div style={{ position: 'absolute', top: 4, right: 4, width: 7, height: 7, background: '#e6a800', borderRadius: '50%' }} />
+            <span style={{ fontSize: 15, fontWeight: 900, color: '#fff' }}>J</span>
+          </div>
           <span style={{ fontSize: 20, fontWeight: 900, color: textMain, letterSpacing: '-0.5px' }}>잡통</span>
         </button>
       </header>
@@ -157,8 +160,8 @@ export default function PrivacyPage() {
 
         {/* 하단 */}
         <div style={{ marginTop: 48, textAlign: 'center', color: textMuted, fontSize: 13 }}>
-          <p>문의: {APP_CONFIG.contactEmail}</p>
-          <p style={{ marginTop: 8 }}>{APP_CONFIG.companyName} · {APP_CONFIG.url}</p>
+          <p>문의: {'barunapplication@gmail.com'}</p>
+          <p style={{ marginTop: 8 }}>{'바른어플리케이션'} · {'https://jobtong.vercel.app'}</p>
         </div>
       </main>
 
@@ -169,7 +172,7 @@ export default function PrivacyPage() {
             <button onClick={() => window.location.href = '/privacy'} style={{ background: 'none', border: 'none', color: point, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700 }}>개인정보처리방침</button>
             <button onClick={() => window.location.href = '/terms'} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>이용약관</button>
           </div>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>© 2026 {APP_CONFIG.companyName}. All rights reserved.</p>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>© 2026 {'바른어플리케이션'}. All rights reserved.</p>
         </div>
       </footer>
     </div>
