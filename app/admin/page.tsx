@@ -23,6 +23,10 @@ export default function AdminPage() {
   const [stats, setStats] = useState<any>(null)
   const [maintenance, setMaintenance] = useState(false)
   const [maintenanceLoading, setMaintenanceLoading] = useState(false)
+  const [refundModal, setRefundModal] = useState<any>(null)  // 환불 모달 대상 결제
+  const [refundAmount, setRefundAmount] = useState<number>(0)
+  const [refundLoading, setRefundLoading] = useState(false)
+  const [refundError, setRefundError] = useState('')
 
   useEffect(() => { checkAdmin() }, [])
 
@@ -123,6 +127,41 @@ export default function AdminPage() {
     if (paymentPeriod === 'month') { const start = new Date(now); start.setDate(1); start.setHours(0,0,0,0); return { start, end } }
     if (paymentPeriod === 'custom' && paymentCustomStart && paymentCustomEnd) return { start: new Date(paymentCustomStart), end: new Date(paymentCustomEnd + 'T23:59:59') }
     return null
+  }
+
+  const handleRefund = async () => {
+    if (!refundModal || refundAmount <= 0) { setRefundError('환불액을 입력해주세요.'); return }
+    if (refundAmount > refundModal.amount) { setRefundError(`결제 금액(₩${refundModal.amount.toLocaleString()})을 초과할 수 없습니다.`); return }
+
+    setRefundLoading(true); setRefundError('')
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+
+    const res = await fetch('/api/admin/refund', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ paymentId: refundModal.id, refundAmount }),
+    })
+
+    const data = await res.json()
+
+    if (res.ok && data.success) {
+      // 화면 즉시 반영 (새로고침 불필요)
+      setPayments(prev => prev.map(p =>
+        p.id === refundModal.id
+          ? { ...p, refund_amount: refundAmount, refund_at: new Date().toISOString(), status: data.status }
+          : p
+      ))
+      setRefundModal(null)
+      setRefundAmount(0)
+    } else {
+      setRefundError(data.error || '환불 처리 중 오류가 발생했습니다.')
+    }
+    setRefundLoading(false)
   }
 
   const handleToggleMaintenance = async () => {
@@ -316,6 +355,7 @@ export default function AdminPage() {
                 {[
                   { label: '총 결제 건수', value: `${fp.length}건`, color: '#0f2244' },
                   { label: '총 결제 금액', value: `₩${fp.reduce((s: number, p: any) => s + (p.amount || 0), 0).toLocaleString()}`, color: '#10b981' },
+                  { label: '총 환불 금액', value: `₩${fp.reduce((s: number, p: any) => s + (p.refund_amount || 0), 0).toLocaleString()}`, color: '#ef4444' },
                   { label: '1회권 결제', value: `${fp.filter((p: any) => p.plan_type === 'plan_1').length}건`, color: '#6366f1' },
                   { label: '5회권 결제', value: `${fp.filter((p: any) => p.plan_type === 'plan_5').length}건`, color: '#e6a800' },
                 ].map(item => (
@@ -338,14 +378,14 @@ export default function AdminPage() {
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                       <thead>
                         <tr style={{ background: '#f7f6f3' }}>
-                          {['결제일', '이메일', '플랜', '결제 금액', '충전 횟수', '구분'].map(h => (
+                          {['결제일', '이메일', '플랜', '결제 금액', '충전 횟수', '구분', '환불'].map(h => (
                             <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#888', whiteSpace: 'nowrap' }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
                         {fp.length === 0 ? (
-                          <tr><td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: '#aaa', fontSize: 14 }}>결제 내역이 없습니다.</td></tr>
+                          <tr><td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: '#aaa', fontSize: 14 }}>결제 내역이 없습니다.</td></tr>
                         ) : fp.map((p: any, i: number) => (
                           <tr key={p.id} style={{ borderTop: '1px solid #f0ede6', background: i % 2 === 0 ? '#fff' : '#faf9f7' }}>
                             <td style={{ padding: '12px 16px', fontSize: 12, color: '#888', whiteSpace: 'nowrap' }}>
@@ -357,12 +397,33 @@ export default function AdminPage() {
                                 {p.plan_name || p.plan_type}
                               </span>
                             </td>
-                            <td style={{ padding: '12px 16px', fontSize: 14, fontWeight: 700, color: '#10b981' }}>₩{(p.amount || 0).toLocaleString()}</td>
+                            <td style={{ padding: '12px 16px' }}>
+                              <div style={{ fontSize: 14, fontWeight: 700, color: p.refund_amount > 0 ? '#aaa' : '#10b981', textDecoration: p.status === 'refunded' ? 'line-through' : 'none' }}>
+                                ₩{(p.amount || 0).toLocaleString()}
+                              </div>
+                              {p.refund_amount > 0 && (
+                                <div style={{ fontSize: 12, color: '#ef4444', marginTop: 2 }}>-₩{(p.refund_amount).toLocaleString()}</div>
+                              )}
+                            </td>
                             <td style={{ padding: '12px 16px', fontSize: 13, fontWeight: 600, color: '#0f2244' }}>{p.credits}회</td>
                             <td style={{ padding: '12px 16px' }}>
                               <span style={{ background: p.is_test ? '#fef2f2' : '#ecfdf5', color: p.is_test ? '#991b1b' : '#065f46', fontSize: 11, padding: '3px 8px', borderRadius: 20, fontWeight: 600 }}>
                                 {p.is_test ? '테스트' : '실결제'}
                               </span>
+                            </td>
+                            <td style={{ padding: '12px 16px' }}>
+                              {p.status === 'refunded' ? (
+                                <span style={{ fontSize: 11, color: '#ef4444', fontWeight: 700 }}>환불완료</span>
+                              ) : p.status === 'partial_refunded' ? (
+                                <span style={{ fontSize: 11, color: '#f97316', fontWeight: 700 }}>부분환불</span>
+                              ) : (
+                                <button
+                                  onClick={() => { setRefundModal(p); setRefundAmount(p.amount); setRefundError('') }}
+                                  style={{ background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca', borderRadius: 6, padding: '5px 10px', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}
+                                >
+                                  환불
+                                </button>
+                              )}
                             </td>
                           </tr>
                         ))}
@@ -455,6 +516,67 @@ export default function AdminPage() {
           </div>
         )}
       </div>
+
+      {/* 환불 모달 */}
+      {refundModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 24 }}>
+          <div style={{ background: '#fff', borderRadius: 20, padding: '32px', width: '100%', maxWidth: 400 }}>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f2244', margin: '0 0 4px' }}>환불 처리</h3>
+            <p style={{ fontSize: 13, color: '#888', margin: '0 0 24px' }}>{refundModal.profiles?.email}</p>
+
+            <div style={{ background: '#f7f6f3', borderRadius: 10, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#555' }}>
+              <div>결제일: <strong>{new Date(refundModal.created_at).toLocaleDateString('ko-KR')}</strong></div>
+              <div style={{ marginTop: 4 }}>결제 금액: <strong style={{ color: '#0f2244' }}>₩{(refundModal.amount || 0).toLocaleString()}</strong></div>
+              <div style={{ marginTop: 4 }}>플랜: <strong>{refundModal.plan_name || refundModal.plan_type}</strong></div>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#333', marginBottom: 8 }}>환불액 입력</label>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                <button
+                  onClick={() => setRefundAmount(refundModal.amount)}
+                  style={{ flex: 1, background: refundAmount === refundModal.amount ? '#0f2244' : '#f7f6f3', color: refundAmount === refundModal.amount ? '#fff' : '#555', border: '1px solid #ddd', borderRadius: 8, padding: '8px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
+                  전액 환불
+                </button>
+                <button
+                  onClick={() => setRefundAmount(Math.floor(refundModal.amount / 2))}
+                  style={{ flex: 1, background: '#f7f6f3', color: '#555', border: '1px solid #ddd', borderRadius: 8, padding: '8px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
+                  50% 환불
+                </button>
+              </div>
+              <input
+                type="number"
+                min="1"
+                max={refundModal.amount}
+                value={refundAmount}
+                onChange={e => setRefundAmount(parseInt(e.target.value) || 0)}
+                style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 10, padding: '12px 14px', fontSize: 15, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
+              />
+              <p style={{ fontSize: 12, color: '#aaa', marginTop: 6 }}>최대 환불 가능액: ₩{(refundModal.amount || 0).toLocaleString()}</p>
+            </div>
+
+            {refundError && (
+              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', borderRadius: 10, padding: '10px 14px', fontSize: 13, marginBottom: 12 }}>
+                {refundError}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={handleRefund}
+                disabled={refundLoading}
+                style={{ flex: 1, background: '#ef4444', color: '#fff', border: 'none', borderRadius: 10, padding: '13px', fontWeight: 700, fontSize: 14, cursor: refundLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: refundLoading ? 0.7 : 1 }}>
+                {refundLoading ? '처리 중...' : `₩${refundAmount.toLocaleString()} 환불`}
+              </button>
+              <button
+                onClick={() => { setRefundModal(null); setRefundAmount(0); setRefundError('') }}
+                style={{ flex: 1, background: '#f7f6f3', color: '#555', border: '1px solid #ddd', borderRadius: 10, padding: '13px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 횟수 조정 모달 */}
       {editingUser && (
