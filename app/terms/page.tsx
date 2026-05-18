@@ -1,10 +1,9 @@
 'use client'
 
-import { APP_CONFIG } from '@/lib/config'
-import { Emblem } from '@/components/Emblem'
+
 
 export default function TermsPage() {
-  const { point } = APP_CONFIG.colors
+  const point = '#e6a800'
   const dark = '#0a0f1e'
   const darkCard = 'rgba(255,255,255,0.06)'
   const darkBorder = 'rgba(255,255,255,0.12)'
@@ -72,7 +71,7 @@ export default function TermsPage() {
 - 이용자의 단순 변심으로 구매 후 7일이 경과한 경우
 - 약관 위반으로 인해 서비스 이용이 제한된 경우
 
-③ 환불 요청은 ${APP_CONFIG.contactEmail}로 이메일 문의를 통해 진행하시기 바랍니다.`,
+③ 환불 요청은 ${'barunapplication@gmail.com'}로 이메일 문의를 통해 진행하시기 바랍니다.`,
     },
     {
       title: '제7조 (이용자의 의무)',
@@ -123,7 +122,7 @@ export default function TermsPage() {
 
 ② 회사와 이용자 간에 제기된 소송에는 대한민국 법률이 적용됩니다.
 
-③ 서비스 이용과 관련하여 분쟁이 발생한 경우 ${APP_CONFIG.contactEmail}로 먼저 연락 주시면 성실히 협의하겠습니다.`,
+③ 서비스 이용과 관련하여 분쟁이 발생한 경우 ${'barunapplication@gmail.com'}로 먼저 연락 주시면 성실히 협의하겠습니다.`,
     },
     {
       title: '제12조 (기타)',
@@ -142,7 +141,10 @@ export default function TermsPage() {
       <header style={{ background: 'rgba(10,15,30,0.95)', backdropFilter: 'blur(12px)', borderBottom: `1px solid ${darkBorder}`, padding: '0 24px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 100 }}>
         <button onClick={() => window.location.href = '/'}
           style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', cursor: 'pointer' }}>
-          <Emblem size={34} />
+          <div style={{ width: 34, height: 34, background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', flexShrink: 0 }}>
+            <div style={{ position: 'absolute', top: 4, right: 4, width: 7, height: 7, background: '#e6a800', borderRadius: '50%' }} />
+            <span style={{ fontSize: 15, fontWeight: 900, color: '#fff' }}>J</span>
+          </div>
           <span style={{ fontSize: 20, fontWeight: 900, color: textMain, letterSpacing: '-0.5px' }}>잡통</span>
         </button>
       </header>
@@ -184,8 +186,8 @@ export default function TermsPage() {
 
         {/* 하단 */}
         <div style={{ marginTop: 48, textAlign: 'center', color: textMuted, fontSize: 13 }}>
-          <p>문의: {APP_CONFIG.contactEmail}</p>
-          <p style={{ marginTop: 8 }}>{APP_CONFIG.companyName} · {APP_CONFIG.url}</p>
+          <p>문의: {'barunapplication@gmail.com'}</p>
+          <p style={{ marginTop: 8 }}>{'바른어플리케이션'} · {'https://jobtong.vercel.app'}</p>
         </div>
       </main>
 
@@ -196,7 +198,7 @@ export default function TermsPage() {
             <button onClick={() => window.location.href = '/privacy'} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>개인정보처리방침</button>
             <button onClick={() => window.location.href = '/terms'} style={{ background: 'none', border: 'none', color: point, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700 }}>이용약관</button>
           </div>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>© 2026 {APP_CONFIG.companyName}. All rights reserved.</p>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>© 2026 {'바른어플리케이션'}. All rights reserved.</p>
         </div>
       </footer>
     </div>
