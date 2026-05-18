@@ -370,7 +370,11 @@ export default function Home() {
             <Emblem size={28} /><span style={{ fontWeight: 800, fontSize: 18, color: '#fff' }}>잡통</span>
           </div>
           <p>자소서 정밀 검토 서비스 · 문의: barunapplication@gmail.com</p>
-          <p style={{ marginTop: 8, color: 'rgba(184,217,238,0.3)' }}>© 2026 잡통. All rights reserved.</p>
+          <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center', gap: 24 }}>
+            <button onClick={() => window.location.href = '/privacy'} style={{ background: 'none', border: 'none', color: 'rgba(184,217,238,0.5)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>개인정보처리방침</button>
+            <button onClick={() => window.location.href = '/terms'} style={{ background: 'none', border: 'none', color: 'rgba(184,217,238,0.5)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>이용약관</button>
+          </div>
+          <p style={{ marginTop: 12, color: 'rgba(184,217,238,0.3)', fontSize: 11 }}>© 2026 바른어플리케이션. All rights reserved.</p>
         </footer>
       </main>
     )
