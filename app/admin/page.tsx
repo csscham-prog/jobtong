@@ -113,7 +113,7 @@ export default function AdminPage() {
     const { data } = await supabase
       .from('payments')
       .select('*, profiles(email)')
-      .eq('status', 'success')
+      .in('status', ['success', 'refunded', 'partial_refunded'])
       .order('created_at', { ascending: false })
     if (data) setPayments(data)
     setPaymentsLoading(false)
