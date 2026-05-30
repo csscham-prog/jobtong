@@ -43,6 +43,16 @@ export default function Home() {
       color: '#8b9fff',
       current: false,
     },
+    {
+      id: 'jiptong',
+      name: '집통',
+      emoji: '🏠',
+      tag: '부동산 전략',
+      desc: '부동산 전략 서비스',
+      url: 'https://jiptong.vercel.app',
+      color: '#3b82f6',
+      current: false,
+    },
   ]
 
   useEffect(() => {
