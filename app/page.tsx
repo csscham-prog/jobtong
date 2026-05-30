@@ -4,6 +4,236 @@ import { useState, useRef, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import PaidResult from '@/components/PaidResult'
 
+
+// ── 샘플 분석 결과 컴포넌트 ──────────────────────────────────
+function SampleResult() {
+  const [activeTab, setActiveTab] = useState<'overview' | 'detail' | 'guide'>('overview')
+
+  const getScoreColor = (s: number) => s >= 80 ? '#10b981' : s >= 60 ? '#f59e0b' : '#ef4444'
+  const getScoreBg = (s: number) => s >= 80 ? '#ecfdf5' : s >= 60 ? '#fffbeb' : '#fef2f2'
+  const getScoreTxt = (s: number) => s >= 80 ? '#065f46' : s >= 60 ? '#92400e' : '#991b1b'
+  const getScoreLabel = (s: number) => s >= 80 ? '우수' : s >= 60 ? '보통' : '미흡'
+
+  const totalScore = 61
+  const circumference = 2 * Math.PI * 54
+  const dashOffset = circumference - (totalScore / 100) * circumference
+
+  const sampleData = {
+    company: '카카오',
+    position: '서비스 기획',
+    summary: '전반적인 구성은 갖추어져 있으나, 지원 동기와 직무 역량 사이의 연결고리가 약해 면접관에게 "왜 카카오여야 하는가"에 대한 답을 주지 못하고 있습니다. 보유한 경험의 양은 충분하나 서비스 기획직이 요구하는 데이터 기반 사고와 사용자 중심 관점이 표면적으로만 언급되어 설득력이 떨어집니다. 문장 표현은 무난하지만 카카오가 추구하는 "연결"과 "일상의 혁신"이라는 가치와 본인의 경험이 유기적으로 연결되지 않아 차별화가 어렵습니다. 전체적인 완성도를 높이려면 경험을 재해석하고 카카오의 맥락 위에 재배치하는 작업이 필요합니다.',
+    mainIssue: '가장 큰 문제는 "나만의 차별점"이 보이지 않는다는 것입니다. "사용자 경험을 중시한다", "협업을 잘한다"는 표현은 지원자 대부분이 쓰는 문구로, 카카오 서비스 기획 포지션 지원자 수백 명 중에서 기억에 남기 어렵습니다. 본인이 실제로 카카오 서비스를 분석하고, 문제를 발견하고, 개선안을 만들어본 경험이 있다면 그것이 가장 강력한 차별점이 될 수 있습니다.',
+    scores: { logic: 62, specific: 48, fit: 71, expression: 66 },
+    improvements: [
+      {
+        category: '지원 동기',
+        issue: '지원 동기가 "카카오 서비스를 자주 사용한다"는 수준에 머물고 있습니다. 면접관 입장에서는 단순 사용자와 기획자 지망생을 구분할 수 없어 설득력이 없습니다. 왜 카카오의 기획자가 되어야 하는지, 다른 회사가 아닌 카카오인 이유가 명확하지 않습니다.',
+        original: '카카오의 다양한 서비스를 이용하며 더 나은 사용자 경험을 만들고 싶다는 꿈을 키워왔습니다.',
+        suggestion: '카카오의 특정 서비스(예: 카카오맵 길찾기 UI, 카카오페이 송금 플로우)에서 직접 불편함을 느끼고 개선안을 구체적으로 고민한 경험을 서술하세요. "사용자로서 느낀 불편 → 기획자 시각으로 분석 → 개선 아이디어 도출" 구조로 바꾸면 즉시 차별화됩니다.',
+        addContent: '카카오톡 오픈채팅 기능의 스팸 문제를 직접 분석하고 필터링 UX 개선안을 정리한 경험, 또는 카카오맵 vs 네이버지도 UX 비교 분석 사례가 있다면 강력한 소재가 됩니다.',
+      },
+      {
+        category: '구체성 부족',
+        issue: '프로젝트 경험을 서술할 때 수치와 결과가 빠져있어 성과를 객관적으로 판단할 수 없습니다. "성공적으로 마쳤다", "좋은 평가를 받았다"는 표현은 면접관에게 아무런 정보를 주지 못합니다. 기획 직군은 특히 데이터 기반 사고를 중요시하기 때문에 수치 없는 경험 서술은 큰 감점 요인입니다.',
+        original: '팀 프로젝트에서 기획 파트를 맡아 서비스를 성공적으로 출시하였고 좋은 평가를 받았습니다.',
+        suggestion: '"OO 앱 기획 팀 프로젝트에서 PM 역할을 맡아 8주 만에 MVP를 출시, 사용자 100명 대상 베타테스트에서 만족도 4.2/5.0을 기록했습니다"처럼 기간·규모·결과를 모두 수치로 표현하세요. 수치가 작아도 괜찮습니다. 중요한 건 측정 가능성입니다.',
+        addContent: 'DAU, 리텐션율, 전환율 등 서비스 기획 지표를 직접 추적하고 분석한 경험이 있다면 최우선으로 기재하세요.',
+      },
+      {
+        category: '직무 연결성',
+        issue: '보유한 경험들이 카카오 서비스 기획 직무와 어떻게 연결되는지 명시적으로 서술되지 않아, 면접관이 연결고리를 스스로 추론해야 하는 부담이 생깁니다. 자소서는 면접관의 해석에 의존해서는 안 됩니다.',
+        original: '다양한 동아리 활동과 대외활동을 통해 협업 능력과 커뮤니케이션 스킬을 키웠습니다.',
+        suggestion: '"UX 스터디에서 6개월간 매주 앱 서비스를 분석하며 사용자 여정 지도 작성 역량을 키웠고, 이 경험이 카카오 서비스의 사용자 경험 개선 업무에 직접 활용될 것이라 확신합니다"처럼 경험과 직무를 명시적으로 연결하세요.',
+        addContent: '카카오 공식 블로그나 if(kakao) 개발자 컨퍼런스 내용을 인용해 카카오의 기획 방향성을 이해하고 있다는 것을 보여주면 인상적입니다.',
+      },
+      {
+        category: '논리 구조',
+        issue: '각 문단이 독립적으로 구성되어 있어 자소서 전체의 스토리가 하나의 흐름으로 읽히지 않습니다. 면접관은 수백 개의 자소서를 읽기 때문에, 처음부터 끝까지 하나의 메시지로 관통되는 서사가 없으면 기억에 남기 어렵습니다.',
+        original: '저는 항상 사용자의 입장에서 생각하려고 노력합니다. 또한 데이터를 중요시하며 의사결정을 합니다.',
+        suggestion: '"사용자의 불편 → 데이터로 검증 → 해결책 기획 → 실행 및 검증"이라는 일관된 프레임을 자소서 전체에 적용하세요. 지원 동기부터 경험 사례, 입사 후 포부까지 이 흐름 위에서 서술하면 면접관이 "이 사람은 기획자처럼 생각한다"는 인상을 받게 됩니다.',
+        addContent: '카카오가 실제로 사용하는 의사결정 방식(A/B테스트, 데이터 기반 UX 개선 등)을 언급하면 직무 이해도가 높다는 인상을 줄 수 있습니다.',
+      },
+      {
+        category: '차별화 요소',
+        issue: '"성실하다", "꼼꼼하다", "소통을 잘한다"는 표현이 반복적으로 등장하는데, 이는 카카오 서비스 기획 포지션에 지원하는 지원자 대부분이 공통적으로 쓰는 표현입니다. 이런 진부한 표현은 오히려 역효과를 낼 수 있습니다.',
+        original: '저는 성실하고 꼼꼼한 성격으로, 팀원들과의 소통을 중요시합니다.',
+        suggestion: '성격 형용사 대신 그 성격이 드러난 구체적인 에피소드로 대체하세요. "마감 3일 전 치명적인 UX 오류를 발견하고 팀을 설득해 스펙을 변경한 경험"이 "꼼꼼하다"보다 100배 강렬한 메시지를 전달합니다.',
+        addContent: '카카오 면접에서 실제로 물어보는 "당신이 기획한 서비스의 실패 경험과 그로부터 배운 점"에 대한 답을 자소서에 미리 녹여두면 면접에서도 유리합니다.',
+      },
+      {
+        category: '입사 후 포부',
+        issue: '입사 후 포부가 지나치게 추상적이고 선언적입니다. "최고의 기획자가 되겠다", "회사 발전에 기여하겠다"는 표현은 면접관이 가장 많이 보는 클리셰 중 하나로, 읽는 순간 인상이 흐려집니다.',
+        original: '입사 후에는 카카오의 발전에 기여하는 최고의 서비스 기획자가 되겠습니다.',
+        suggestion: '"입사 첫 해에는 카카오페이 사용성 개선 TF에 참여해 결제 완료율을 5% 이상 개선하는 것을 첫 목표로 삼겠습니다. 3년 내에는 신규 서비스 기획 PM으로 성장해 MAU 100만 서비스를 직접 기획하고 싶습니다"처럼 구체적인 직무·지표·시간축으로 포부를 서술하세요.',
+        addContent: '카카오의 최근 신규 서비스나 투자 방향(AI, 헬스케어, 금융 등)과 연결해 본인의 성장 방향을 제시하면 시장 이해도와 주체성을 동시에 보여줄 수 있습니다.',
+      },
+    ],
+    strongPoints: [
+      '카카오 서비스에 대한 실제 사용 경험이 풍부하고, 서비스 기획 직무에 대한 기본적인 이해도가 확인됩니다. 막연한 동경이 아닌 직무 자체에 관심을 가지고 있다는 점은 긍정적입니다.',
+      '팀 프로젝트에서 기획 파트를 맡아 결과물을 도출한 실전 경험이 있습니다. 기획을 단순히 이론으로만 아는 것이 아니라 실제로 해본 경험이 있다는 것은 면접관이 신뢰를 가질 수 있는 중요한 근거입니다.',
+      '문장 표현이 전반적으로 안정적이고 논리적 비약 없이 읽힙니다. 기본 문서 작성 능력이 갖춰져 있어, 경험과 수치를 보완하면 완성도가 빠르게 올라갈 수 있는 구조입니다.',
+    ],
+    finalAdvice: '이 자소서는 "좋은 재료는 있지만 요리가 덜 된" 상태입니다. 경험 자체의 부족이 아니라, 경험을 카카오 맥락에 맞게 재해석하지 않은 것이 가장 큰 문제입니다. 지금 당장 할 수 있는 가장 효과적인 작업은 카카오 공식 채용 페이지에서 서비스 기획 직무 기술서를 다시 읽고, 요구 역량 키워드(데이터 기반 사고, 사용자 중심 설계, 크로스펑셔널 협업 등)를 각 문단에 명시적으로 대응시키는 것입니다. 수치 없는 경험은 절반의 가치만 인정받는다는 점을 항상 기억하고, 모든 경험에 "얼마나, 몇 명, 몇 %"를 붙이는 작업을 먼저 완료하세요. 마지막으로 자소서를 소리 내어 읽어보세요. 막히거나 어색한 부분이 면접관도 똑같이 느끼는 지점입니다.',
+  }
+
+  const scoreItems = [
+    { label: '논리성', key: 'logic' as const, desc: '주장과 근거의 연결', icon: '🔗' },
+    { label: '구체성', key: 'specific' as const, desc: '수치·사례의 활용도', icon: '📌' },
+    { label: '직무 적합성', key: 'fit' as const, desc: '직무 역량 부합도', icon: '🎯' },
+    { label: '표현력', key: 'expression' as const, desc: '문장 품질·가독성', icon: '✍️' },
+  ]
+
+  return (
+    <div style={{ fontFamily: "'Pretendard', -apple-system, sans-serif" }}>
+      {/* 헤더 */}
+      <div style={{ background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', padding: '32px 36px', borderRadius: '24px 24px 0 0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+            {/* 원형 게이지 */}
+            <div style={{ position: 'relative', width: 80, height: 80, flexShrink: 0 }}>
+              <svg width="80" height="80" style={{ transform: 'rotate(-90deg)' }}>
+                <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="7" />
+                <circle cx="40" cy="40" r="34" fill="none" stroke="#e6a800" strokeWidth="7"
+                  strokeDasharray={circumference} strokeDashoffset={dashOffset} strokeLinecap="round" />
+              </svg>
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ fontSize: 20, fontWeight: 900, color: '#fff', lineHeight: 1 }}>{totalScore}</span>
+                <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.6)', marginTop: 1 }}>/ 100</span>
+              </div>
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <span style={{ background: '#e6a800', color: '#fff', fontSize: 10, padding: '2px 10px', borderRadius: 20, fontWeight: 700 }}>PREMIUM REPORT</span>
+                <span style={{ background: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.7)', fontSize: 10, padding: '2px 10px', borderRadius: 20, fontWeight: 600 }}>SAMPLE</span>
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: '#fff' }}>카카오 · 서비스 기획</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>샘플 분석 · 잡통 자소서 검토</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 탭 */}
+      <div style={{ display: 'flex', borderBottom: '1px solid #f0ede6', background: '#faf9f7' }}>
+        {[
+          { key: 'overview', label: '📊 종합 분석' },
+          { key: 'detail', label: '✏️ 문장 개선' },
+          { key: 'guide', label: '💡 강점 & 조언' },
+        ].map(tab => (
+          <button key={tab.key} onClick={() => setActiveTab(tab.key as any)}
+            style={{ flex: 1, padding: '16px 8px', background: 'none', border: 'none', borderBottom: `3px solid ${activeTab === tab.key ? '#0f2244' : 'transparent'}`, color: activeTab === tab.key ? '#0f2244' : '#aaa', fontWeight: activeTab === tab.key ? 800 : 500, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ padding: '32px 36px', background: '#fff' }}>
+
+        {/* 종합 분석 탭 */}
+        {activeTab === 'overview' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            {/* 총평 */}
+            <div style={{ background: '#f7f6f3', borderRadius: 16, padding: '24px' }}>
+              <h3 style={{ fontSize: 14, fontWeight: 800, color: '#0f2244', marginBottom: 12 }}>📝 전체 총평</h3>
+              <p style={{ fontSize: 14, color: '#333', lineHeight: 1.9 }}>{sampleData.summary}</p>
+            </div>
+
+            {/* 핵심 문제 */}
+            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 16, padding: '24px' }}>
+              <h3 style={{ fontSize: 14, fontWeight: 800, color: '#991b1b', marginBottom: 12 }}>⚠️ 핵심 문제</h3>
+              <p style={{ fontSize: 14, color: '#333', lineHeight: 1.9 }}>{sampleData.mainIssue}</p>
+            </div>
+
+            {/* 역량 진단 */}
+            <div>
+              <h3 style={{ fontSize: 14, fontWeight: 800, color: '#0f2244', marginBottom: 16 }}>📊 역량 진단</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+                {scoreItems.map(item => {
+                  const score = sampleData.scores[item.key]
+                  return (
+                    <div key={item.key} style={{ background: getScoreBg(score), borderRadius: 14, padding: '18px 20px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: '#333' }}>{item.icon} {item.label}</span>
+                        <span style={{ background: getScoreColor(score), color: '#fff', fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 700 }}>{getScoreLabel(score)}</span>
+                      </div>
+                      <div style={{ fontSize: 26, fontWeight: 900, color: getScoreColor(score) }}>{score}</div>
+                      <div style={{ height: 4, background: 'rgba(0,0,0,0.08)', borderRadius: 2, marginTop: 8 }}>
+                        <div style={{ height: '100%', width: `${score}%`, background: getScoreColor(score), borderRadius: 2 }} />
+                      </div>
+                      <div style={{ fontSize: 11, color: '#888', marginTop: 6 }}>{item.desc}</div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 문장 개선 탭 */}
+        {activeTab === 'detail' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <p style={{ fontSize: 13, color: '#888', margin: '0 0 4px' }}>총 {sampleData.improvements.length}개 문장 개선 제안</p>
+            {sampleData.improvements.map((imp, i) => (
+              <div key={i} style={{ border: '1.5px solid #ece9e1', borderRadius: 16, overflow: 'hidden' }}>
+                <div style={{ background: '#0f2244', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ background: '#e6a800', color: '#fff', borderRadius: '50%', width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, flexShrink: 0 }}>{i + 1}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{imp.category}</span>
+                </div>
+                <div style={{ padding: '20px' }}>
+                  <div style={{ marginBottom: 14 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#e6a800', marginBottom: 6, letterSpacing: '0.05em' }}>ISSUE</div>
+                    <p style={{ fontSize: 13, color: '#555', lineHeight: 1.8 }}>{imp.issue}</p>
+                  </div>
+                  <div style={{ background: '#fef2f2', borderRadius: 10, padding: '12px 14px', marginBottom: 14 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#991b1b', marginBottom: 6 }}>BEFORE</div>
+                    <p style={{ fontSize: 13, color: '#555', lineHeight: 1.7, fontStyle: 'italic' }}>"{imp.original}"</p>
+                  </div>
+                  <div style={{ background: '#f0fdf4', borderRadius: 10, padding: '12px 14px', marginBottom: 14 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#065f46', marginBottom: 6 }}>SUGGESTION</div>
+                    <p style={{ fontSize: 13, color: '#333', lineHeight: 1.8 }}>{imp.suggestion}</p>
+                  </div>
+                  <div style={{ background: '#fffbeb', borderRadius: 10, padding: '12px 14px' }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#92400e', marginBottom: 6 }}>💡 추가하면 합격률이 올라가는 소재</div>
+                    <p style={{ fontSize: 13, color: '#555', lineHeight: 1.8 }}>{imp.addContent}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 강점 & 조언 탭 */}
+        {activeTab === 'guide' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            <div>
+              <h3 style={{ fontSize: 14, fontWeight: 800, color: '#0f2244', marginBottom: 16 }}>✅ 잘 된 점</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {sampleData.strongPoints.map((point, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 12, background: '#f0fdf4', borderRadius: 12, padding: '16px' }}>
+                    <span style={{ color: '#10b981', fontWeight: 800, flexShrink: 0 }}>0{i + 1}</span>
+                    <p style={{ fontSize: 14, color: '#333', lineHeight: 1.8, margin: 0 }}>{point}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', borderRadius: 16, padding: '28px' }}>
+              <h3 style={{ fontSize: 14, fontWeight: 800, color: '#e6a800', marginBottom: 16 }}>🎯 최종 합격 전략</h3>
+              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)', lineHeight: 1.9 }}>{sampleData.finalAdvice}</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 샘플 워터마크 */}
+      <div style={{ background: '#f7f6f3', padding: '16px 36px', borderRadius: '0 0 24px 24px', textAlign: 'center', borderTop: '1px solid #ece9e1' }}>
+        <p style={{ fontSize: 13, color: '#aaa', margin: 0 }}>
+          🔒 이 결과는 샘플입니다. 내 자소서를 분석하면 나만을 위한 맞춤 리포트를 받을 수 있습니다.
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export default function Home() {
   const [step, setStep] = useState<'landing' | 'analyze' | 'result'>('landing')
   const [analyzeType, setAnalyzeType] = useState<'free' | 'paid'>('free')
@@ -376,6 +606,42 @@ export default function Home() {
                   <p style={{ fontSize: 15, color: '#444', lineHeight: 1.85 }}>{item.desc}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+
+        {/* ── 샘플 분석 결과 섹션 ── */}
+        <section style={{ background: '#0f2244', padding: '80px 24px' }}>
+          <div style={{ maxWidth: 900, margin: '0 auto' }}>
+
+            {/* 타이틀 */}
+            <div style={{ textAlign: 'center', marginBottom: 48 }}>
+              <div style={{ display: 'inline-block', background: 'rgba(230,168,0,0.15)', border: '1px solid rgba(230,168,0,0.4)', borderRadius: 20, padding: '5px 16px', fontSize: 12, fontWeight: 700, color: '#e6a800', marginBottom: 16, letterSpacing: '0.05em' }}>
+                SAMPLE REPORT
+              </div>
+              <h2 style={{ fontSize: 30, fontWeight: 900, color: '#fff', marginBottom: 12, letterSpacing: '-0.5px' }}>실제 분석 결과물을 미리 확인해보세요</h2>
+              <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.6)', lineHeight: 1.7 }}>
+                잡통이 실제로 어떤 수준의 피드백을 드리는지 샘플로 먼저 확인해보세요.
+              </p>
+            </div>
+
+            {/* 샘플 분석 카드 */}
+            <div style={{ background: '#fff', borderRadius: 24, overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.3)' }}>
+              <SampleResult />
+            </div>
+
+            {/* CTA */}
+            <div style={{ textAlign: 'center', marginTop: 40 }}>
+              <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, marginBottom: 20 }}>
+                위 결과는 샘플입니다. 내 자소서로 직접 분석받아보세요.
+              </p>
+              <button
+                onClick={handleStartAnalyze}
+                style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '18px 52px', fontWeight: 800, fontSize: 18, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 8px 24px rgba(230,168,0,0.4)' }}
+              >
+                내 자소서 분석받기 →
+              </button>
             </div>
           </div>
         </section>
