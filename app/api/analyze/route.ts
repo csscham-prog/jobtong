@@ -57,6 +57,9 @@ export async function POST(req: NextRequest) {
     if (!content || content.trim().length < 100) {
       return NextResponse.json({ error: '자소서를 100자 이상 입력해주세요.' }, { status: 400 })
     }
+    if (content.trim().length > 5000) {
+      return NextResponse.json({ error: '자소서는 5,000자 이하로 입력해주세요.' }, { status: 400 })
+    }
 
     const isPaid = type === 'paid'
 
