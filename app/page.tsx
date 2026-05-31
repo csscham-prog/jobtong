@@ -330,7 +330,16 @@ export default function Home() {
     if (!file.name.toLowerCase().endsWith('.txt')) { setError('TXT 파일만 업로드 가능합니다.'); return }
     setFileName(file.name); setError('')
     const reader = new FileReader()
-    reader.onload = (ev) => { const text = ev.target?.result as string; if (text) setContent(text) }
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string
+      if (text) {
+        if (text.trim().length > 5000) {
+          setError('파일 내용이 5,000자를 초과합니다. 분석할 내용을 5,000자 이내로 줄여주세요.')
+          return
+        }
+        setContent(text)
+      }
+    }
     reader.readAsText(file, 'utf-8')
   }
 
@@ -345,6 +354,7 @@ export default function Home() {
   const handleAnalyze = async (type: 'free' | 'paid') => {
     if (!content.trim()) { setError('자소서 내용을 입력해주세요.'); return }
     if (content.trim().length < 100) { setError('자소서를 100자 이상 입력해주세요.'); return }
+    if (content.trim().length > 5000) { setError('자소서는 5,000자 이하로 입력해주세요.'); return }
     setError(''); setLoading(true); setAnalyzeType(type)
     try {
       // 로그인 토큰 가져오기
@@ -802,7 +812,20 @@ export default function Home() {
                   <div style={{ flex: 1, height: 1, background: '#e8e5dc' }} />
                 </div>
                 <div style={{ position: 'relative' }}>
-                  <textarea style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 12, padding: '16px', fontSize: 15, color: '#1a1a1a', background: '#faf9f7', outline: 'none', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.8, boxSizing: 'border-box' }} rows={14} placeholder="자소서 내용을 여기에 직접 입력하거나 붙여넣어 주세요. (최소 100자 이상)" value={content} onChange={e => { setContent(e.target.value); if (fileName) setFileName('') }} />
+                  <textarea
+                    style={{ width: '100%', border: `1.5px solid ${content.length > 5000 ? '#ef4444' : '#e5e3dc'}`, borderRadius: 12, padding: '16px', fontSize: 15, color: '#1a1a1a', background: '#faf9f7', outline: 'none', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.8, boxSizing: 'border-box' }}
+                    rows={14}
+                    maxLength={5100}
+                    placeholder="자소서 내용을 여기에 직접 입력하거나 붙여넣어 주세요. (최소 100자 ~ 최대 5,000자)"
+                    value={content}
+                    onChange={e => { setContent(e.target.value); if (fileName) setFileName('') }}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 12 }}>
+                    <span style={{ color: '#aaa' }}>최소 100자 이상 입력해주세요</span>
+                    <span style={{ color: content.length > 5000 ? '#ef4444' : content.length > 4500 ? '#f59e0b' : '#aaa', fontWeight: content.length > 4500 ? 700 : 400 }}>
+                      {content.length.toLocaleString()} / 5,000자
+                    </span>
+                  </div>
                   <div style={{ position: 'absolute', bottom: 12, right: 16, fontSize: 12, color: '#bbb' }}>{content.length}자</div>
                 </div>
               </div>
