@@ -58,8 +58,15 @@ export default function AdminPage() {
   }
 
   const loadData = async () => {
-    const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: false })
-    if (data) { setUsers(data); setFilteredUsers(data) }
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+    const res = await fetch('/api/admin/users', {
+      headers: { 'Authorization': `Bearer ${session.access_token}` },
+    })
+    if (res.ok) {
+      const data = await res.json()
+      setUsers(data); setFilteredUsers(data)
+    }
   }
 
   const getPeriodRange = () => {
@@ -173,10 +180,16 @@ export default function AdminPage() {
   }
 
   const handleUpdateCredits = async (userId: string, credits: number, resetTrial: boolean) => {
-    await supabase.from('profiles').update({
-      paid_credits: credits,
-      ...(resetTrial ? { free_trial_used: false } : {}),
-    }).eq('id', userId)
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+    await fetch('/api/admin/credit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ userId, credits, resetTrial }),
+    })
     await loadData()
     setEditingUser(null)
   }
