@@ -731,46 +731,6 @@ export default function Home() {
 `}</style>
         {/* 홍보 이벤트 인라인 섹션 */}
         <section style={{ background: '#fff', padding: '64px 24px' }}>
-          <div style={{ maxWidth: 720, margin: '0 auto', background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', borderRadius: 24, padding: '48px 48px', position: 'relative', overflow: 'hidden' }}>
-            {/* 배경 장식 */}
-            <div style={{ position: 'absolute', top: -40, right: -40, width: 200, height: 200, background: 'rgba(230,168,0,0.08)', borderRadius: '50%' }} />
-            <div style={{ position: 'absolute', bottom: -60, left: -30, width: 160, height: 160, background: 'rgba(230,168,0,0.05)', borderRadius: '50%' }} />
-
-            <div style={{ position: 'relative', zIndex: 1 }}>
-              <div style={{ display: 'inline-block', background: 'rgba(230,168,0,0.2)', border: '1px solid rgba(230,168,0,0.5)', borderRadius: 20, padding: '4px 14px', fontSize: 12, fontWeight: 700, color: '#e6a800', marginBottom: 20, letterSpacing: '0.05em' }}>
-                🎁 홍보 이벤트 · 상시 운영
-              </div>
-              <h2 style={{ fontSize: 26, fontWeight: 900, color: '#fff', marginBottom: 12, letterSpacing: '-0.5px', lineHeight: 1.35 }}>
-                잡통이 도움이 됐다면,<br />주변에 알려주세요!
-              </h2>
-              <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.7)', lineHeight: 1.85, marginBottom: 28 }}>
-                에브리타임, 블라인드, 인스타그램, 카카오오픈채팅, 네이버카페 등<br />
-                어디든 좋아요. 잡통을 소개하는 글을 올리고<br />
-                링크나 캡처를 메일로 보내주시면 <strong style={{ color: '#e6a800' }}>분석권 1회를 무료로 드립니다!</strong>
-              </p>
-
-              {/* 유의사항 */}
-              <div style={{ background: 'rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 20px', marginBottom: 28 }}>
-                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 2 }}>
-                  ✔ 본인이 직접 작성한 게시글만 인정됩니다<br />
-                  ✔ 게시글 삭제 시 지급된 크레딧이 회수될 수 있습니다<br />
-                  ✔ 동일 채널 중복 신청은 불가합니다<br />
-                  ✔ 검토 후 3영업일 이내 지급됩니다
-                </p>
-              </div>
-
-              <a
-                href="mailto:barunapplication@gmail.com?subject=잡통 홍보 인증&body=안녕하세요! 잡통 홍보 게시글 링크/캡처를 첨부합니다.%0A%0A채널: %0A링크 또는 캡처 첨부:"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#e6a800', color: '#fff', borderRadius: 12, padding: '14px 28px', fontWeight: 800, fontSize: 15, textDecoration: 'none', boxShadow: '0 4px 16px rgba(230,168,0,0.4)' }}
-              >
-                📧 인증 메일 보내기
-              </a>
-            </div>
-          </div>
-        </section>
-
-        {/* 홍보 이벤트 인라인 섹션 */}
-        <section style={{ background: '#fff', padding: '64px 24px' }}>
           <div style={{ maxWidth: 720, margin: '0 auto', background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', borderRadius: 24, padding: '48px', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: -40, right: -40, width: 200, height: 200, background: 'rgba(230,168,0,0.08)', borderRadius: '50%' }} />
             <div style={{ position: 'absolute', bottom: -60, left: -30, width: 160, height: 160, background: 'rgba(230,168,0,0.05)', borderRadius: '50%' }} />
@@ -784,7 +744,8 @@ export default function Home() {
               <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.7)', lineHeight: 1.85, marginBottom: 28 }}>
                 에브리타임, 블라인드, 인스타그램, 카카오오픈채팅, 네이버카페 등<br />
                 어디든 좋아요. 잡통을 소개하는 글을 올리고<br />
-                링크나 캡처를 메일로 보내주시면 <strong style={{ color: '#e6a800' }}>분석권 1회를 무료로 드립니다!</strong>
+                링크나 캡처를 <strong style={{ color: '#fff' }}>barunapplication@gmail.com</strong> 으로 보내주시면<br />
+                확인 후 <strong style={{ color: '#e6a800' }}>분석권 1회를 무료로 드립니다! 🎉</strong>
               </p>
               <div style={{ background: 'rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 20px', marginBottom: 28 }}>
                 <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 2.2 }}>
@@ -1108,8 +1069,9 @@ export default function Home() {
                 잡통이 도움이 됐다면,<br />주변에 알려주세요!
               </h3>
               <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', lineHeight: 1.7, marginBottom: 16 }}>
-                SNS나 커뮤니티에 잡통을 소개하고<br />링크/캡처를 메일로 보내주시면<br />
-                <strong style={{ color: '#e6a800' }}>분석권 1회를 무료로 드립니다!</strong>
+                SNS나 커뮤니티에 잡통을 소개하고<br />
+                링크/캡처를 <strong style={{ color: '#fff' }}>barunapplication@gmail.com</strong> 으로 보내주시면<br />
+                <strong style={{ color: '#e6a800' }}>분석권 1회를 무료로 드립니다! 🎉</strong>
               </p>
               <a
                 href="mailto:barunapplication@gmail.com?subject=잡통 홍보 인증&body=안녕하세요! 잡통 홍보 게시글 링크/캡처를 첨부합니다.%0A%0A채널: %0A링크 또는 캡처 첨부:"
