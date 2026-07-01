@@ -743,41 +743,63 @@ export default function Home() {
   @keyframes spin { to { transform: rotate(360deg); } }
   .jobtong-slogan { font-size: 28px; white-space: nowrap; }
   .hero-title { font-size: clamp(38px, 6vw, 64px); }
-  @media (max-width: 768px) { .jobtong-slogan { display: none; } .hero-title { font-size: 28px; } }
+  @media (max-width: 768px) {
+    .jobtong-slogan { display: none; }
+    .hero-title { font-size: 28px; }
+    .promo-grid { grid-template-columns: 1fr !important; }
+    .promo-card { padding: 28px 20px !important; }
+    .promo-title { font-size: 22px !important; }
+  }
 `}</style>
         {/* 홍보 이벤트 인라인 섹션 */}
-        <section style={{ background: '#fff', padding: '64px 24px' }}>
-          <div style={{ maxWidth: 720, margin: '0 auto', background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', borderRadius: 24, padding: '48px', position: 'relative', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', top: -40, right: -40, width: 200, height: 200, background: 'rgba(230,168,0,0.08)', borderRadius: '50%' }} />
-            <div style={{ position: 'absolute', bottom: -60, left: -30, width: 160, height: 160, background: 'rgba(230,168,0,0.05)', borderRadius: '50%' }} />
-            <div style={{ position: 'relative', zIndex: 1 }}>
-              <div style={{ display: 'inline-block', background: 'rgba(230,168,0,0.2)', border: '1px solid rgba(230,168,0,0.5)', borderRadius: 20, padding: '4px 14px', fontSize: 12, fontWeight: 700, color: '#e6a800', marginBottom: 20 }}>
+        <section style={{ background: '#f7f6f3', padding: '64px 24px' }}>
+          <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
+
+            {/* 타이틀 */}
+            <div style={{ marginBottom: 36 }}>
+              <div style={{ display: 'inline-block', background: 'rgba(230,168,0,0.15)', border: '1px solid rgba(230,168,0,0.4)', borderRadius: 20, padding: '5px 16px', fontSize: 12, fontWeight: 700, color: '#b8860b', marginBottom: 16, letterSpacing: '0.05em' }}>
                 🎁 홍보 이벤트 · 상시 운영
               </div>
-              <h2 style={{ fontSize: 26, fontWeight: 900, color: '#fff', marginBottom: 12, letterSpacing: '-0.5px', lineHeight: 1.35 }}>
+              <h2 style={{ fontSize: 28, fontWeight: 900, color: '#0f2244', marginBottom: 12, letterSpacing: '-0.5px', lineHeight: 1.35 }} className="promo-title">
                 잡통이 도움이 됐다면,<br />주변에 알려주세요!
               </h2>
-              <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.7)', lineHeight: 1.85, marginBottom: 28 }}>
-                에브리타임, 블라인드, 인스타그램, 카카오오픈채팅, 네이버카페 등<br />
-                어디든 좋아요. 잡통을 소개하는 글을 올리고<br />
-                링크나 캡처를 <strong style={{ color: '#fff' }}>barunapplication@gmail.com</strong> 으로 보내주시면<br />
+              <p style={{ fontSize: 15, color: '#555', lineHeight: 1.9, marginBottom: 0 }}>
+                에브리타임, 블라인드, 인스타그램, 카카오오픈채팅, 네이버카페 등 어디든 좋아요.<br />
+                잡통을 소개하는 글을 올리고 링크나 캡처를<br />
+                <strong style={{ color: '#0f2244' }}>barunapplication@gmail.com</strong> 으로 보내주시면<br />
                 확인 후 <strong style={{ color: '#e6a800' }}>분석권 1회를 무료로 드립니다! 🎉</strong>
               </p>
-              <div style={{ background: 'rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 20px', marginBottom: 28 }}>
-                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 2.2 }}>
-                  ✔ 본인이 직접 작성한 게시글만 인정됩니다<br />
-                  ✔ 게시글 삭제 시 지급된 크레딧이 회수될 수 있습니다<br />
-                  ✔ 동일 채널 중복 신청은 불가합니다<br />
-                  ✔ 검토 후 3영업일 이내 지급됩니다
-                </p>
-              </div>
-              <a
-                href="mailto:barunapplication@gmail.com?subject=잡통 홍보 인증&body=안녕하세요! 잡통 홍보 게시글 링크/캡처를 첨부합니다.%0A%0A채널: %0A링크 또는 캡처 첨부:"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#e6a800', color: '#fff', borderRadius: 12, padding: '14px 28px', fontWeight: 800, fontSize: 15, textDecoration: 'none', boxShadow: '0 4px 16px rgba(230,168,0,0.4)' }}
-              >
-                📧 인증 메일 보내기
-              </a>
             </div>
+
+            {/* 카드 */}
+            <div style={{ background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', borderRadius: 24, padding: '40px 48px', position: 'relative', overflow: 'hidden', textAlign: 'left', maxWidth: 640, margin: '0 auto 32px' }} className="promo-card">
+              <div style={{ position: 'absolute', top: -40, right: -40, width: 180, height: 180, background: 'rgba(230,168,0,0.08)', borderRadius: '50%' }} />
+              <div style={{ position: 'absolute', bottom: -50, left: -20, width: 140, height: 140, background: 'rgba(230,168,0,0.05)', borderRadius: '50%' }} />
+              <div style={{ position: 'relative', zIndex: 1 }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#e6a800', marginBottom: 16, letterSpacing: '0.05em' }}>📋 유의사항</p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 24px' }} className="promo-grid">
+                  {[
+                    '본인이 직접 작성한 게시글만 인정됩니다',
+                    '게시글 삭제 시 크레딧이 회수될 수 있습니다',
+                    '동일 채널 중복 신청은 불가합니다',
+                    '검토 후 3영업일 이내 지급됩니다',
+                  ].map((item, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                      <span style={{ color: '#e6a800', fontWeight: 700, flexShrink: 0, marginTop: 1 }}>✔</span>
+                      <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', lineHeight: 1.6 }}>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* CTA 버튼 */}
+            <a
+              href="mailto:barunapplication@gmail.com?subject=잡통 홍보 인증&body=안녕하세요! 잡통 홍보 게시글 링크/캡처를 첨부합니다.%0A%0A채널: %0A링크 또는 캡처 첨부:"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: '#e6a800', color: '#fff', borderRadius: 14, padding: '16px 36px', fontWeight: 800, fontSize: 16, textDecoration: 'none', boxShadow: '0 6px 20px rgba(230,168,0,0.35)' }}
+            >
+              📧 인증 메일 보내기
+            </a>
           </div>
         </section>
 
