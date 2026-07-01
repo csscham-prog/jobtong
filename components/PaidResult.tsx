@@ -124,6 +124,13 @@ export default function PaidResult({ result, company, position, onReanalyze }: P
         </div>
       </div>
 
+      {/* 탭 안내 문구 */}
+      <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 12, padding: '10px 16px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 13, color: '#92400e', fontWeight: 600 }}>
+          💡 탭을 클릭하면 문장 개선 제안과 강점 & 조언을 확인할 수 있어요!
+        </span>
+      </div>
+
       {/* 탭 네비게이션 + PDF 버튼 */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 20, alignItems: 'center' }}>
         <div style={{ flex: 1, display: 'flex', gap: 6, background: '#f0ede6', borderRadius: 14, padding: 4 }}>
@@ -133,13 +140,22 @@ export default function PaidResult({ result, company, position, onReanalyze }: P
           { key: 'guide', label: '⭐ 강점 & 조언' },
         ].map(tab => (
           <button key={tab.key} onClick={() => setActiveTab(tab.key as any)}
-            style={{ flex: 1, background: activeTab === tab.key ? '#fff' : 'transparent', color: activeTab === tab.key ? '#0f2244' : '#888', border: 'none', borderRadius: 10, padding: '10px 8px', fontWeight: activeTab === tab.key ? 700 : 500, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', boxShadow: activeTab === tab.key ? '0 1px 6px rgba(0,0,0,0.08)' : 'none', transition: 'all 0.2s', whiteSpace: 'nowrap' }}>
+            style={{
+              flex: 1,
+              background: activeTab === tab.key ? '#0f2244' : 'transparent',
+              color: activeTab === tab.key ? '#fff' : '#888',
+              border: 'none', borderRadius: 10, padding: '11px 8px',
+              fontWeight: activeTab === tab.key ? 800 : 500,
+              fontSize: 13, cursor: 'pointer', fontFamily: 'inherit',
+              boxShadow: activeTab === tab.key ? '0 2px 8px rgba(15,34,68,0.25)' : 'none',
+              transition: 'all 0.2s', whiteSpace: 'nowrap',
+            }}>
             {tab.label}
           </button>
         ))}
         </div>
         <button onClick={handleDownloadPDF}
-          style={{ background: '#0f2244', color: '#fff', border: 'none', borderRadius: 12, padding: '10px 16px', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', flexShrink: 0 }}>
+          style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 12, padding: '10px 16px', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', flexShrink: 0 }}>
           📄 PDF
         </button>
       </div>
