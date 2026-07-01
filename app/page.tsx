@@ -113,15 +113,31 @@ function SampleResult() {
         </div>
       </div>
 
+      {/* 탭 안내 문구 */}
+      <div style={{ background: '#fffbeb', borderTop: '1px solid #fde68a', padding: '10px 20px', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 13, color: '#92400e', fontWeight: 600 }}>
+          💡 아래 탭을 클릭하면 문장 개선 제안과 강점 & 조언을 확인할 수 있어요!
+        </span>
+      </div>
+
       {/* 탭 */}
-      <div style={{ display: 'flex', borderBottom: '1px solid #f0ede6', background: '#faf9f7' }}>
+      <div style={{ display: 'flex', borderBottom: '1px solid #f0ede6', background: '#faf9f7', padding: '0 8px', gap: 4 }}>
         {[
           { key: 'overview', label: '📊 종합 분석' },
           { key: 'detail', label: '✏️ 문장 개선' },
           { key: 'guide', label: '💡 강점 & 조언' },
         ].map(tab => (
           <button key={tab.key} onClick={() => setActiveTab(tab.key as any)}
-            style={{ flex: 1, padding: '16px 8px', background: 'none', border: 'none', borderBottom: `3px solid ${activeTab === tab.key ? '#0f2244' : 'transparent'}`, color: activeTab === tab.key ? '#0f2244' : '#aaa', fontWeight: activeTab === tab.key ? 800 : 500, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>
+            style={{
+              flex: 1, padding: '14px 8px', border: 'none',
+              borderBottom: `3px solid ${activeTab === tab.key ? '#0f2244' : 'transparent'}`,
+              background: activeTab === tab.key ? '#fff' : 'transparent',
+              color: activeTab === tab.key ? '#0f2244' : '#999',
+              fontWeight: activeTab === tab.key ? 900 : 500,
+              fontSize: 14, cursor: 'pointer', fontFamily: 'inherit',
+              transition: 'all 0.15s', borderRadius: '8px 8px 0 0',
+              boxShadow: activeTab === tab.key ? '0 -2px 8px rgba(0,0,0,0.06)' : 'none',
+            }}>
             {tab.label}
           </button>
         ))}
