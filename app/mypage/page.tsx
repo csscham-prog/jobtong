@@ -9,6 +9,9 @@ export default function MyPage() {
   const [analyses, setAnalyses] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<any>(null)
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false)
+  const [withdrawLoading, setWithdrawLoading] = useState(false)
+  const [withdrawError, setWithdrawError] = useState('')
 
   useEffect(() => { checkAuth() }, [])
 
@@ -28,6 +31,26 @@ export default function MyPage() {
 
     if (a) setAnalyses(a)
     setLoading(false)
+  }
+
+  const handleWithdraw = async () => {
+    setWithdrawLoading(true); setWithdrawError('')
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { window.location.href = '/login'; return }
+
+    const res = await fetch('/api/user/withdraw', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${session.access_token}` },
+    })
+    const data = await res.json()
+
+    if (res.ok && data.success) {
+      await supabase.auth.signOut()
+      window.location.href = '/?withdrawn=true'
+    } else {
+      setWithdrawError(data.error || '탈퇴 처리 중 오류가 발생했습니다.')
+    }
+    setWithdrawLoading(false)
   }
 
   const getScoreColor = (s: number) => s >= 80 ? '#10b981' : s >= 60 ? '#f59e0b' : '#ef4444'
@@ -243,6 +266,61 @@ export default function MyPage() {
           </div>
         )}
       </div>
+
+      {/* 회원 탈퇴 버튼 */}
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 24px 60px', textAlign: 'center' }}>
+        <button
+          onClick={() => { setShowWithdrawModal(true); setWithdrawError('') }}
+          style={{ background: 'none', border: 'none', color: '#ccc', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline' }}
+        >
+          회원 탈퇴
+        </button>
+      </div>
+
+      {/* 탈퇴 확인 모달 */}
+      {showWithdrawModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 24 }}>
+          <div style={{ background: '#fff', borderRadius: 20, padding: '36px 32px', width: '100%', maxWidth: 400, textAlign: 'center' }}>
+            <div style={{ fontSize: 40, marginBottom: 16 }}>⚠️</div>
+            <h3 style={{ fontSize: 20, fontWeight: 900, color: '#0f2244', marginBottom: 12 }}>정말 탈퇴하시겠습니까?</h3>
+            <p style={{ fontSize: 14, color: '#666', lineHeight: 1.8, marginBottom: 24 }}>
+              탈퇴 시 아래 모든 데이터가 즉시 삭제되며<br />
+              <strong style={{ color: '#ef4444' }}>복구가 불가능합니다.</strong>
+            </p>
+            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '14px 16px', marginBottom: 24, textAlign: 'left' }}>
+              <p style={{ fontSize: 13, color: '#991b1b', margin: 0, lineHeight: 2 }}>
+                ✕ 모든 자소서 분석 기록<br />
+                ✕ 잔여 분석 크레딧<br />
+                ✕ 결제 내역<br />
+                ✕ 계정 정보
+              </p>
+            </div>
+
+            {withdrawError && (
+              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', borderRadius: 10, padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>
+                {withdrawError}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={() => setShowWithdrawModal(false)}
+                style={{ flex: 1, background: '#f7f6f3', color: '#555', border: '1px solid #ddd', borderRadius: 12, padding: '13px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}
+              >
+                취소
+              </button>
+              <button
+                onClick={handleWithdraw}
+                disabled={withdrawLoading}
+                style={{ flex: 1, background: '#ef4444', color: '#fff', border: 'none', borderRadius: 12, padding: '13px', fontWeight: 700, fontSize: 15, cursor: withdrawLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: withdrawLoading ? 0.7 : 1 }}
+              >
+                {withdrawLoading ? '처리 중...' : '탈퇴하기'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </main>
   )
 }
