@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [message, setMessage] = useState('')
   const [saveId, setSaveId] = useState(false)
   const [keepLogin, setKeepLogin] = useState(false)
+  const [passwordConfirm, setPasswordConfirm] = useState('')
   const [showForgot, setShowForgot] = useState(false)
   const [forgotEmail, setForgotEmail] = useState('')
   const [forgotLoading, setForgotLoading] = useState(false)
@@ -41,13 +42,18 @@ export default function LoginPage() {
     }
 
     if (isSignUp) {
+      if (password !== passwordConfirm) {
+        setError('비밀번호가 일치하지 않습니다.')
+        setLoading(false)
+        return
+      }
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
       })
       if (error) setError(error.message)
-      else setMessage('이메일을 확인해주세요! 인증 링크를 보내드렸습니다.')
+      else window.location.href = '/'  // 이메일 인증 없이 바로 로그인
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) setError('이메일 또는 비밀번호가 올바르지 않습니다.')
@@ -165,6 +171,20 @@ export default function LoginPage() {
                 autoComplete="new-password"
                 style={inputStyle}
               />
+              {isSignUp && (
+                <input
+                  type="password"
+                  placeholder="비밀번호 확인"
+                  value={passwordConfirm}
+                  onChange={e => setPasswordConfirm(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleEmailAuth()}
+                  autoComplete="new-password"
+                  style={{ ...inputStyle, borderColor: passwordConfirm && password !== passwordConfirm ? '#fecaca' : '#e5e3dc' }}
+                />
+              )}
+              {isSignUp && passwordConfirm && password !== passwordConfirm && (
+                <p style={{ fontSize: 12, color: '#ef4444', margin: '-4px 0 0 4px' }}>비밀번호가 일치하지 않습니다.</p>
+              )}
             </div>
 
             {/* 체크박스 + 비밀번호 찾기 — 로그인 화면에만 표시 */}
@@ -214,7 +234,7 @@ export default function LoginPage() {
               {isSignUp ? '이미 계정이 있으신가요?' : '아직 계정이 없으신가요?'}
               {' '}
               <button
-                onClick={() => { setIsSignUp(!isSignUp); setError(''); setMessage('') }}
+                onClick={() => { setIsSignUp(!isSignUp); setError(''); setMessage(''); setPasswordConfirm('') }}
                 style={{ color: '#0f2244', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14 }}
               >
                 {isSignUp ? '로그인' : '회원가입'}
