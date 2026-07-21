@@ -845,7 +845,8 @@ export default function Home() {
             <button onClick={() => window.location.href = '/privacy'} style={{ background: 'none', border: 'none', color: 'rgba(184,217,238,0.5)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>개인정보처리방침</button>
             <button onClick={() => window.location.href = '/terms'} style={{ background: 'none', border: 'none', color: 'rgba(184,217,238,0.5)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>이용약관</button>
           </div>
-          <p style={{ marginTop: 12, color: 'rgba(184,217,238,0.4)', fontSize: 12 }}>바른어플리케이션 | 대표: 조신성 | 사업자등록번호: 896-03-03938</p>
+          <p style={{ marginTop: 12, color: 'rgba(184,217,238,0.4)', fontSize: 12 }}>바른어플리케이션 | 대표: 조신성 | 사업자등록번호: 896-03-03938 | Tel: 070-8064-1382</p>
+          <p style={{ marginTop: 4, color: 'rgba(184,217,238,0.4)', fontSize: 12 }}>경기도 광명시 소하로 162</p>
           <p style={{ marginTop: 6, color: 'rgba(184,217,238,0.3)', fontSize: 11 }}>© 2026 바른어플리케이션. All rights reserved.</p>
         </footer>
       </main>
