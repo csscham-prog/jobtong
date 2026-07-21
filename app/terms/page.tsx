@@ -187,7 +187,8 @@ export default function TermsPage() {
         {/* 하단 */}
         <div style={{ marginTop: 48, textAlign: 'center', color: textMuted, fontSize: 13 }}>
           <p>문의: {'barunapplication@gmail.com'}</p>
-          <p style={{ marginTop: 8 }}>{'바른어플리케이션'} · {'https://jobtong.vercel.app'}</p>
+          <p style={{ marginTop: 8 }}>바른어플리케이션 | 대표: 조신성 | 사업자등록번호: 896-03-03938</p>
+          <p style={{ marginTop: 8 }}>{'https://jobtong.vercel.app'}</p>
         </div>
       </main>
 
@@ -198,7 +199,10 @@ export default function TermsPage() {
             <button onClick={() => window.location.href = '/privacy'} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>개인정보처리방침</button>
             <button onClick={() => window.location.href = '/terms'} style={{ background: 'none', border: 'none', color: point, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700 }}>이용약관</button>
           </div>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>© 2026 {'바른어플리케이션'}. All rights reserved.</p>
+          <div style={{ textAlign: 'right' }}>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', margin: '0 0 4px' }}>바른어플리케이션 | 대표: 조신성 | 사업자등록번호: 896-03-03938</p>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', margin: 0 }}>© 2026 바른어플리케이션. All rights reserved.</p>
+          </div>
         </div>
       </footer>
     </div>
