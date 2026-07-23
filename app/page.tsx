@@ -258,6 +258,7 @@ export default function Home() {
   const [content, setContent] = useState('')
   const [result, setResult] = useState<any>(null)
   const [loading, setLoading] = useState(false)
+  const [loadingStage, setLoadingStage] = useState(0)
   const [error, setError] = useState('')
   const [fileName, setFileName] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -373,7 +374,13 @@ export default function Home() {
     if (!content.trim()) { setError('자소서 내용을 입력해주세요.'); return }
     if (content.trim().length < 100) { setError('자소서를 100자 이상 입력해주세요.'); return }
     if (content.trim().length > 5000) { setError('자소서는 5,000자 이하로 입력해주세요.'); return }
-    setError(''); setLoading(true); setAnalyzeType(type)
+    setError(''); setLoading(true); setAnalyzeType(type); setLoadingStage(0)
+
+    // 대기 중 단계별 안내 문구 전환 (실제 진행률이 아닌 체감 UX용)
+    const stageTimer1 = setTimeout(() => setLoadingStage(1), 4000)
+    const stageTimer2 = setTimeout(() => setLoadingStage(2), 10000)
+    const stageTimer3 = setTimeout(() => setLoadingStage(3), 18000)
+
     try {
       // 로그인 토큰 가져오기
       const { data: { session } } = await supabase.auth.getSession()
@@ -413,7 +420,10 @@ export default function Home() {
         fetchProfile(user.id)
       }
     } catch (e: any) { setError(e.message) }
-    finally { setLoading(false) }
+    finally {
+      setLoading(false)
+      clearTimeout(stageTimer1); clearTimeout(stageTimer2); clearTimeout(stageTimer3)
+    }
   }
 
   // 점검 모드 화면 — 어드민은 통과
@@ -856,9 +866,31 @@ export default function Home() {
   // ── ANALYZE ──
   if (step === 'analyze') {
     const mode = getAnalyzeMode()
+    const stageMessages = [
+      '자소서를 꼼꼼히 읽는 중입니다...',
+      '문단별로 문제점을 분석하는 중입니다...',
+      '역량 점수를 산정하는 중입니다...',
+      '개선 방향과 합격 전략을 정리하는 중입니다...',
+    ]
     return (
       <main style={base}>
         <Header />
+
+        {/* 전체화면 로딩 오버레이 — 분석 중 화면이 멈춘 것처럼 보이지 않도록 */}
+        {loading && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,34,68,0.92)', zIndex: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+            <svg style={{ animation: 'spin 1s linear infinite', width: 56, height: 56, marginBottom: 28 }} viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.2)" strokeWidth="3" />
+              <path d="M4 12a8 8 0 018-8" stroke="#e6a800" strokeWidth="3" strokeLinecap="round" />
+            </svg>
+            <p style={{ color: '#fff', fontSize: 18, fontWeight: 800, marginBottom: 10, textAlign: 'center' }}>
+              {stageMessages[loadingStage]}
+            </p>
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, textAlign: 'center', maxWidth: 320, lineHeight: 1.7 }}>
+              전문가 수준의 정밀 분석을 진행하고 있어요.<br />최대 30초 정도 소요될 수 있습니다.
+            </p>
+          </div>
+        )}
         <div style={{ maxWidth: 680, margin: '0 auto', padding: '48px 24px' }}>
           <div style={{ background: '#fff', borderRadius: 20, padding: '40px 36px', border: '1px solid #ece9e1' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
@@ -927,10 +959,10 @@ export default function Home() {
 
               {mode === 'both' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <button onClick={() => handleAnalyze('free')} disabled={loading} style={{ width: '100%', background: loading ? '#ccc' : '#f7f6f3', color: '#0f2244', border: '1.5px solid #ddd', borderRadius: 14, padding: '16px', fontWeight: 700, fontSize: 16, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}>
-                    무료 분석 (총평 + 핵심문제만)
+                  <button onClick={() => handleAnalyze('free')} disabled={loading} style={{ width: '100%', background: loading ? '#ccc' : '#f7f6f3', color: '#0f2244', border: '1.5px solid #ddd', borderRadius: 14, padding: '16px', fontWeight: 700, fontSize: 16, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+                    {loading ? <><svg style={{ animation: 'spin 1s linear infinite', width: 20, height: 20 }} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(15,34,68,0.2)" strokeWidth="4" /><path d="M4 12a8 8 0 018-8" stroke="#0f2244" strokeWidth="4" strokeLinecap="round" /></svg>정밀 분석 중입니다...</> : '무료 분석 (총평 + 핵심문제만)'}
                   </button>
-                  <button onClick={() => window.location.href = '/payment'} disabled={loading} style={{ width: '100%', background: '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '18px', fontWeight: 800, fontSize: 17, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  <button onClick={() => window.location.href = '/payment'} disabled={loading} style={{ width: '100%', background: loading ? '#f0d99a' : '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '18px', fontWeight: 800, fontSize: 17, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}>
                     전체 분석권 구매하기 →
                   </button>
                   <p style={{ textAlign: 'center', color: '#aaa', fontSize: 12, marginTop: 4 }}>1회권 ₩2,900 / 5회권 ₩9,900</p>
