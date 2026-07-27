@@ -812,40 +812,6 @@ export default function Home() {
             </a>
           </div>
         </section>
-
-        {/* 다른 서비스 섹션 */}
-        <section style={{ background: '#f0ede6', padding: '56px 24px' }}>
-          <div style={{ maxWidth: 900, margin: '0 auto' }}>
-            <div style={{ textAlign: 'center', marginBottom: 36 }}>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#bbb', letterSpacing: '0.12em', marginBottom: 10 }}>BARUN APPLICATION</p>
-              <h2 style={{ fontSize: 24, fontWeight: 900, color: '#0f2244', margin: 0, letterSpacing: '-0.5px' }}>바른어플리케이션의 다른 서비스</h2>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 20, flexWrap: 'wrap' }}>
-              {APP_LIST.filter(app => !app.current).map(app => (
-                <div
-                  key={app.id}
-                  onClick={() => window.open(app.url, '_blank')}
-                  style={{ background: '#fff', borderRadius: 20, padding: '28px 28px', border: `2px solid #e5e3dc`, cursor: 'pointer', width: 280, transition: 'border-color 0.2s, box-shadow 0.2s', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = app.color; (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 24px ${app.color}22` }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#e5e3dc'; (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(0,0,0,0.04)' }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                    <span style={{ fontSize: 32 }}>{app.emoji}</span>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: 18, fontWeight: 900, color: '#0f2244' }}>{app.name}</span>
-                        <span style={{ background: `${app.color}20`, color: app.color, fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 700 }}>{app.tag}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <p style={{ fontSize: 14, color: '#555', lineHeight: 1.7, margin: '0 0 14px' }}>{app.desc}</p>
-                  <p style={{ fontSize: 12, color: '#bbb', margin: 0 }}>{app.url.replace('https://', '')}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         <footer style={{ background: '#0a1628', color: 'rgba(184,217,238,0.5)', padding: '40px 24px', textAlign: 'center', fontSize: 13 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 10 }}>
             <Emblem size={28} /><span style={{ fontWeight: 800, fontSize: 18, color: '#fff' }}>잡통</span>
