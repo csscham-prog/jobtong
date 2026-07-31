@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
+// Next.js가 이 라우트의 fetch 결과를 캐싱하지 않도록 강제
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: NextRequest) {
   try {
     // 1. 인증 확인
@@ -12,7 +15,8 @@ export async function GET(req: NextRequest) {
 
     const anonSupabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { global: { fetch: (url, options) => fetch(url, { ...options, cache: 'no-store' }) } }
     )
     const { data: { user }, error: authError } = await anonSupabase.auth.getUser(token)
     if (authError || !user) {
@@ -22,7 +26,8 @@ export async function GET(req: NextRequest) {
     // 2. 어드민 권한 확인 (service role로 본인 profile 조회)
     const adminSupabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { global: { fetch: (url, options) => fetch(url, { ...options, cache: 'no-store' }) } }
     )
     const { data: profile } = await adminSupabase
       .from('profiles')
