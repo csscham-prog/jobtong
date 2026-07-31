@@ -66,7 +66,7 @@ export default function LoginPage() {
     if (!forgotEmail) { setError('이메일을 입력해주세요.'); return }
     setForgotLoading(true); setError('')
     const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+      redirectTo: `${window.location.origin}/reset-password`,
     })
     if (error) setError('이메일 발송에 실패했습니다. 다시 시도해주세요.')
     else setMessage('비밀번호 재설정 링크를 이메일로 발송했습니다. 메일함을 확인해주세요!')
