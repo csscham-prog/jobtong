@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 
 // ──────────────────────────────────────────
 // 테스트 클라이언트 키 (사업자 등록 후 실제 키로 교체)
-const TOSS_CLIENT_KEY = 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq'
+const TOSS_CLIENT_KEY = 'test_ck_DpexMgkW36PnG4JJ4kZNrGbR5ozO'
 // ──────────────────────────────────────────
 
 const PLANS = [
