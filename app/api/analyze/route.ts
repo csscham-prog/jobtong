@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
     const content = body.content || ''
     const type = body.type || 'free'
     const jobPostingBase64 = body.jobPostingBase64 || '' // 채용공고 PDF (유료 전용, 선택)
+    const companyInfo = (body.companyInfo || '').slice(0, 1000) // 기업 문화/인재상 정보 (무료/유료 공통, 선택)
 
     // 4. 크레딧 확인
     const { data: profile } = await supabase
@@ -106,11 +107,27 @@ export async function POST(req: NextRequest) {
       .replace(/\n/g, ' ')
       .trim()
 
+    // 6-3. 기업 문화/인재상 정보 안전 처리 (무료/유료 공통, 선택)
+    const safeCompanyInfo = companyInfo
+      .replace(/"/g, "'")
+      .replace(/\\/g, ' ')
+      .replace(/\r/g, ' ')
+      .replace(/\n/g, ' ')
+      .trim()
+
     // 7. 프롬프트 구성
     // 무료/유료 모두 동일한 고품질 전체 분석 프롬프트를 사용합니다.
     // 무료는 응답 시 일부 필드만 노출하여, 퀄리티는 동일하되 공개 범위만 다르게 처리합니다.
     const companyLine = company ? '지원 회사: ' + company : '지원 회사: 명시되지 않음 (일반적인 대기업 채용 기준으로 판단)'
     const positionLine = position ? '지원 직무: ' + position : '지원 직무: 명시되지 않음 (자소서 내용 기반으로 직무 추정 후 판단)'
+    const companyInfoLine = safeCompanyInfo ? '기업 문화/인재상 정보: ' + safeCompanyInfo : ''
+
+    const companyInfoSection = safeCompanyInfo
+      ? '\n[기업 정보 반영 지침 - 기업 문화/인재상 정보가 제공된 경우에만 적용]\n' +
+        '- 자소서에 사용된 표현과 강조하는 가치가 이 회사의 인재상·핵심가치와 얼마나 일치하는지 판단하세요\n' +
+        '- 일치하는 부분이 있다면 strongPoints에서 "이 회사의 [가치명]과 부합한다"고 구체적으로 짚어주세요\n' +
+        '- 반대로 회사가 중요시하는 가치인데 자소서에 전혀 드러나지 않은 부분이 있다면 mainIssue 또는 improvements에서 지적하고, addContent에 그 가치를 보여줄 수 있는 소재를 제안하세요\n'
+      : ''
 
     const jobPostingSection = jobPostingText
       ? '\n[채용공고 원문 - 반드시 이 내용을 기준으로 직무적합성을 판단하세요]\n' + jobPostingText + '\n' +
@@ -121,7 +138,7 @@ export async function POST(req: NextRequest) {
 
     const fullPrompt = '당신은 삼성전자, LG, 현대자동차, SK 등 국내 주요 대기업에서 15년간 서류 전형을 담당해온 인사팀장이자 자소서 전문 컨설턴트입니다. 당신의 피드백을 받은 지원자들의 서류 통과율은 업계 평균 대비 2배 이상입니다.\n\n' +
       '당신의 목표는 이 자소서가 "서류에서 합격할 수 있는 수준"이 되도록 구체적이고 실행 가능한 개선안을 제시하는 것입니다. 막연한 조언이 아니라, 그대로 적용하면 합격률이 실제로 올라가는 피드백을 작성하세요.\n\n' +
-      '[분석 대상]\n' + companyLine + '\n' + positionLine + '\n' + jobPostingSection + '\n' +
+      '[분석 대상]\n' + companyLine + '\n' + positionLine + (companyInfoLine ? '\n' + companyInfoLine : '') + '\n' + jobPostingSection + companyInfoSection + '\n' +
       '자기소개서:\n' + safeContent + '\n\n' +
       '[분석 순서 - 반드시 이 순서로 사고하세요]\n' +
       '1단계: 자소서를 문단/항목 단위로 나누어 각각의 문제점을 먼저 파악하세요\n' +
@@ -131,7 +148,7 @@ export async function POST(req: NextRequest) {
       '[역량 채점 기준 - 반드시 아래 기준에 따라 채점하세요]\n' +
       '- 논리성(logic): 지원동기-경험-직무를 관통하는 하나의 스토리가 있는가(90점대) / 각 문단이 따로 노는가(50-60점대)\n' +
       '- 구체성(specific): 수치·기간·규모가 명시된 성과가 있는가(90점대) / "노력했다", "성장했다" 같은 추상적 서술만 있는가(40-50점대)\n' +
-      '- 직무적합성(fit): 지원 직무의 실제 업무를 이해하고 그에 맞는 경험을 배치했는가(90점대) / 범용적인 자기소개로 어느 직무에나 붙일 수 있는 내용인가(50점대 이하)\n' +
+      '- 직무적합성(fit): 지원 직무의 실제 업무를 이해하고 그에 맞는 경험을 배치했는가(90점대) / 범용적인 자기소개로 어느 직무에나 붙일 수 있는 내용인가(50점대 이하). 기업 문화/인재상 정보가 제공된 경우, 자소서의 가치관·표현이 그 회사와 얼마나 부합하는지도 함께 반영\n' +
       '- 표현력(expression): 문장이 간결하고 핵심이 먼저 나오는가(90점대) / 만연체·상투적 표현이 반복되는가(60점대 이하)\n\n' +
       '[출력 필드별 필수 지침]\n' +
       '- totalScore: 100점 만점 중 실제 서류 합격 가능성을 반영한 점수 (80점 이상: 합격권 / 60-79점: 보완 시 합격 가능 / 60점 미만: 대폭 수정 필요)\n' +
