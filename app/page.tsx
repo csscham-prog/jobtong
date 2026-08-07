@@ -7,7 +7,6 @@ import PaidResult from '@/components/PaidResult'
 
 // ── 샘플 분석 결과 컴포넌트 ──────────────────────────────────
 function SampleResult() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'detail' | 'guide'>('overview')
 
   const getScoreColor = (s: number) => s >= 80 ? '#10b981' : s >= 60 ? '#f59e0b' : '#ef4444'
   const getScoreBg = (s: number) => s >= 80 ? '#ecfdf5' : s >= 60 ? '#fffbeb' : '#fef2f2'
@@ -113,131 +112,108 @@ function SampleResult() {
         </div>
       </div>
 
-      {/* 탭 안내 문구 */}
-      <div style={{ background: '#fffbeb', borderTop: '1px solid #fde68a', padding: '10px 20px', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 13, color: '#92400e', fontWeight: 600 }}>
-          💡 아래 탭을 클릭하면 문장 개선 제안과 강점 & 조언을 확인할 수 있어요!
-        </span>
-      </div>
+      <div style={{ padding: '28px 36px 32px', background: '#fff' }}>
 
-      {/* 탭 */}
-      <div style={{ display: 'flex', borderBottom: '1px solid #f0ede6', background: '#faf9f7', padding: '0 8px', gap: 4 }}>
-        {[
-          { key: 'overview', label: '📊 종합 분석' },
-          { key: 'detail', label: '✏️ 문장 개선' },
-          { key: 'guide', label: '💡 강점 & 조언' },
-        ].map(tab => (
-          <button key={tab.key} onClick={() => setActiveTab(tab.key as any)}
-            style={{
-              flex: 1, padding: '14px 8px', border: 'none',
-              borderBottom: `3px solid ${activeTab === tab.key ? '#0f2244' : 'transparent'}`,
-              background: activeTab === tab.key ? '#fff' : 'transparent',
-              color: activeTab === tab.key ? '#0f2244' : '#999',
-              fontWeight: activeTab === tab.key ? 900 : 500,
-              fontSize: 14, cursor: 'pointer', fontFamily: 'inherit',
-              transition: 'all 0.15s', borderRadius: '8px 8px 0 0',
-              boxShadow: activeTab === tab.key ? '0 -2px 8px rgba(0,0,0,0.06)' : 'none',
-            }}>
-            {tab.label}
-          </button>
-        ))}
-      </div>
+        {/* ── 종합 분석 ── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #0f2244' }}>
+          <span style={{ fontSize: 16 }}>📊</span>
+          <h2 style={{ fontSize: 16, fontWeight: 900, color: '#0f2244', margin: 0 }}>종합 분석</h2>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {/* 총평 */}
+          <div style={{ background: '#f7f6f3', borderRadius: 16, padding: '24px' }}>
+            <h3 style={{ fontSize: 14, fontWeight: 800, color: '#0f2244', marginBottom: 12 }}>📝 전체 총평</h3>
+            <p style={{ fontSize: 14, color: '#333', lineHeight: 1.9 }}>{sampleData.summary}</p>
+          </div>
 
-      <div style={{ padding: '32px 36px', background: '#fff' }}>
+          {/* 핵심 문제 */}
+          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 16, padding: '24px' }}>
+            <h3 style={{ fontSize: 14, fontWeight: 800, color: '#991b1b', marginBottom: 12 }}>⚠️ 핵심 문제</h3>
+            <p style={{ fontSize: 14, color: '#333', lineHeight: 1.9 }}>{sampleData.mainIssue}</p>
+          </div>
 
-        {/* 종합 분석 탭 */}
-        {activeTab === 'overview' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            {/* 총평 */}
-            <div style={{ background: '#f7f6f3', borderRadius: 16, padding: '24px' }}>
-              <h3 style={{ fontSize: 14, fontWeight: 800, color: '#0f2244', marginBottom: 12 }}>📝 전체 총평</h3>
-              <p style={{ fontSize: 14, color: '#333', lineHeight: 1.9 }}>{sampleData.summary}</p>
-            </div>
-
-            {/* 핵심 문제 */}
-            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 16, padding: '24px' }}>
-              <h3 style={{ fontSize: 14, fontWeight: 800, color: '#991b1b', marginBottom: 12 }}>⚠️ 핵심 문제</h3>
-              <p style={{ fontSize: 14, color: '#333', lineHeight: 1.9 }}>{sampleData.mainIssue}</p>
-            </div>
-
-            {/* 역량 진단 */}
-            <div>
-              <h3 style={{ fontSize: 14, fontWeight: 800, color: '#0f2244', marginBottom: 16 }}>📊 역량 진단</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
-                {scoreItems.map(item => {
-                  const score = sampleData.scores[item.key]
-                  return (
-                    <div key={item.key} style={{ background: getScoreBg(score), borderRadius: 14, padding: '18px 20px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: '#333' }}>{item.icon} {item.label}</span>
-                        <span style={{ background: getScoreColor(score), color: '#fff', fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 700 }}>{getScoreLabel(score)}</span>
-                      </div>
-                      <div style={{ fontSize: 26, fontWeight: 900, color: getScoreColor(score) }}>{score}</div>
-                      <div style={{ height: 4, background: 'rgba(0,0,0,0.08)', borderRadius: 2, marginTop: 8 }}>
-                        <div style={{ height: '100%', width: `${score}%`, background: getScoreColor(score), borderRadius: 2 }} />
-                      </div>
-                      <div style={{ fontSize: 11, color: '#888', marginTop: 6 }}>{item.desc}</div>
+          {/* 역량 진단 */}
+          <div>
+            <h3 style={{ fontSize: 14, fontWeight: 800, color: '#0f2244', marginBottom: 16 }}>📊 역량 진단</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+              {scoreItems.map(item => {
+                const score = sampleData.scores[item.key]
+                return (
+                  <div key={item.key} style={{ background: getScoreBg(score), borderRadius: 14, padding: '18px 20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: '#333' }}>{item.icon} {item.label}</span>
+                      <span style={{ background: getScoreColor(score), color: '#fff', fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 700 }}>{getScoreLabel(score)}</span>
                     </div>
-                  )
-                })}
-              </div>
+                    <div style={{ fontSize: 26, fontWeight: 900, color: getScoreColor(score) }}>{score}</div>
+                    <div style={{ height: 4, background: 'rgba(0,0,0,0.08)', borderRadius: 2, marginTop: 8 }}>
+                      <div style={{ height: '100%', width: `${score}%`, background: getScoreColor(score), borderRadius: 2 }} />
+                    </div>
+                    <div style={{ fontSize: 11, color: '#888', marginTop: 6 }}>{item.desc}</div>
+                  </div>
+                )
+              })}
             </div>
           </div>
-        )}
+        </div>
 
-        {/* 문장 개선 탭 */}
-        {activeTab === 'detail' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <p style={{ fontSize: 13, color: '#888', margin: '0 0 4px' }}>총 {sampleData.improvements.length}개 문장 개선 제안</p>
-            {sampleData.improvements.map((imp, i) => (
-              <div key={i} style={{ border: '1.5px solid #ece9e1', borderRadius: 16, overflow: 'hidden' }}>
-                <div style={{ background: '#0f2244', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ background: '#e6a800', color: '#fff', borderRadius: '50%', width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, flexShrink: 0 }}>{i + 1}</span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{imp.category}</span>
+        {/* ── 문장 개선 ── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 40, marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #0f2244' }}>
+          <span style={{ fontSize: 16 }}>✏️</span>
+          <h2 style={{ fontSize: 16, fontWeight: 900, color: '#0f2244', margin: 0 }}>문장 개선</h2>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <p style={{ fontSize: 13, color: '#888', margin: '0 0 4px' }}>총 {sampleData.improvements.length}개 문장 개선 제안</p>
+          {sampleData.improvements.map((imp, i) => (
+            <div key={i} style={{ border: '1.5px solid #ece9e1', borderRadius: 16, overflow: 'hidden' }}>
+              <div style={{ background: '#0f2244', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ background: '#e6a800', color: '#fff', borderRadius: '50%', width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, flexShrink: 0 }}>{i + 1}</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{imp.category}</span>
+              </div>
+              <div style={{ padding: '20px' }}>
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#e6a800', marginBottom: 6, letterSpacing: '0.05em' }}>ISSUE</div>
+                  <p style={{ fontSize: 13, color: '#555', lineHeight: 1.8 }}>{imp.issue}</p>
                 </div>
-                <div style={{ padding: '20px' }}>
-                  <div style={{ marginBottom: 14 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#e6a800', marginBottom: 6, letterSpacing: '0.05em' }}>ISSUE</div>
-                    <p style={{ fontSize: 13, color: '#555', lineHeight: 1.8 }}>{imp.issue}</p>
-                  </div>
-                  <div style={{ background: '#fef2f2', borderRadius: 10, padding: '12px 14px', marginBottom: 14 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#991b1b', marginBottom: 6 }}>BEFORE</div>
-                    <p style={{ fontSize: 13, color: '#555', lineHeight: 1.7, fontStyle: 'italic' }}>"{imp.original}"</p>
-                  </div>
-                  <div style={{ background: '#f0fdf4', borderRadius: 10, padding: '12px 14px', marginBottom: 14 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#065f46', marginBottom: 6 }}>SUGGESTION</div>
-                    <p style={{ fontSize: 13, color: '#333', lineHeight: 1.8 }}>{imp.suggestion}</p>
-                  </div>
-                  <div style={{ background: '#fffbeb', borderRadius: 10, padding: '12px 14px' }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#92400e', marginBottom: 6 }}>💡 추가하면 합격률이 올라가는 소재</div>
-                    <p style={{ fontSize: 13, color: '#555', lineHeight: 1.8 }}>{imp.addContent}</p>
-                  </div>
+                <div style={{ background: '#fef2f2', borderRadius: 10, padding: '12px 14px', marginBottom: 14 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#991b1b', marginBottom: 6 }}>BEFORE</div>
+                  <p style={{ fontSize: 13, color: '#555', lineHeight: 1.7, fontStyle: 'italic' }}>"{imp.original}"</p>
+                </div>
+                <div style={{ background: '#f0fdf4', borderRadius: 10, padding: '12px 14px', marginBottom: 14 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#065f46', marginBottom: 6 }}>SUGGESTION</div>
+                  <p style={{ fontSize: 13, color: '#333', lineHeight: 1.8 }}>{imp.suggestion}</p>
+                </div>
+                <div style={{ background: '#fffbeb', borderRadius: 10, padding: '12px 14px' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#92400e', marginBottom: 6 }}>💡 추가하면 합격률이 올라가는 소재</div>
+                  <p style={{ fontSize: 13, color: '#555', lineHeight: 1.8 }}>{imp.addContent}</p>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+            </div>
+          ))}
+        </div>
 
-        {/* 강점 & 조언 탭 */}
-        {activeTab === 'guide' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <div>
-              <h3 style={{ fontSize: 14, fontWeight: 800, color: '#0f2244', marginBottom: 16 }}>✅ 잘 된 점</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {sampleData.strongPoints.map((point, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 12, background: '#f0fdf4', borderRadius: 12, padding: '16px' }}>
-                    <span style={{ color: '#10b981', fontWeight: 800, flexShrink: 0 }}>0{i + 1}</span>
-                    <p style={{ fontSize: 14, color: '#333', lineHeight: 1.8, margin: 0 }}>{point}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div style={{ background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', borderRadius: 16, padding: '28px' }}>
-              <h3 style={{ fontSize: 14, fontWeight: 800, color: '#e6a800', marginBottom: 16 }}>🎯 최종 합격 전략</h3>
-              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)', lineHeight: 1.9 }}>{sampleData.finalAdvice}</p>
+        {/* ── 강점 & 조언 ── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 40, marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #0f2244' }}>
+          <span style={{ fontSize: 16 }}>💡</span>
+          <h2 style={{ fontSize: 16, fontWeight: 900, color: '#0f2244', margin: 0 }}>강점 & 조언</h2>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <div>
+            <h3 style={{ fontSize: 14, fontWeight: 800, color: '#0f2244', marginBottom: 16 }}>✅ 잘 된 점</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {sampleData.strongPoints.map((point, i) => (
+                <div key={i} style={{ display: 'flex', gap: 12, background: '#f0fdf4', borderRadius: 12, padding: '16px' }}>
+                  <span style={{ color: '#10b981', fontWeight: 800, flexShrink: 0 }}>0{i + 1}</span>
+                  <p style={{ fontSize: 14, color: '#333', lineHeight: 1.8, margin: 0 }}>{point}</p>
+                </div>
+              ))}
             </div>
           </div>
-        )}
+          <div style={{ background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', borderRadius: 16, padding: '28px' }}>
+            <h3 style={{ fontSize: 14, fontWeight: 800, color: '#e6a800', marginBottom: 16 }}>🎯 최종 합격 전략</h3>
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)', lineHeight: 1.9 }}>{sampleData.finalAdvice}</p>
+          </div>
+        </div>
+
       </div>
 
       {/* 샘플 워터마크 */}
