@@ -265,6 +265,8 @@ export default function Home() {
   const [jobPostingBase64, setJobPostingBase64] = useState('')
   const [jobPostingFileName, setJobPostingFileName] = useState('')
   const [jobPostingError, setJobPostingError] = useState('')
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [confirmType, setConfirmType] = useState<'free' | 'paid'>('free')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const jobPostingInputRef = useRef<HTMLInputElement>(null)
   const [user, setUser] = useState<any>(null)
@@ -407,6 +409,16 @@ export default function Home() {
     if ((userProfile?.paid_credits || 0) > 0) return 'paid'
     if (!userProfile?.free_trial_used) return 'both'
     return 'purchase'
+  }
+
+  // 분석 버튼 클릭 시 바로 실행하지 않고 확인 모달을 먼저 띄움
+  const openConfirmModal = (type: 'free' | 'paid') => {
+    if (!content.trim()) { setError('자소서 내용을 입력해주세요.'); return }
+    if (content.trim().length < 100) { setError('자소서를 100자 이상 입력해주세요.'); return }
+    if (content.trim().length > 5000) { setError('자소서는 5,000자 이하로 입력해주세요.'); return }
+    setError('')
+    setConfirmType(type)
+    setShowConfirmModal(true)
   }
 
   const handleAnalyze = async (type: 'free' | 'paid') => {
@@ -896,6 +908,82 @@ export default function Home() {
             </p>
           </div>
         )}
+
+        {/* 분석 시작 전 확인 모달 */}
+        {showConfirmModal && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,34,68,0.55)', zIndex: 250, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+            <div style={{ background: '#fff', borderRadius: 20, padding: '28px 26px', maxWidth: 420, width: '100%', boxSizing: 'border-box', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}>
+
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f2244', margin: '0 0 4px', flexShrink: 0 }}>이대로 분석을 시작할까요?</h3>
+              <p style={{ fontSize: 13, color: '#888', margin: '0 0 16px', lineHeight: 1.6, flexShrink: 0 }}>
+                분석 시작 후에는 내용을 수정할 수 없어요. 입력하신 내용을 확인해주세요.
+              </p>
+
+              <div style={{ background: '#faf9f7', borderRadius: 12, padding: '16px 18px', marginBottom: 16, overflowY: 'auto', flex: 1, minHeight: 0 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
+                    <span style={{ fontSize: 12, color: '#aaa', fontWeight: 600, flexShrink: 0 }}>지원 회사</span>
+                    <span style={{ fontSize: 13, color: company ? '#333' : '#bbb', textAlign: 'right' }}>{company || '입력 안 함'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
+                    <span style={{ fontSize: 12, color: '#aaa', fontWeight: 600, flexShrink: 0 }}>지원 직무</span>
+                    <span style={{ fontSize: 13, color: position ? '#333' : '#bbb', textAlign: 'right' }}>{position || '입력 안 함'}</span>
+                  </div>
+
+                  <div>
+                    <div style={{ fontSize: 12, color: '#aaa', fontWeight: 600, marginBottom: 5 }}>기업 문화·인재상</div>
+                    {companyInfo ? (
+                      <p style={{ fontSize: 12, color: '#555', lineHeight: 1.65, margin: 0, whiteSpace: 'pre-wrap' }}>{companyInfo}</p>
+                    ) : (
+                      <span style={{ fontSize: 13, color: '#bbb' }}>입력 안 함</span>
+                    )}
+                  </div>
+
+                  {confirmType === 'paid' && (
+                    <div>
+                      <div style={{ fontSize: 12, color: '#aaa', fontWeight: 600, marginBottom: 4 }}>채용공고 PDF</div>
+                      <span style={{ fontSize: 13, color: jobPostingFileName ? '#10b981' : '#bbb', fontWeight: jobPostingFileName ? 700 : 400 }}>
+                        {jobPostingFileName ? `✓ ${jobPostingFileName}` : '첨부 안 함'}
+                      </span>
+                    </div>
+                  )}
+
+                  <div style={{ borderTop: '1px solid #e8e5dc', paddingTop: 12 }}>
+                    <div style={{ fontSize: 12, color: '#aaa', fontWeight: 600, marginBottom: 5 }}>자소서 <span style={{ color: '#bbb', fontWeight: 400 }}>· {content.length.toLocaleString()}자</span></div>
+                    <p style={{ fontSize: 12, color: '#555', lineHeight: 1.65, margin: 0, whiteSpace: 'pre-wrap' }}>{content}</p>
+                  </div>
+
+                </div>
+              </div>
+
+              <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: '10px 14px', marginBottom: 16, flexShrink: 0 }}>
+                <p style={{ fontSize: 12, color: '#92400e', margin: 0, fontWeight: 600 }}>
+                  {confirmType === 'paid'
+                    ? `💳 분석 시작 시 크레딧 1회가 차감됩니다. (잔여 ${userProfile?.paid_credits || 0}회)`
+                    : '🎁 분석 시작 시 무료 체험이 소진됩니다.'}
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
+                <button
+                  onClick={() => setShowConfirmModal(false)}
+                  style={{ flex: 1, background: '#f7f6f3', color: '#555', border: '1px solid #ddd', borderRadius: 12, padding: '13px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  수정하기
+                </button>
+                <button
+                  onClick={() => { setShowConfirmModal(false); handleAnalyze(confirmType) }}
+                  style={{ flex: 1.4, background: '#0f2244', color: '#fff', border: 'none', borderRadius: 12, padding: '13px', fontWeight: 800, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  이대로 분석 시작 →
+                </button>
+              </div>
+
+            </div>
+          </div>
+        )}
+
         <div style={{ maxWidth: 680, margin: '0 auto', padding: '48px 24px' }}>
           <div style={{ background: '#fff', borderRadius: 20, padding: '40px 36px', border: '1px solid #ece9e1' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
@@ -905,68 +993,15 @@ export default function Home() {
             <p style={{ color: '#555', fontSize: 15, marginBottom: 36, lineHeight: 1.8 }}>
               자소서를 직접 입력하거나 파일을 업로드해주세요.<br />즉시 분석하고 정직하게 피드백합니다.
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <div>
-                <label style={{ display: 'block', fontSize: 14, fontWeight: 700, color: '#333', marginBottom: 4 }}>지원 회사</label>
-                <p style={{ fontSize: 12, color: '#e6a800', fontWeight: 600, margin: '0 0 8px' }}>※ 지원 회사나 직무를 입력하면 더욱 정밀한 분석이 가능합니다.</p>
-                <input type="text" style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 12, padding: '13px 16px', fontSize: 15, color: '#1a1a1a', background: '#faf9f7', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} placeholder="예: 삼성전자, 카카오, 현대자동차" value={company} onChange={e => setCompany(e.target.value)} />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 14, fontWeight: 700, color: '#333', marginBottom: 8 }}>지원 직무</label>
-                <input type="text" style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 12, padding: '13px 16px', fontSize: 15, color: '#1a1a1a', background: '#faf9f7', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} placeholder="예: 마케팅, 백엔드 개발, 영업관리" value={position} onChange={e => setPosition(e.target.value)} />
-              </div>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                  <label style={{ fontSize: 14, fontWeight: 700, color: '#333' }}>기업 문화 · 인재상</label>
-                  <span style={{ background: '#eef2ff', color: '#4338ca', fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 700 }}>선택</span>
-                </div>
-                <p style={{ fontSize: 12, color: '#e6a800', fontWeight: 600, margin: '0 0 8px' }}>※ 회사 홈페이지의 인재상·핵심가치·미션·비전을 붙여넣으면 더욱 정밀한 분석이 가능합니다.</p>
-                <textarea
-                  style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 12, padding: '13px 16px', fontSize: 14, color: '#1a1a1a', background: '#faf9f7', outline: 'none', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.7, boxSizing: 'border-box' }}
-                  rows={4}
-                  maxLength={1000}
-                  placeholder="예: 핵심가치 - 도전, 협업, 고객중심 / 인재상 - 주도적으로 문제를 해결하는 사람"
-                  value={companyInfo}
-                  onChange={e => setCompanyInfo(e.target.value)}
-                />
-                <div style={{ textAlign: 'right', marginTop: 4, fontSize: 12, color: '#bbb' }}>
-                  {companyInfo.length.toLocaleString()} / 1,000자
-                </div>
-              </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-              {/* 채용공고 업로드 — 유료 분석 전용 */}
-              {mode === 'paid' && (
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <label style={{ fontSize: 14, fontWeight: 700, color: '#333' }}>채용공고 PDF</label>
-                    <span style={{ background: '#eef2ff', color: '#4338ca', fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 700 }}>선택</span>
-                  </div>
-                  <p style={{ fontSize: 12, color: '#e6a800', fontWeight: 600, margin: '0 0 8px' }}>※ 채용공고를 반영하면 더욱 정밀한 분석이 가능합니다.</p>
-
-                  {jobPostingFileName ? (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1.5px solid #d1fae5', borderRadius: 12, padding: '14px 16px', background: '#f0fdf4' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-                        <span style={{ fontSize: 20 }}>📋</span>
-                        <span style={{ fontSize: 14, fontWeight: 700, color: '#10b981', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{jobPostingFileName}</span>
-                      </div>
-                      <button onClick={removeJobPosting} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 18, padding: 4, flexShrink: 0 }}>✕</button>
-                    </div>
-                  ) : (
-                    <div onClick={() => jobPostingInputRef.current?.click()} style={{ border: '2px dashed #e5e3dc', borderRadius: 12, padding: '18px', textAlign: 'center', cursor: 'pointer', background: '#faf9f7' }}>
-                      <input ref={jobPostingInputRef} type="file" accept=".pdf" onChange={handleJobPostingUpload} style={{ display: 'none' }} />
-                      <div style={{ fontSize: 22, marginBottom: 6 }}>📋</div>
-                      <p style={{ fontSize: 13, fontWeight: 700, color: '#0f2244', margin: 0 }}>채용공고 PDF 업로드</p>
-                      <p style={{ fontSize: 11, color: '#bbb', margin: '4px 0 0' }}>클릭하여 업로드 (최대 5MB)</p>
-                    </div>
-                  )}
-                  {jobPostingError && (
-                    <p style={{ fontSize: 12, color: '#ef4444', margin: '8px 0 0' }}>{jobPostingError}</p>
-                  )}
-                </div>
-              )}
-
+              {/* ── 필수 섹션 ── */}
               <div>
-                <label style={{ display: 'block', fontSize: 14, fontWeight: 700, color: '#333', marginBottom: 12 }}>자소서 내용 <span style={{ color: '#e63946' }}>*</span></label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                  <span style={{ background: '#0f2244', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>필수</span>
+                  <span style={{ fontSize: 13, color: '#aaa', fontWeight: 600 }}>자소서 내용을 입력해주세요</span>
+                </div>
+
                 <div onClick={() => fileInputRef.current?.click()} style={{ border: '2px dashed #e5e3dc', borderRadius: 12, padding: '20px', textAlign: 'center', cursor: 'pointer', marginBottom: 12, background: fileName ? '#f0fdf4' : '#faf9f7' }}>
                   <input ref={fileInputRef} type="file" accept=".txt" onChange={handleFileUpload} style={{ display: 'none' }} />
                   <div style={{ fontSize: 28, marginBottom: 8 }}>📄</div>
@@ -1000,12 +1035,74 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* ── 선택 섹션 ── */}
+              <div style={{ borderTop: '1px solid #f0ede6', paddingTop: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                  <span style={{ background: '#eef2ff', color: '#4338ca', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>선택</span>
+                  <span style={{ fontSize: 13, color: '#aaa', fontWeight: 600 }}>입력할수록 더 정밀한 분석이 가능해요</span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#555', marginBottom: 6 }}>지원 회사</label>
+                    <input type="text" style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 10, padding: '11px 14px', fontSize: 14, color: '#1a1a1a', background: '#faf9f7', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} placeholder="예: 삼성전자, 카카오, 현대자동차" value={company} onChange={e => setCompany(e.target.value)} />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#555', marginBottom: 6 }}>지원 직무</label>
+                    <input type="text" style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 10, padding: '11px 14px', fontSize: 14, color: '#1a1a1a', background: '#faf9f7', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} placeholder="예: 마케팅, 백엔드 개발, 영업관리" value={position} onChange={e => setPosition(e.target.value)} />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#555', marginBottom: 6 }}>기업 문화 · 인재상</label>
+                    <textarea
+                      style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 10, padding: '11px 14px', fontSize: 13, color: '#1a1a1a', background: '#faf9f7', outline: 'none', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.7, boxSizing: 'border-box' }}
+                      rows={3}
+                      maxLength={1000}
+                      placeholder="예: 핵심가치 - 도전, 협업, 고객중심 / 인재상 - 주도적으로 문제를 해결하는 사람"
+                      value={companyInfo}
+                      onChange={e => setCompanyInfo(e.target.value)}
+                    />
+                    <div style={{ textAlign: 'right', marginTop: 4, fontSize: 11, color: '#bbb' }}>
+                      {companyInfo.length.toLocaleString()} / 1,000자
+                    </div>
+                  </div>
+
+                  {/* 채용공고 업로드 — 유료 분석 전용 */}
+                  {mode === 'paid' && (
+                    <div>
+                      <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#555', marginBottom: 6 }}>채용공고 PDF</label>
+                      {jobPostingFileName ? (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1.5px solid #d1fae5', borderRadius: 10, padding: '12px 14px', background: '#f0fdf4' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                            <span style={{ fontSize: 18 }}>📋</span>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: '#10b981', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{jobPostingFileName}</span>
+                          </div>
+                          <button onClick={removeJobPosting} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 16, padding: 4, flexShrink: 0 }}>✕</button>
+                        </div>
+                      ) : (
+                        <div onClick={() => jobPostingInputRef.current?.click()} style={{ border: '2px dashed #e5e3dc', borderRadius: 10, padding: '14px', textAlign: 'center', cursor: 'pointer', background: '#faf9f7' }}>
+                          <input ref={jobPostingInputRef} type="file" accept=".pdf" onChange={handleJobPostingUpload} style={{ display: 'none' }} />
+                          <div style={{ fontSize: 18, marginBottom: 4 }}>📋</div>
+                          <p style={{ fontSize: 12, fontWeight: 700, color: '#0f2244', margin: 0 }}>채용공고 PDF 업로드</p>
+                          <p style={{ fontSize: 10, color: '#bbb', margin: '2px 0 0' }}>클릭하여 업로드 (최대 5MB)</p>
+                        </div>
+                      )}
+                      {jobPostingError && (
+                        <p style={{ fontSize: 12, color: '#ef4444', margin: '8px 0 0' }}>{jobPostingError}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+
               {error && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', borderRadius: 12, padding: '14px 16px', fontSize: 14 }}>{error}</div>}
 
               {/* 분석 버튼 — 상태에 따라 다르게 */}
               {mode === 'paid' && (
                 <div>
-                  <button onClick={() => handleAnalyze('paid')} disabled={loading} style={{ width: '100%', background: loading ? '#ccc' : '#0f2244', color: '#fff', border: 'none', borderRadius: 14, padding: '18px', fontWeight: 800, fontSize: 17, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+                  <button onClick={() => openConfirmModal('paid')} disabled={loading} style={{ width: '100%', background: loading ? '#ccc' : '#0f2244', color: '#fff', border: 'none', borderRadius: 14, padding: '18px', fontWeight: 800, fontSize: 17, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
                     {loading ? <><svg style={{ animation: 'spin 1s linear infinite', width: 20, height: 20 }} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="4" /><path d="M4 12a8 8 0 018-8" stroke="#fff" strokeWidth="4" strokeLinecap="round" /></svg>정밀 분석 중입니다...</> : `전체 분석 시작하기 (잔여 ${userProfile?.paid_credits || 0}회) →`}
                   </button>
                   <p style={{ textAlign: 'center', color: '#aaa', fontSize: 12, marginTop: 8 }}>분석 후 1회 차감됩니다</p>
@@ -1014,7 +1111,7 @@ export default function Home() {
 
               {mode === 'both' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <button onClick={() => handleAnalyze('free')} disabled={loading} style={{ width: '100%', background: loading ? '#ccc' : '#f7f6f3', color: '#0f2244', border: '1.5px solid #ddd', borderRadius: 14, padding: '16px', fontWeight: 700, fontSize: 16, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+                  <button onClick={() => openConfirmModal('free')} disabled={loading} style={{ width: '100%', background: loading ? '#ccc' : '#f7f6f3', color: '#0f2244', border: '1.5px solid #ddd', borderRadius: 14, padding: '16px', fontWeight: 700, fontSize: 16, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
                     {loading ? <><svg style={{ animation: 'spin 1s linear infinite', width: 20, height: 20 }} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(15,34,68,0.2)" strokeWidth="4" /><path d="M4 12a8 8 0 018-8" stroke="#0f2244" strokeWidth="4" strokeLinecap="round" /></svg>정밀 분석 중입니다...</> : '무료 분석 (총평 + 핵심문제만)'}
                   </button>
                   <button onClick={() => window.location.href = '/payment'} disabled={loading} style={{ width: '100%', background: loading ? '#f0d99a' : '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '18px', fontWeight: 800, fontSize: 17, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}>
@@ -1026,7 +1123,7 @@ export default function Home() {
 
               {mode === 'free' && (
                 <div>
-                  <button onClick={() => handleAnalyze('free')} disabled={loading} style={{ width: '100%', background: loading ? '#ccc' : '#0f2244', color: '#fff', border: 'none', borderRadius: 14, padding: '18px', fontWeight: 800, fontSize: 17, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+                  <button onClick={() => openConfirmModal('free')} disabled={loading} style={{ width: '100%', background: loading ? '#ccc' : '#0f2244', color: '#fff', border: 'none', borderRadius: 14, padding: '18px', fontWeight: 800, fontSize: 17, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
                     {loading ? <><svg style={{ animation: 'spin 1s linear infinite', width: 20, height: 20 }} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="4" /><path d="M4 12a8 8 0 018-8" stroke="#fff" strokeWidth="4" strokeLinecap="round" /></svg>정밀 분석 중입니다...</> : '무료 분석 시작하기 →'}
                   </button>
                   <p style={{ textAlign: 'center', color: '#aaa', fontSize: 12, marginTop: 8 }}>총평 + 핵심 문제 1가지 제공</p>
