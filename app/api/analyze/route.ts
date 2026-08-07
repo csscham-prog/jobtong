@@ -1,10 +1,15 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import pdfParse from 'pdf-parse'
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 })
+
+// 채용공고 PDF 업로드 제한 (유료 분석 전용)
+const JOB_POSTING_MAX_SIZE = 5 * 1024 * 1024 // 5MB
+const JOB_POSTING_MAX_TEXT_LENGTH = 6000 // 추출 텍스트가 너무 길면 토큰 절약을 위해 자름
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,6 +36,7 @@ export async function POST(req: NextRequest) {
     const position = body.position || ''
     const content = body.content || ''
     const type = body.type || 'free'
+    const jobPostingBase64 = body.jobPostingBase64 || '' // 채용공고 PDF (유료 전용, 선택)
 
     // 4. 크레딧 확인
     const { data: profile } = await supabase
@@ -63,7 +69,36 @@ export async function POST(req: NextRequest) {
 
     const isPaid = type === 'paid'
 
-    // 6. 자소서 내용 안전 처리 — 큰따옴표 등 JSON 파싱 방해 문자 제거
+    // 6-1. 채용공고 PDF 처리 (유료 분석 전용, 선택 사항)
+    let jobPostingText = ''
+    let jobPostingError = ''
+    if (jobPostingBase64 && isPaid) {
+      try {
+        const buffer = Buffer.from(jobPostingBase64, 'base64')
+
+        if (buffer.length > JOB_POSTING_MAX_SIZE) {
+          jobPostingError = '채용공고 파일이 5MB를 초과하여 분석에 반영되지 않았습니다.'
+        } else {
+          const parsed = await pdfParse(buffer)
+          const extracted = (parsed.text || '').trim()
+
+          if (extracted.length < 30) {
+            // 이미지 기반 PDF 등 텍스트 추출이 거의 안 된 경우
+            jobPostingError = '채용공고 PDF에서 텍스트를 추출하지 못해 분석에 반영되지 않았습니다. (이미지로 저장된 PDF는 지원하지 않습니다)'
+          } else {
+            jobPostingText = extracted
+              .replace(/"/g, "'")
+              .replace(/\\/g, ' ')
+              .slice(0, JOB_POSTING_MAX_TEXT_LENGTH)
+          }
+        }
+      } catch (e) {
+        console.error('채용공고 PDF 파싱 실패:', e)
+        jobPostingError = '채용공고 PDF를 읽는 중 오류가 발생하여 분석에 반영되지 않았습니다.'
+      }
+    }
+
+    // 6-2. 자소서 내용 안전 처리 — 큰따옴표 등 JSON 파싱 방해 문자 제거
     const safeContent = content
       .replace(/"/g, "'")
       .replace(/\\/g, ' ')
@@ -77,9 +112,16 @@ export async function POST(req: NextRequest) {
     const companyLine = company ? '지원 회사: ' + company : '지원 회사: 명시되지 않음 (일반적인 대기업 채용 기준으로 판단)'
     const positionLine = position ? '지원 직무: ' + position : '지원 직무: 명시되지 않음 (자소서 내용 기반으로 직무 추정 후 판단)'
 
+    const jobPostingSection = jobPostingText
+      ? '\n[채용공고 원문 - 반드시 이 내용을 기준으로 직무적합성을 판단하세요]\n' + jobPostingText + '\n' +
+        '위 채용공고에 명시된 자격요건, 우대사항, 주요 업무를 자소서 내용과 직접 대조하여 분석하세요. ' +
+        '채용공고에서 요구하는 역량 중 자소서에 누락된 부분이 있다면 mainIssue 또는 improvements에서 구체적으로 지적하고, ' +
+        'addContent에는 이 채용공고 맥락에서 특히 효과적일 소재를 우선적으로 제시하세요.\n'
+      : ''
+
     const fullPrompt = '당신은 삼성전자, LG, 현대자동차, SK 등 국내 주요 대기업에서 15년간 서류 전형을 담당해온 인사팀장이자 자소서 전문 컨설턴트입니다. 당신의 피드백을 받은 지원자들의 서류 통과율은 업계 평균 대비 2배 이상입니다.\n\n' +
       '당신의 목표는 이 자소서가 "서류에서 합격할 수 있는 수준"이 되도록 구체적이고 실행 가능한 개선안을 제시하는 것입니다. 막연한 조언이 아니라, 그대로 적용하면 합격률이 실제로 올라가는 피드백을 작성하세요.\n\n' +
-      '[분석 대상]\n' + companyLine + '\n' + positionLine + '\n\n' +
+      '[분석 대상]\n' + companyLine + '\n' + positionLine + '\n' + jobPostingSection + '\n' +
       '자기소개서:\n' + safeContent + '\n\n' +
       '[분석 순서 - 반드시 이 순서로 사고하세요]\n' +
       '1단계: 자소서를 문단/항목 단위로 나누어 각각의 문제점을 먼저 파악하세요\n' +
@@ -200,6 +242,12 @@ export async function POST(req: NextRequest) {
         summary: analysisResult.summary,
         mainIssue: analysisResult.mainIssue,
       })
+    }
+
+    if (jobPostingError) {
+      analysisResult.jobPostingWarning = jobPostingError
+    } else if (jobPostingText) {
+      analysisResult.jobPostingApplied = true
     }
 
     return NextResponse.json(analysisResult)
