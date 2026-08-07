@@ -261,7 +261,11 @@ export default function Home() {
   const [loadingStage, setLoadingStage] = useState(0)
   const [error, setError] = useState('')
   const [fileName, setFileName] = useState('')
+  const [jobPostingBase64, setJobPostingBase64] = useState('')
+  const [jobPostingFileName, setJobPostingFileName] = useState('')
+  const [jobPostingError, setJobPostingError] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const jobPostingInputRef = useRef<HTMLInputElement>(null)
   const [user, setUser] = useState<any>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
   const [authLoading, setAuthLoading] = useState(true)
@@ -362,6 +366,40 @@ export default function Home() {
     reader.readAsText(file, 'utf-8')
   }
 
+  // 채용공고 PDF 업로드 (유료 분석 전용, 선택)
+  const JOB_POSTING_MAX_SIZE = 5 * 1024 * 1024 // 5MB
+  const handleJobPostingUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setJobPostingError('')
+
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      setJobPostingError('PDF 파일만 업로드 가능합니다.')
+      return
+    }
+    if (file.size > JOB_POSTING_MAX_SIZE) {
+      setJobPostingError('파일 용량은 5MB 이하만 업로드 가능합니다.')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string
+      // data:application/pdf;base64,xxxxx 형태에서 base64 부분만 추출
+      const base64 = result.split(',')[1] || ''
+      setJobPostingBase64(base64)
+      setJobPostingFileName(file.name)
+    }
+    reader.onerror = () => setJobPostingError('파일을 읽는 중 오류가 발생했습니다.')
+    reader.readAsDataURL(file)
+  }
+
+  const removeJobPosting = () => {
+    setJobPostingBase64('')
+    setJobPostingFileName('')
+    setJobPostingError('')
+  }
+
   // 어떤 분석 타입인지 계산
   const getAnalyzeMode = (): 'login' | 'paid' | 'both' | 'free' | 'purchase' => {
     if (!user) return 'login'
@@ -392,7 +430,7 @@ export default function Home() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ company, position, content, type }),
+        body: JSON.stringify({ company, position, content, type, jobPostingBase64: type === 'paid' ? jobPostingBase64 : '' }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || '분석 중 오류가 발생했습니다.')
@@ -876,9 +914,39 @@ export default function Home() {
                 <label style={{ display: 'block', fontSize: 14, fontWeight: 700, color: '#333', marginBottom: 8 }}>지원 직무</label>
                 <input type="text" style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 12, padding: '13px 16px', fontSize: 15, color: '#1a1a1a', background: '#faf9f7', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} placeholder="예: 마케팅, 백엔드 개발, 영업관리" value={position} onChange={e => setPosition(e.target.value)} />
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 14, fontWeight: 700, color: '#333', marginBottom: 12 }}>자소서 내용 <span style={{ color: '#e63946' }}>*</span></label>
-                <div onClick={() => fileInputRef.current?.click()} style={{ border: '2px dashed #e5e3dc', borderRadius: 12, padding: '20px', textAlign: 'center', cursor: 'pointer', marginBottom: 12, background: fileName ? '#f0fdf4' : '#faf9f7' }}>
+
+              {/* 채용공고 업로드 — 유료 분석 전용 */}
+              {mode === 'paid' && (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <label style={{ fontSize: 14, fontWeight: 700, color: '#333' }}>채용공고 PDF</label>
+                    <span style={{ background: '#eef2ff', color: '#4338ca', fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 700 }}>선택</span>
+                  </div>
+                  <p style={{ fontSize: 12, color: '#e6a800', fontWeight: 600, margin: '0 0 8px' }}>※ 채용공고를 반영하면 더욱 정밀한 분석이 가능합니다.</p>
+
+                  {jobPostingFileName ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1.5px solid #d1fae5', borderRadius: 12, padding: '14px 16px', background: '#f0fdf4' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                        <span style={{ fontSize: 20 }}>📋</span>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: '#10b981', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{jobPostingFileName}</span>
+                      </div>
+                      <button onClick={removeJobPosting} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 18, padding: 4, flexShrink: 0 }}>✕</button>
+                    </div>
+                  ) : (
+                    <div onClick={() => jobPostingInputRef.current?.click()} style={{ border: '2px dashed #e5e3dc', borderRadius: 12, padding: '18px', textAlign: 'center', cursor: 'pointer', background: '#faf9f7' }}>
+                      <input ref={jobPostingInputRef} type="file" accept=".pdf" onChange={handleJobPostingUpload} style={{ display: 'none' }} />
+                      <div style={{ fontSize: 22, marginBottom: 6 }}>📋</div>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: '#0f2244', margin: 0 }}>채용공고 PDF 업로드</p>
+                      <p style={{ fontSize: 11, color: '#bbb', margin: '4px 0 0' }}>클릭하여 업로드 (최대 5MB)</p>
+                    </div>
+                  )}
+                  {jobPostingError && (
+                    <p style={{ fontSize: 12, color: '#ef4444', margin: '8px 0 0' }}>{jobPostingError}</p>
+                  )}
+                </div>
+              )}
+
+
                   <input ref={fileInputRef} type="file" accept=".txt" onChange={handleFileUpload} style={{ display: 'none' }} />
                   <div style={{ fontSize: 28, marginBottom: 8 }}>📄</div>
                   {fileName ? (
@@ -1032,13 +1100,25 @@ export default function Home() {
             <p style={{ color: '#444', lineHeight: 1.85, fontSize: 15 }}>{result.mainIssue}</p>
           </div>
 
+          {/* 채용공고 반영 여부 안내 */}
+          {isPaid && result.jobPostingApplied && (
+            <div style={{ background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: 12, padding: '12px 16px', marginBottom: 16, fontSize: 13, color: '#4338ca', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+              📋 업로드하신 채용공고를 반영해 분석했습니다.
+            </div>
+          )}
+          {isPaid && result.jobPostingWarning && (
+            <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 12, padding: '12px 16px', marginBottom: 16, fontSize: 13, color: '#92400e', fontWeight: 600 }}>
+              ⚠️ {result.jobPostingWarning}
+            </div>
+          )}
+
           {/* 유료 전용 결과 — 프리미엄 컴포넌트 */}
           {isPaid && (
             <PaidResult
               result={result}
               company={company}
               position={position}
-              onReanalyze={() => { setStep('analyze'); setResult(null); setContent(''); setFileName('') }}
+              onReanalyze={() => { setStep('analyze'); setResult(null); setContent(''); setFileName(''); removeJobPosting() }}
             />
           )}
 
@@ -1074,7 +1154,7 @@ export default function Home() {
           )}
 
           {!isPaid && (
-            <button onClick={() => { setStep('analyze'); setResult(null); setContent(''); setFileName('') }} style={{ width: '100%', background: '#fff', color: '#0f2244', border: '2px solid #0f2244', borderRadius: 14, padding: '16px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button onClick={() => { setStep('analyze'); setResult(null); setContent(''); setFileName(''); removeJobPosting() }} style={{ width: '100%', background: '#fff', color: '#0f2244', border: '2px solid #0f2244', borderRadius: 14, padding: '16px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}>
               다른 자소서 분석하기
             </button>
           )}
