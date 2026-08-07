@@ -946,7 +946,9 @@ export default function Home() {
                 </div>
               )}
 
-
+              <div>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 700, color: '#333', marginBottom: 12 }}>자소서 내용 <span style={{ color: '#e63946' }}>*</span></label>
+                <div onClick={() => fileInputRef.current?.click()} style={{ border: '2px dashed #e5e3dc', borderRadius: 12, padding: '20px', textAlign: 'center', cursor: 'pointer', marginBottom: 12, background: fileName ? '#f0fdf4' : '#faf9f7' }}>
                   <input ref={fileInputRef} type="file" accept=".txt" onChange={handleFileUpload} style={{ display: 'none' }} />
                   <div style={{ fontSize: 28, marginBottom: 8 }}>📄</div>
                   {fileName ? (
