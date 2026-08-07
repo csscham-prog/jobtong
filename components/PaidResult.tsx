@@ -1,7 +1,5 @@
 'use client'
 
-import { useState } from 'react'
-
 interface Score {
   logic: number
   specific: number
@@ -35,7 +33,6 @@ interface PaidResultProps {
 }
 
 export default function PaidResult({ result, company, position, onReanalyze }: PaidResultProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'detail' | 'guide'>('overview')
 
   const getScoreColor = (s: number) => s >= 80 ? '#10b981' : s >= 60 ? '#f59e0b' : '#ef4444'
   const getScoreLabel = (s: number) => s >= 80 ? '우수' : s >= 60 ? '보통' : '미흡'
@@ -124,45 +121,20 @@ export default function PaidResult({ result, company, position, onReanalyze }: P
         </div>
       </div>
 
-      {/* 탭 안내 문구 */}
-      <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 12, padding: '10px 16px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 13, color: '#92400e', fontWeight: 600 }}>
-          💡 탭을 클릭하면 문장 개선 제안과 강점 & 조언을 확인할 수 있어요!
-        </span>
-      </div>
-
-      {/* 탭 네비게이션 + PDF 버튼 */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20, alignItems: 'center' }}>
-        <div style={{ flex: 1, display: 'flex', gap: 6, background: '#f0ede6', borderRadius: 14, padding: 4 }}>
-        {[
-          { key: 'overview', label: '📋 종합 분석' },
-          { key: 'detail', label: '✏️ 문장 개선' },
-          { key: 'guide', label: '⭐ 강점 & 조언' },
-        ].map(tab => (
-          <button key={tab.key} onClick={() => setActiveTab(tab.key as any)}
-            style={{
-              flex: 1,
-              background: activeTab === tab.key ? '#0f2244' : 'transparent',
-              color: activeTab === tab.key ? '#fff' : '#888',
-              border: 'none', borderRadius: 10, padding: '11px 8px',
-              fontWeight: activeTab === tab.key ? 800 : 500,
-              fontSize: 13, cursor: 'pointer', fontFamily: 'inherit',
-              boxShadow: activeTab === tab.key ? '0 2px 8px rgba(15,34,68,0.25)' : 'none',
-              transition: 'all 0.2s', whiteSpace: 'nowrap',
-            }}>
-            {tab.label}
-          </button>
-        ))}
-        </div>
+      {/* PDF 다운로드 버튼 */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 20 }}>
         <button onClick={handleDownloadPDF}
           style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 12, padding: '10px 16px', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', flexShrink: 0 }}>
-          📄 PDF
+          📄 PDF 저장
         </button>
       </div>
 
-      {/* ── 탭 1: 종합 분석 ── */}
-      {activeTab === 'overview' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* ── 종합 분석 ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #0f2244' }}>
+        <span style={{ fontSize: 18 }}>📋</span>
+        <h2 style={{ fontSize: 18, fontWeight: 900, color: '#0f2244', margin: 0 }}>종합 분석</h2>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           {/* 총평 */}
           <div style={{ background: '#fff', borderRadius: 20, padding: '28px 32px', border: '1px solid #ece9e1' }}>
@@ -229,11 +201,13 @@ export default function PaidResult({ result, company, position, onReanalyze }: P
             </div>
           )}
         </div>
-      )}
 
-      {/* ── 탭 2: 문장 개선 ── */}
-      {activeTab === 'detail' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* ── 문장 개선 ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 40, marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #0f2244' }}>
+        <span style={{ fontSize: 18 }}>✏️</span>
+        <h2 style={{ fontSize: 18, fontWeight: 900, color: '#0f2244', margin: 0 }}>문장 개선 제안</h2>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {result.improvements && result.improvements.length > 0 ? (
             result.improvements.map((imp, i) => (
               <div key={i} style={{ background: '#fff', borderRadius: 20, padding: '28px 32px', border: '1px solid #ece9e1' }}>
@@ -283,11 +257,13 @@ export default function PaidResult({ result, company, position, onReanalyze }: P
             </div>
           )}
         </div>
-      )}
 
-      {/* ── 탭 3: 강점 & 조언 ── */}
-      {activeTab === 'guide' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* ── 강점 & 조언 ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 40, marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #0f2244' }}>
+        <span style={{ fontSize: 18 }}>⭐</span>
+        <h2 style={{ fontSize: 18, fontWeight: 900, color: '#0f2244', margin: 0 }}>강점 & 조언</h2>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           {/* 잘 된 점 */}
           {result.strongPoints && result.strongPoints.length > 0 && (
@@ -356,7 +332,6 @@ export default function PaidResult({ result, company, position, onReanalyze }: P
           </div>
 
         </div>
-      )}
 
       {/* 하단 버튼 */}
       {/* 하단 버튼 영역 */}
