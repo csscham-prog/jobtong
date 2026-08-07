@@ -255,6 +255,7 @@ export default function Home() {
   const [analyzeType, setAnalyzeType] = useState<'free' | 'paid'>('free')
   const [company, setCompany] = useState('')
   const [position, setPosition] = useState('')
+  const [companyInfo, setCompanyInfo] = useState('')
   const [content, setContent] = useState('')
   const [result, setResult] = useState<any>(null)
   const [loading, setLoading] = useState(false)
@@ -430,7 +431,7 @@ export default function Home() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ company, position, content, type, jobPostingBase64: type === 'paid' ? jobPostingBase64 : '' }),
+        body: JSON.stringify({ company, position, content, type, jobPostingBase64: type === 'paid' ? jobPostingBase64 : '', companyInfo }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || '분석 중 오류가 발생했습니다.')
@@ -913,6 +914,24 @@ export default function Home() {
               <div>
                 <label style={{ display: 'block', fontSize: 14, fontWeight: 700, color: '#333', marginBottom: 8 }}>지원 직무</label>
                 <input type="text" style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 12, padding: '13px 16px', fontSize: 15, color: '#1a1a1a', background: '#faf9f7', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} placeholder="예: 마케팅, 백엔드 개발, 영업관리" value={position} onChange={e => setPosition(e.target.value)} />
+              </div>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <label style={{ fontSize: 14, fontWeight: 700, color: '#333' }}>기업 문화 · 인재상</label>
+                  <span style={{ background: '#eef2ff', color: '#4338ca', fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 700 }}>선택</span>
+                </div>
+                <p style={{ fontSize: 12, color: '#e6a800', fontWeight: 600, margin: '0 0 8px' }}>※ 회사 홈페이지의 인재상·핵심가치·미션·비전을 붙여넣으면 더욱 정밀한 분석이 가능합니다.</p>
+                <textarea
+                  style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 12, padding: '13px 16px', fontSize: 14, color: '#1a1a1a', background: '#faf9f7', outline: 'none', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.7, boxSizing: 'border-box' }}
+                  rows={4}
+                  maxLength={1000}
+                  placeholder="예: 핵심가치 - 도전, 협업, 고객중심 / 인재상 - 주도적으로 문제를 해결하는 사람"
+                  value={companyInfo}
+                  onChange={e => setCompanyInfo(e.target.value)}
+                />
+                <div style={{ textAlign: 'right', marginTop: 4, fontSize: 12, color: '#bbb' }}>
+                  {companyInfo.length.toLocaleString()} / 1,000자
+                </div>
               </div>
 
               {/* 채용공고 업로드 — 유료 분석 전용 */}
