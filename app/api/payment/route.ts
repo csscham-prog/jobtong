@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 // ──────────────────────────────────────────
-// 테스트 키 (사업자 등록 후 실제 키로 교체)
-// 실제 키로 교체 시 아래 두 줄만 바꾸면 됩니다
-const TOSS_SECRET_KEY = 'test_sk_nRQoOaPz8LNwAxqok0D5Vy47BMw6' // 잡통 MID(vjobton225) 전용 테스트 키
+// 시크릿 키는 Vercel 환경변수(TOSS_SECRET_KEY)에서 읽습니다.
+// 실제 키로 교체 시 Vercel Environment Variables에서 값만 바꾸면 됩니다.
+const TOSS_SECRET_KEY = process.env.TOSS_SECRET_KEY!
 const IS_TEST_MODE = true // 실서비스 시 false로 변경
 // ──────────────────────────────────────────
 
