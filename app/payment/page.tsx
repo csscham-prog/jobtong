@@ -134,7 +134,7 @@ export default function PaymentPage() {
 
         {/* 안내 문구 */}
         <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 12, padding: '14px 18px', marginBottom: 20, fontSize: 13, color: '#92400e', lineHeight: 1.7 }}>
-          💡 구매한 분석권은 만료일 없이 계속 사용 가능합니다.
+          💡 구매한 분석권은 결제일로부터 1개월간 사용 가능합니다.
         </div>
 
         {error && (
