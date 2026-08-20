@@ -839,6 +839,28 @@ export default function Home() {
             </a>
           </div>
         </section>
+
+        {/* 네이버 공식 카페 홍보 배너 */}
+        <section style={{ background: '#0a1628', padding: '0 24px 48px' }}>
+          <div style={{ maxWidth: 900, margin: '0 auto', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '24px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <span style={{ fontSize: 26 }}>💼</span>
+              <div>
+                <p style={{ fontSize: 15, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>잡통 공식 네이버 카페</p>
+                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', margin: 0 }}>자소서 작성 팁, 잡통 활용 팁, 사용자 커뮤니티에 참여하세요!</p>
+              </div>
+            </div>
+            <a
+              href="https://cafe.naver.com/jobtong3"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ background: '#e6a800', color: '#fff', borderRadius: 10, padding: '12px 22px', fontWeight: 800, fontSize: 14, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}
+            >
+              카페 바로가기 →
+            </a>
+          </div>
+        </section>
+
         <footer style={{ background: '#0a1628', color: 'rgba(184,217,238,0.5)', padding: '40px 24px', textAlign: 'center', fontSize: 13 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 10 }}>
             <Emblem size={28} /><span style={{ fontWeight: 800, fontSize: 18, color: '#fff' }}>잡통</span>
