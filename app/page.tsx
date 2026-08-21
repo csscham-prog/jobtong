@@ -645,11 +645,11 @@ export default function Home() {
           <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>
             <h1 className="hero-title" style={{ fontWeight: 900, lineHeight: 1.25, marginBottom: 28, letterSpacing: '-1.5px' }}>
               당신의 이야기를<br />
-              <span style={{ color: '#f0c040' }}>더 특별하게.</span><br />
-              잡통의 정밀 자소서 검토.
+              더 특별하게.<br />
+              <span style={{ color: '#f0c040' }}>잡통의 자소서 특화 프롬프트!</span>
             </h1>
             <p style={{ fontSize: 19, color: '#b8d9ee', lineHeight: 1.85, marginBottom: 44 }}>
-              전문가의 눈으로 문장을 다듬고,<br />합격을 위한 정직한 솔루션을 드립니다.
+              수많은 시행착오로 완성한 전문 프롬프트로<br />정밀한 진단을 받아보세요.
             </p>
             <button onClick={handleStartAnalyze} style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '20px 52px', fontWeight: 800, fontSize: 20, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 8px 32px rgba(230,168,0,0.3)', position: 'relative', zIndex: 1 }}>
               {!user ? '무료로 분석 시작하기 →' :
