@@ -252,6 +252,8 @@ export default function Home() {
   const [appSwitcherOpen, setAppSwitcherOpen] = useState(false)
   const [showPromoSlide, setShowPromoSlide] = useState(false)
   const [promoClosed, setPromoClosed] = useState(false)
+  const [newsItems, setNewsItems] = useState<any[]>([])
+  const [newsLoading, setNewsLoading] = useState(true)
 
   // 앱 목록 — 새 앱 추가 시 여기에만 추가하면 됩니다
   const APP_LIST = [
@@ -309,6 +311,15 @@ export default function Home() {
       else setUserProfile(null)
     })
     return () => subscription.unsubscribe()
+  }, [])
+
+  useEffect(() => {
+    // 채용 소식 뉴스 가져오기 (실패해도 섹션만 안 보이도록 조용히 처리)
+    fetch('/api/news')
+      .then(res => res.json())
+      .then(data => setNewsItems(data.items || []))
+      .catch(() => setNewsItems([]))
+      .finally(() => setNewsLoading(false))
   }, [])
 
   const fetchProfile = async (userId: string) => {
@@ -788,6 +799,50 @@ export default function Home() {
     .promo-title { font-size: 22px !important; }
   }
 `}</style>
+
+        {/* 채용 소식 섹션 */}
+        {!newsLoading && newsItems.length > 0 && (
+          <section style={{ background: '#fff', padding: '64px 24px' }}>
+            <div style={{ maxWidth: 800, margin: '0 auto' }}>
+              <div style={{ textAlign: 'center', marginBottom: 36 }}>
+                <div style={{ display: 'inline-block', background: 'rgba(15,34,68,0.06)', border: '1px solid rgba(15,34,68,0.12)', borderRadius: 20, padding: '5px 16px', fontSize: 12, fontWeight: 700, color: '#0f2244', marginBottom: 16, letterSpacing: '0.05em' }}>
+                  📰 채용 소식
+                </div>
+                <h2 style={{ fontSize: 26, fontWeight: 900, color: '#0f2244', marginBottom: 10, letterSpacing: '-0.5px' }}>
+                  실시간 채용 뉴스
+                </h2>
+                <p style={{ fontSize: 14, color: '#888', lineHeight: 1.7 }}>
+                  주요 언론사에서 전하는 채용·취업 관련 최신 소식을 확인하세요.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {newsItems.map((item, i) => (
+                  <a
+                    key={i}
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px',
+                      background: '#faf9f7', border: '1px solid #ece9e1', borderRadius: 12,
+                      textDecoration: 'none', transition: 'background 0.15s',
+                    }}
+                  >
+                    <span style={{ background: '#0f2244', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                      {item.source}
+                    </span>
+                    <span style={{ fontSize: 14, color: '#333', fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.title}
+                    </span>
+                    <span style={{ color: '#bbb', fontSize: 13, flexShrink: 0 }}>→</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* 홍보 이벤트 인라인 섹션 */}
         <section style={{ background: '#f7f6f3', padding: '64px 24px' }}>
           <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
