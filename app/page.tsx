@@ -1050,10 +1050,13 @@ export default function Home() {
 
               {/* ── 필수 섹션 ── */}
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <span style={{ background: '#0f2244', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>필수</span>
                   <span style={{ fontSize: 13, color: '#aaa', fontWeight: 600 }}>자소서 내용을 입력해주세요</span>
                 </div>
+                <p style={{ fontSize: 12, color: '#aaa', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  🔒 파일 원본은 저장되지 않으며, 분석 완료 즉시 삭제됩니다.
+                </p>
 
                 <div onClick={() => fileInputRef.current?.click()} style={{ border: '2px dashed #e5e3dc', borderRadius: 12, padding: '20px', textAlign: 'center', cursor: 'pointer', marginBottom: 12, background: fileName ? '#f0fdf4' : '#faf9f7' }}>
                   <input ref={fileInputRef} type="file" accept=".txt" onChange={handleFileUpload} style={{ display: 'none' }} />
@@ -1144,6 +1147,9 @@ export default function Home() {
                       {jobPostingError && (
                         <p style={{ fontSize: 12, color: '#ef4444', margin: '8px 0 0' }}>{jobPostingError}</p>
                       )}
+                      <p style={{ fontSize: 11, color: '#bbb', margin: '8px 0 0' }}>
+                        🔒 파일 원본은 저장되지 않으며, 분석 완료 즉시 삭제됩니다.
+                      </p>
                     </div>
                   )}
                 </div>
