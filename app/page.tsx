@@ -262,7 +262,7 @@ export default function Home() {
       name: '잡통',
       emoji: '💼',
       tag: '자소서 검토',
-      desc: '합격을 위한 정직한 조언',
+      desc: '취업을 위한 정직한 조언',
       url: 'https://jobtong.vercel.app',
       color: '#e6a800',
       current: true,
@@ -564,8 +564,8 @@ export default function Home() {
         </div>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <p className="jobtong-slogan" style={{ fontWeight: 800, margin: 0, letterSpacing: '-0.5px', lineHeight: 1.3, textAlign: 'center' }}>
-            <span style={{ color: '#0f2244' }}>합격을 위한 정직한 조언,&nbsp;</span>
-            <span style={{ color: '#e6a800' }}>잡통의 바른 자소서 검토</span>
+            <span style={{ color: '#0f2244' }}>취업을 위한 정직한 조언,&nbsp;</span>
+            <span style={{ color: '#e6a800' }}>잡통의 바른 서류 전형 검토</span>
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
@@ -657,7 +657,7 @@ export default function Home() {
             <h1 className="hero-title" style={{ fontWeight: 900, lineHeight: 1.25, marginBottom: 28, letterSpacing: '-1.5px' }}>
               당신의 이야기를<br />
               더 특별하게.<br />
-              <span style={{ color: '#f0c040' }}>잡통의 자소서 특화 프롬프트!</span>
+              <span style={{ color: '#f0c040' }}>잡통의 취업 서류 특화 프롬프트!</span>
             </h1>
             <p style={{ fontSize: 19, color: '#b8d9ee', lineHeight: 1.85, marginBottom: 44 }}>
               수많은 시행착오로 완성한 전문 프롬프트로<br />정밀한 진단을 받아보세요.
@@ -673,7 +673,7 @@ export default function Home() {
 
         <section style={{ background: '#fff', padding: '72px 24px' }}>
           <div style={{ maxWidth: 960, margin: '0 auto' }}>
-            <h2 style={{ textAlign: 'center', fontSize: 30, fontWeight: 800, color: '#0f2244', marginBottom: 8, letterSpacing: '-0.5px' }}>단순한 교정을 넘어, 합격의 확신을 드리는 '마지막 한 문장'까지</h2>
+            <h2 style={{ textAlign: 'center', fontSize: 30, fontWeight: 800, color: '#0f2244', marginBottom: 8, letterSpacing: '-0.5px' }}>단순한 교정을 넘어, 합격의 확신을 드리는 서류 전형까지</h2>
             <p style={{ textAlign: 'center', color: '#555', fontSize: 16, marginBottom: 52 }}>"어떻게 써야 할지" 고민하는 시간을 "어떻게 합격할지" 확신하는 시간으로 바꿔드립니다.</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
               {[
@@ -920,7 +920,7 @@ export default function Home() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 10 }}>
             <Emblem size={28} /><span style={{ fontWeight: 800, fontSize: 18, color: '#fff' }}>잡통</span>
           </div>
-          <p>자소서 정밀 검토 서비스 · 문의: barunapplication@gmail.com</p>
+          <p>서류 전형 정밀 검토 서비스 · 문의: barunapplication@gmail.com</p>
           <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center', gap: 24 }}>
             <button onClick={() => window.location.href = '/privacy'} style={{ background: 'none', border: 'none', color: 'rgba(184,217,238,0.5)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>개인정보처리방침</button>
             <button onClick={() => window.location.href = '/terms'} style={{ background: 'none', border: 'none', color: 'rgba(184,217,238,0.5)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>이용약관</button>
