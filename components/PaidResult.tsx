@@ -22,6 +22,12 @@ interface Improvement {
   addContent: string
 }
 
+interface AiPatternCheck {
+  patternType: string
+  original: string
+  suggestion: string
+}
+
 interface AnalysisResult {
   totalScore: number
   summary: string
@@ -32,6 +38,7 @@ interface AnalysisResult {
   finalAdvice?: string
   hasCoverLetterContent?: boolean
   coverLetterHint?: string
+  aiPatternCheck?: AiPatternCheck[]
 }
 
 interface PaidResultProps {
@@ -314,6 +321,44 @@ export default function PaidResult({ result, company, position, docType = 'cover
           )}
         </div>
 
+      {/* ── AI 작성 흔적 검증 ── */}
+      {result.aiPatternCheck && result.aiPatternCheck.length > 0 && (
+        <>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 40, marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #0f2244' }}>
+            <span style={{ fontSize: 18 }}>🕵️</span>
+            <h2 style={{ fontSize: 18, fontWeight: 900, color: '#0f2244', margin: 0 }}>AI 작성 흔적 검증</h2>
+          </div>
+          <div style={{ background: '#fff', borderRadius: 20, padding: '28px 32px', border: '1px solid #ece9e1', marginBottom: 16 }}>
+            <p style={{ fontSize: 13, color: '#888', lineHeight: 1.7, margin: '0 0 20px' }}>
+              최근 기업들의 AI 서류 심사는 AI가 대신 써준 것 같은 지원서를 반려시키는 경향이 있습니다. 아래 6가지 패턴을 기준으로 문서에서 사람다움이 부족한 부분을 점검했습니다.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {result.aiPatternCheck.map((p, i) => {
+                const isDetected = p.original && p.original !== '해당 없음'
+                return (
+                  <div key={i} style={{ background: isDetected ? '#fef2f2' : '#f7f6f3', border: isDetected ? '1px solid #fecaca' : '1px solid #ece9e1', borderRadius: 14, padding: '16px 18px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: isDetected ? '#991b1b' : '#888' }}>{p.patternType}</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: isDetected ? '#fecaca' : '#e8e5dc', color: isDetected ? '#7f1d1d' : '#999' }}>
+                        {isDetected ? '감지됨' : '해당 없음'}
+                      </span>
+                    </div>
+                    {isDetected ? (
+                      <>
+                        <div style={{ fontSize: 13, color: '#7f1d1d', lineHeight: 1.7, marginBottom: 8, fontStyle: 'italic' }}>"{p.original}"</div>
+                        <div style={{ fontSize: 13, color: '#065f46', lineHeight: 1.7, background: '#ecfdf5', borderRadius: 8, padding: '8px 12px' }}>{p.suggestion}</div>
+                      </>
+                    ) : (
+                      <div style={{ fontSize: 13, color: '#aaa' }}>이 패턴은 발견되지 않았습니다.</div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </>
+      )}
+
       {/* ── 강점 & 조언 ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 40, marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #0f2244' }}>
         <span style={{ fontSize: 18 }}>⭐</span>
@@ -453,6 +498,27 @@ export default function PaidResult({ result, company, position, docType = 'cover
                   {imp.addContent && <div style={{ background: '#eff6ff', borderRadius: 8, padding: '8px 12px', fontSize: 12, color: '#1e40af' }}>추가: {imp.addContent}</div>}
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* AI 작성 흔적 검증 */}
+          {result.aiPatternCheck && result.aiPatternCheck.length > 0 && (
+            <div style={{ marginBottom: 20 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0f2244', marginBottom: 16 }}>🕵️ AI 작성 흔적 검증</h2>
+              {result.aiPatternCheck.map((p, i) => {
+                const isDetected = p.original && p.original !== '해당 없음'
+                return (
+                  <div key={i} style={{ padding: '14px 18px', background: isDetected ? '#fef2f2' : '#f7f6f3', borderRadius: 10, marginBottom: 10, border: isDetected ? '1px solid #fecaca' : '1px solid #ece9e1' }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: isDetected ? '#991b1b' : '#888', marginBottom: 6 }}>{p.patternType} — {isDetected ? '감지됨' : '해당 없음'}</div>
+                    {isDetected && (
+                      <>
+                        <div style={{ fontSize: 12, color: '#7f1d1d', marginBottom: 6 }}>"{p.original}"</div>
+                        <div style={{ fontSize: 12, color: '#065f46' }}>{p.suggestion}</div>
+                      </>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           )}
 
