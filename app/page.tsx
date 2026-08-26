@@ -1452,6 +1452,7 @@ export default function Home() {
               result={result}
               company={company}
               position={position}
+              docType={docType}
               onReanalyze={() => { setStep('analyze'); setResult(null); setContent(''); setFileName(''); setResumeFiles([]); removeJobPosting() }}
             />
           )}
