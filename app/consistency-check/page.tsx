@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { downloadElementAsPdf } from '@/lib/downloadPdf'
 
 const RESUME_FILE_MAX_SIZE = 10 * 1024 * 1024 // 10MB
 const RESUME_FILE_MAX_COUNT = 3
@@ -35,6 +36,8 @@ export default function ConsistencyCheckPage() {
   const [company, setCompany] = useState('')
   const [position, setPosition] = useState('')
   const [coverLetterContent, setCoverLetterContent] = useState('')
+  const [coverLetterFileError, setCoverLetterFileError] = useState('')
+  const [isDownloading, setIsDownloading] = useState(false)
   const [resumeFiles, setResumeFiles] = useState<{ base64: string; fileName: string; sizeLabel: string }[]>([])
   const [resumeFileError, setResumeFileError] = useState('')
   const [error, setError] = useState('')
@@ -43,6 +46,7 @@ export default function ConsistencyCheckPage() {
   const [result, setResult] = useState<ConsistencyResult | null>(null)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const coverLetterFileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const init = async () => {
@@ -105,6 +109,33 @@ export default function ConsistencyCheckPage() {
     setResumeFileError('')
   }
 
+  const handleCoverLetterFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setCoverLetterFileError('')
+
+    if (!file.name.toLowerCase().endsWith('.txt')) {
+      setCoverLetterFileError('TXT 파일만 업로드 가능합니다.')
+      e.target.value = ''
+      return
+    }
+    if (file.size > 1 * 1024 * 1024) {
+      setCoverLetterFileError('파일 용량은 1MB 이하만 업로드 가능합니다.')
+      e.target.value = ''
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const text = (ev.target?.result as string) || ''
+      setCoverLetterContent(text.slice(0, 5000))
+    }
+    reader.onerror = () => setCoverLetterFileError('파일을 읽는 중 오류가 발생했습니다.')
+    reader.readAsText(file, 'utf-8')
+
+    e.target.value = ''
+  }
+
   const validate = () => {
     if (!coverLetterContent.trim()) { setError('자소서 내용을 입력해주세요.'); return false }
     if (coverLetterContent.trim().length < 100) { setError('자소서를 100자 이상 입력해주세요.'); return false }
@@ -161,6 +192,17 @@ export default function ConsistencyCheckPage() {
   const getScoreTxt = (s: number) => s >= 80 ? '#065f46' : s >= 60 ? '#92400e' : '#991b1b'
   const getScoreLabel = (s: number) => s >= 80 ? '매우 일관됨' : s >= 60 ? '부분 보완 필요' : '스토리 불일치'
 
+  const handleDownloadPDF = async () => {
+    if (isDownloading) return
+    setIsDownloading(true)
+    try {
+      const filename = `잡통_정합성검증_${new Date().toLocaleDateString('ko-KR').replace(/\. /g, '-').replace('.', '')}.pdf`
+      await downloadElementAsPdf('consistency-pdf-content', filename)
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
   const loadingMessages = [
     '이력서와 자소서를 대조하고 있어요.',
     '두 문서에서 겹치는 경험을 찾고 있어요.',
@@ -210,6 +252,13 @@ export default function ConsistencyCheckPage() {
       <main style={base}>
         <Header />
         <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 24px 60px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button onClick={handleDownloadPDF} disabled={isDownloading}
+              style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 12, padding: '10px 16px', fontWeight: 700, fontSize: 13, cursor: isDownloading ? 'default' : 'pointer', opacity: isDownloading ? 0.6 : 1, fontFamily: 'inherit' }}>
+              {isDownloading ? '⏳ 생성 중...' : '📄 PDF 저장'}
+            </button>
+          </div>
 
           <div style={{ background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', borderRadius: 20, padding: '32px 36px', color: '#fff', textAlign: 'center' }}>
             <span style={{ background: '#e6a800', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>정합성 검증</span>
@@ -274,6 +323,57 @@ export default function ConsistencyCheckPage() {
           >
             잡통 홈으로
           </button>
+
+          {/* 인쇄용 — 화면에는 안 보임 */}
+          <div id="consistency-pdf-content" style={{ display: 'none' }}>
+            <div style={{ fontFamily: "'Pretendard', sans-serif", padding: 20 }}>
+              <div style={{ background: '#0f2244', color: '#fff', borderRadius: 12, padding: '24px 28px', marginBottom: 20 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#e6a800', marginBottom: 8 }}>정합성 검증 · {new Date().toLocaleDateString('ko-KR')}</div>
+                <h1 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 4px' }}>자소서 ↔ 이력서 정합성 검증 리포트</h1>
+                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', margin: 0 }}>
+                  {company && position ? `${company} · ${position}` : company || position || '지원 직무 전반'}
+                </p>
+                <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <span style={{ fontSize: 40, fontWeight: 900, color: '#fff' }}>{result.matchScore}</span>
+                  <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>/ 100점 · {getScoreLabel(result.matchScore)}</span>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 20, padding: '20px 24px', background: '#f7f6f3', borderRadius: 12 }}>
+                <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0f2244', marginBottom: 10 }}>📋 종합 총평</h2>
+                <p style={{ fontSize: 13, color: '#333', lineHeight: 1.8, margin: 0 }}>{result.summary}</p>
+              </div>
+
+              {result.strongAlignments && result.strongAlignments.length > 0 && (
+                <div style={{ marginBottom: 20, padding: '20px 24px', background: '#ecfdf5', borderRadius: 12, border: '1px solid #bbf7d0' }}>
+                  <h2 style={{ fontSize: 15, fontWeight: 800, color: '#065f46', marginBottom: 12 }}>⭐ 일관되게 잘 연결된 부분</h2>
+                  {result.strongAlignments.map((p, i) => (
+                    <p key={i} style={{ fontSize: 13, color: '#065f46', margin: '0 0 8px', lineHeight: 1.7 }}>✓ {p}</p>
+                  ))}
+                </div>
+              )}
+
+              {result.gaps && result.gaps.length > 0 && (
+                <div style={{ marginBottom: 20 }}>
+                  <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0f2244', marginBottom: 16 }}>⚠️ 보완이 필요한 부분</h2>
+                  {result.gaps.map((gap, i) => (
+                    <div key={i} style={{ padding: '18px 20px', background: '#fff', borderRadius: 12, marginBottom: 12, border: '1px solid #ece9e1' }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#0f2244', marginBottom: 8 }}>#{i + 1} {gap.category} ({gap.missingIn} 보완 필요)</div>
+                      <p style={{ fontSize: 12, color: '#555', marginBottom: 10, lineHeight: 1.7 }}>{gap.issue}</p>
+                      <div style={{ background: '#ecfdf5', borderRadius: 8, padding: '8px 12px', fontSize: 12, color: '#064e3b' }}>{gap.suggestion}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {result.finalAdvice && (
+                <div style={{ padding: '20px 24px', background: '#0f2244', borderRadius: 12 }}>
+                  <h2 style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 10 }}>🎯 최종 조언</h2>
+                  <p style={{ fontSize: 13, color: '#b8d9ee', lineHeight: 1.8, margin: 0 }}>{result.finalAdvice}</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </main>
     )
@@ -310,32 +410,52 @@ export default function ConsistencyCheckPage() {
             </div>
 
             <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', padding: '20px', marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#0f2244', marginBottom: 10 }}>📄 이력서 · 경력기술서 파일</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#0f2244', marginBottom: 4 }}>📄 이력서 · 경력기술서 파일</div>
+              <p style={{ fontSize: 11, color: '#aaa', margin: '0 0 12px', lineHeight: 1.6 }}>
+                이력서와 경력기술서가 별도 파일이라면 최대 3개까지 함께 첨부해주세요. 파일 안에 자기소개서 내용도 포함되어 있다면, 아래 자기소개서 칸에 그 부분만 복사해서 붙여넣어주세요.
+              </p>
               <input ref={fileInputRef} type="file" accept=".pdf,.docx,.doc" multiple onChange={handleResumeFileUpload} style={{ display: 'none' }} />
-              <button onClick={() => fileInputRef.current?.click()} style={{ width: '100%', border: '1.5px dashed #ccc', borderRadius: 12, padding: '14px', background: '#f7f6f3', color: '#888', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                + 파일 선택 (PDF, DOCX · 최대 {RESUME_FILE_MAX_COUNT}개 · 파일당 10MB)
-              </button>
-              {resumeFileError && <p style={{ fontSize: 12, color: '#ef4444', margin: '8px 0 0' }}>{resumeFileError}</p>}
-              {resumeFiles.length > 0 && (
-                <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {resumeFiles.map((f, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f7f6f3', borderRadius: 10, padding: '8px 12px' }}>
-                      <span style={{ fontSize: 12, color: '#555' }}>{f.fileName} · {f.sizeLabel}</span>
-                      <button onClick={() => removeResumeFile(i)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 14 }}>✕</button>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+                {[0, 1, 2].map(slot => {
+                  const f = resumeFiles[slot]
+                  if (f) {
+                    return (
+                      <div key={slot} style={{ border: '1.5px solid #d1fae5', borderRadius: 12, padding: '14px 10px', background: '#f0fdf4', position: 'relative', textAlign: 'center', minHeight: 96, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                        <button onClick={() => removeResumeFile(slot)} style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,0.06)', border: 'none', borderRadius: '50%', width: 20, height: 20, color: '#888', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>✕</button>
+                        <span style={{ fontSize: 20, marginBottom: 4 }}>📄</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#10b981', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%', padding: '0 4px' }}>{f.fileName}</span>
+                        <span style={{ fontSize: 10, color: '#aaa', marginTop: 2 }}>{f.sizeLabel}</span>
+                      </div>
+                    )
+                  }
+                  return (
+                    <div key={slot} onClick={() => fileInputRef.current?.click()} style={{ border: '2px dashed #e5e3dc', borderRadius: 12, padding: '14px 10px', textAlign: 'center', cursor: 'pointer', background: '#faf9f7', minHeight: 96, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ fontSize: 22, color: '#bbb', marginBottom: 4 }}>+</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#555' }}>파일 업로드</span>
+                      <span style={{ fontSize: 10, color: '#bbb', marginTop: 2 }}>PDF · DOCX</span>
                     </div>
-                  ))}
-                </div>
-              )}
+                  )
+                })}
+              </div>
+              <p style={{ fontSize: 11, color: '#aaa', margin: '8px 0 0', textAlign: 'right' }}>{resumeFiles.length}/{RESUME_FILE_MAX_COUNT} · 파일당 최대 10MB</p>
+              {resumeFileError && <p style={{ fontSize: 12, color: '#ef4444', margin: '8px 0 0' }}>{resumeFileError}</p>}
             </div>
 
             <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', padding: '20px', marginBottom: 20 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#0f2244', marginBottom: 10 }}>✍️ 자기소개서</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#0f2244' }}>✍️ 자기소개서</div>
+                <button onClick={() => coverLetterFileInputRef.current?.click()} style={{ background: '#f7f6f3', color: '#555', border: '1px solid #e5e3dc', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  📎 TXT 파일 불러오기
+                </button>
+                <input ref={coverLetterFileInputRef} type="file" accept=".txt" onChange={handleCoverLetterFileUpload} style={{ display: 'none' }} />
+              </div>
               <textarea
                 value={coverLetterContent}
                 onChange={e => setCoverLetterContent(e.target.value)}
-                placeholder="자기소개서 내용을 붙여넣어주세요 (100자 이상, 5,000자 이하)"
+                placeholder="자기소개서 내용을 붙여넣거나, TXT 파일을 불러와주세요 (100자 이상, 5,000자 이하)"
                 style={{ width: '100%', minHeight: 180, padding: '14px', borderRadius: 12, border: '1.5px solid #e5e3dc', fontSize: 14, fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box' }}
               />
+              {coverLetterFileError && <p style={{ fontSize: 12, color: '#ef4444', margin: '6px 0 0' }}>{coverLetterFileError}</p>}
               <p style={{ fontSize: 11, color: '#aaa', margin: '6px 0 0', textAlign: 'right' }}>{coverLetterContent.trim().length} / 5,000자</p>
             </div>
 
