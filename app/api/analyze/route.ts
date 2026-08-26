@@ -410,6 +410,55 @@ export async function POST(req: NextRequest) {
       console.error('저장 실패:', e)
     }
 
+    // 9-1. 정합성 검증 크레딧 계산 — 이력서/자소서 유료 분석 횟수 중 적은 쪽(min)만큼 지급
+    let consistencyCreditGained = false
+    if (isPaid) {
+      try {
+        const adminSupabase2 = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        )
+
+        const { count: resumeCount } = await adminSupabase2
+          .from('analyses')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('analyze_type', 'paid')
+          .eq('doc_type', 'resume')
+
+        const { count: coverCount } = await adminSupabase2
+          .from('analyses')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('analyze_type', 'paid')
+          .eq('doc_type', 'coverletter')
+
+        const eligiblePairs = Math.min(resumeCount || 0, coverCount || 0)
+
+        const { data: currentProfile } = await adminSupabase2
+          .from('profiles')
+          .select('consistency_credits, consistency_credits_earned')
+          .eq('id', user.id)
+          .single()
+
+        const earnedSoFar = currentProfile?.consistency_credits_earned || 0
+        const diff = eligiblePairs - earnedSoFar
+
+        if (diff > 0) {
+          await adminSupabase2
+            .from('profiles')
+            .update({
+              consistency_credits: (currentProfile?.consistency_credits || 0) + diff,
+              consistency_credits_earned: eligiblePairs,
+            })
+            .eq('id', user.id)
+          consistencyCreditGained = true
+        }
+      } catch (e) {
+        console.error('정합성 크레딧 계산 실패:', e)
+      }
+    }
+
     // 10. 응답 반환 — 무료는 일부 필드만 노출 (퀄리티는 유료와 동일, 공개 범위만 다름)
     if (!isPaid) {
       const aiPatterns = Array.isArray(analysisResult.aiPatternCheck) ? analysisResult.aiPatternCheck : []
@@ -431,6 +480,10 @@ export async function POST(req: NextRequest) {
 
     if (resumeFileErrors.length > 0) {
       analysisResult.resumeFileWarning = resumeFileErrors.join(' ')
+    }
+
+    if (consistencyCreditGained) {
+      analysisResult.consistencyCreditGained = true
     }
 
     return NextResponse.json(analysisResult)
