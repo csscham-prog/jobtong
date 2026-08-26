@@ -1119,10 +1119,10 @@ export default function Home() {
           <div style={{ background: '#fff', borderRadius: 20, padding: '40px 36px', border: '1px solid #ece9e1' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
               <span style={{ fontSize: 24 }}>✏️</span>
-              <h2 style={{ fontSize: 24, fontWeight: 800, color: '#0f2244', letterSpacing: '-0.5px' }}>자소서 분석 시작</h2>
+              <h2 style={{ fontSize: 24, fontWeight: 800, color: '#0f2244', letterSpacing: '-0.5px' }}>취업 서류 분석 시작</h2>
             </div>
             <p style={{ color: '#555', fontSize: 15, marginBottom: 36, lineHeight: 1.8 }}>
-              자소서를 직접 입력하거나 파일을 업로드해주세요.<br />즉시 분석하고 정직하게 피드백합니다.
+              분석할 서류를 선택하고 내용을 입력하거나 파일을 업로드해주세요.<br />즉시 분석하고 정직하게 피드백합니다.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
@@ -1130,28 +1130,28 @@ export default function Home() {
               <div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
-                    onClick={() => { setDocType('coverletter'); setError('') }}
-                    style={{
-                      flex: 1, padding: '14px 12px', borderRadius: 12,
-                      border: `2px solid ${docType === 'coverletter' ? '#0f2244' : '#e5e3dc'}`,
-                      background: docType === 'coverletter' ? '#0f2244' : '#faf9f7',
-                      color: docType === 'coverletter' ? '#fff' : '#555',
-                      fontWeight: 800, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
-                    }}
-                  >
-                    ✏️ 자기소개서
-                  </button>
-                  <button
                     onClick={() => { setDocType('resume'); setError('') }}
                     style={{
                       flex: 1, padding: '14px 12px', borderRadius: 12,
                       border: `2px solid ${docType === 'resume' ? '#0f2244' : '#e5e3dc'}`,
                       background: docType === 'resume' ? '#0f2244' : '#faf9f7',
-                      color: docType === 'resume' ? '#fff' : '#555',
+                      color: docType === 'resume' ? '#fff' : '#1a1a1a',
                       fontWeight: 800, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
                     }}
                   >
                     📋 이력서·경력기술서
+                  </button>
+                  <button
+                    onClick={() => { setDocType('coverletter'); setError('') }}
+                    style={{
+                      flex: 1, padding: '14px 12px', borderRadius: 12,
+                      border: `2px solid ${docType === 'coverletter' ? '#0f2244' : '#e5e3dc'}`,
+                      background: docType === 'coverletter' ? '#0f2244' : '#faf9f7',
+                      color: docType === 'coverletter' ? '#fff' : '#1a1a1a',
+                      fontWeight: 800, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
+                    }}
+                  >
+                    ✏️ 자기소개서
                   </button>
                 </div>
               </div>
@@ -1206,36 +1206,41 @@ export default function Home() {
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <span style={{ background: '#0f2244', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>필수</span>
-                  <span style={{ fontSize: 13, color: '#aaa', fontWeight: 600 }}>이력서 또는 경력기술서 파일을 업로드해주세요</span>
+                  <span style={{ fontSize: 13, color: '#555', fontWeight: 600 }}>이력서 또는 경력기술서 파일을 업로드해주세요</span>
                 </div>
-                <p style={{ fontSize: 12, color: '#aaa', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <p style={{ fontSize: 12, color: '#888', margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 4 }}>
                   🔒 파일 원본은 저장되지 않으며, 분석 완료 즉시 삭제됩니다.
                 </p>
+                <p style={{ fontSize: 11, color: '#aaa', margin: '0 0 12px', lineHeight: 1.6 }}>
+                  이력서와 경력기술서가 별도 파일이라면 최대 3개까지 함께 첨부해주세요. 한글(hwp) 파일은 PDF로 변환 후 업로드해주세요.
+                </p>
 
-                {resumeFiles.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
-                    {resumeFiles.map((f, i) => (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1.5px solid #d1fae5', borderRadius: 10, padding: '10px 14px', background: '#f0fdf4' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                          <span style={{ fontSize: 16 }}>📄</span>
-                          <span style={{ fontSize: 13, fontWeight: 700, color: '#10b981', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.fileName}</span>
-                          <span style={{ fontSize: 11, color: '#aaa', flexShrink: 0 }}>({f.sizeLabel})</span>
+                <input ref={resumeFileInputRef} type="file" accept=".pdf,.docx,.doc" multiple onChange={handleResumeFileUpload} style={{ display: 'none' }} />
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+                  {[0, 1, 2].map(slot => {
+                    const f = resumeFiles[slot]
+                    if (f) {
+                      return (
+                        <div key={slot} style={{ border: '1.5px solid #d1fae5', borderRadius: 12, padding: '14px 10px', background: '#f0fdf4', position: 'relative', textAlign: 'center', minHeight: 96, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                          <button onClick={() => removeResumeFile(slot)} style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,0.06)', border: 'none', borderRadius: '50%', width: 20, height: 20, color: '#888', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>✕</button>
+                          <span style={{ fontSize: 20, marginBottom: 4 }}>📄</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: '#10b981', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%', padding: '0 4px' }}>{f.fileName}</span>
+                          <span style={{ fontSize: 10, color: '#aaa', marginTop: 2 }}>{f.sizeLabel}</span>
                         </div>
-                        <button onClick={() => removeResumeFile(i)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 16, padding: 4, flexShrink: 0 }}>✕</button>
+                      )
+                    }
+                    return (
+                      <div key={slot} onClick={() => resumeFileInputRef.current?.click()} style={{ border: '2px dashed #e5e3dc', borderRadius: 12, padding: '14px 10px', textAlign: 'center', cursor: 'pointer', background: '#faf9f7', minHeight: 96, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ fontSize: 22, color: '#bbb', marginBottom: 4 }}>+</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: '#555' }}>파일 업로드</span>
+                        <span style={{ fontSize: 10, color: '#bbb', marginTop: 2 }}>PDF · DOCX</span>
                       </div>
-                    ))}
-                  </div>
-                )}
+                    )
+                  })}
+                </div>
 
-                {resumeFiles.length < RESUME_FILE_MAX_COUNT && (
-                  <div onClick={() => resumeFileInputRef.current?.click()} style={{ border: '2px dashed #e5e3dc', borderRadius: 12, padding: '20px', textAlign: 'center', cursor: 'pointer', background: '#faf9f7' }}>
-                    <input ref={resumeFileInputRef} type="file" accept=".pdf,.docx,.doc" multiple onChange={handleResumeFileUpload} style={{ display: 'none' }} />
-                    <div style={{ fontSize: 28, marginBottom: 8 }}>📋</div>
-                    <p style={{ fontSize: 14, fontWeight: 700, color: '#0f2244', margin: 0 }}>PDF 또는 DOCX 파일 업로드</p>
-                    <p style={{ fontSize: 12, color: '#aaa', margin: '4px 0 0' }}>클릭하여 업로드 ({resumeFiles.length}/{RESUME_FILE_MAX_COUNT}, 파일당 최대 10MB)</p>
-                    <p style={{ fontSize: 11, color: '#bbb', margin: '6px 0 0', lineHeight: 1.6 }}>이력서와 경력기술서가 별도 파일이라면 함께 첨부해주세요. 한글(hwp) 파일은 PDF로 변환 후 업로드해주세요.</p>
-                  </div>
-                )}
+                <p style={{ fontSize: 11, color: '#aaa', margin: '8px 0 0', textAlign: 'right' }}>{resumeFiles.length}/{RESUME_FILE_MAX_COUNT} · 파일당 최대 10MB</p>
 
                 {resumeFileError && (
                   <p style={{ fontSize: 12, color: '#ef4444', margin: '8px 0 0' }}>{resumeFileError}</p>
@@ -1252,17 +1257,17 @@ export default function Home() {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#555', marginBottom: 6 }}>지원 회사</label>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#1a1a1a', marginBottom: 6 }}>지원 회사</label>
                     <input type="text" style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 10, padding: '11px 14px', fontSize: 14, color: '#1a1a1a', background: '#faf9f7', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} placeholder="예: 삼성전자, 카카오, 현대자동차" value={company} onChange={e => setCompany(e.target.value)} />
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#555', marginBottom: 6 }}>지원 직무</label>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#1a1a1a', marginBottom: 6 }}>지원 직무</label>
                     <input type="text" style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 10, padding: '11px 14px', fontSize: 14, color: '#1a1a1a', background: '#faf9f7', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} placeholder="예: 마케팅, 백엔드 개발, 영업관리" value={position} onChange={e => setPosition(e.target.value)} />
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#555', marginBottom: 6 }}>기업 문화 · 인재상</label>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#1a1a1a', marginBottom: 6 }}>기업 문화 · 인재상</label>
                     <textarea
                       style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 10, padding: '11px 14px', fontSize: 13, color: '#1a1a1a', background: '#faf9f7', outline: 'none', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.7, boxSizing: 'border-box' }}
                       rows={3}
@@ -1279,7 +1284,7 @@ export default function Home() {
                   {/* 채용공고 업로드 — 유료 분석 전용 */}
                   {mode === 'paid' && (
                     <div>
-                      <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#555', marginBottom: 6 }}>채용공고 PDF</label>
+                      <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#1a1a1a', marginBottom: 6 }}>채용공고 PDF</label>
                       {jobPostingFileName ? (
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1.5px solid #d1fae5', borderRadius: 10, padding: '12px 14px', background: '#f0fdf4' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
