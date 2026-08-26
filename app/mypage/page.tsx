@@ -194,10 +194,27 @@ export default function MyPage() {
               </p>
               <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', margin: 0 }}>총 분석</p>
             </div>
+            <div style={{ textAlign: 'center', background: 'rgba(255,255,255,0.1)', borderRadius: 14, padding: '14px 20px' }}>
+              <p style={{ fontSize: 24, fontWeight: 900, margin: '0 0 4px', color: (profile?.consistency_credits || 0) > 0 ? '#f0c040' : '#aaa' }}>
+                {profile?.consistency_credits || 0}
+              </p>
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', margin: 0 }}>정합성 검증</p>
+            </div>
           </div>
         </div>
 
-        {/* 분석 히스토리 */}
+        {/* 정합성 검증 크레딧 안내 배너 */}
+        {(profile?.consistency_credits || 0) > 0 && (
+          <div style={{ background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', borderRadius: 16, padding: '18px 24px', marginBottom: 28, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>🎁 정합성 검증 {profile.consistency_credits}회 사용 가능</p>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', margin: 0 }}>이력서와 자소서가 하나의 스토리로 읽히는지 무료로 대조 분석해드려요.</p>
+            </div>
+            <button onClick={() => window.location.href = '/consistency-check'} style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 12, padding: '12px 20px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+              지금 검증하기 →
+            </button>
+          </div>
+        )}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0f2244', margin: 0 }}>📋 분석 히스토리</h2>
           <button onClick={() => window.location.href = '/'}
