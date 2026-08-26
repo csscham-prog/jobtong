@@ -1022,7 +1022,7 @@ export default function Home() {
               {stageMessages[loadingStage]}
             </p>
             <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, textAlign: 'center', maxWidth: 320, lineHeight: 1.7 }}>
-              전문가 수준의 정밀 분석을 진행하고 있어요.<br />최대 30초 정도 소요될 수 있습니다.
+              전문가 수준의 정밀 분석을 진행하고 있어요.<br />최대 1분 이상 소요될 수 있습니다.
             </p>
           </div>
         )}
