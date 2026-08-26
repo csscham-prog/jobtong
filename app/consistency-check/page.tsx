@@ -394,7 +394,7 @@ export default function ConsistencyCheckPage() {
 
         <div style={{ background: credits > 0 ? '#eef2ff' : '#fffbeb', border: `1px solid ${credits > 0 ? '#c7d2fe' : '#fde68a'}`, borderRadius: 14, padding: '14px 18px', marginBottom: 24, fontSize: 13, color: credits > 0 ? '#4338ca' : '#92400e', fontWeight: 600 }}>
           {credits > 0
-            ? `🎁 사용 가능한 정합성 검증 크레딧: ${credits}회`
+            ? `🎁 사용 가능한 무료 정합성 검증: ${credits}회`
             : '이력서·경력기술서와 자기소개서를 각각 1회 이상 정밀 분석(유료)하시면 정합성 검증이 무료로 열립니다.'}
         </div>
 
@@ -462,7 +462,7 @@ export default function ConsistencyCheckPage() {
             {error && <p style={{ fontSize: 13, color: '#ef4444', marginBottom: 16 }}>{error}</p>}
 
             <button onClick={openConfirm} style={{ width: '100%', background: '#0f2244', color: '#fff', border: 'none', borderRadius: 14, padding: '18px', fontWeight: 800, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit' }}>
-              정합성 검증 시작하기 (크레딧 1회 사용)
+              정합성 검증 시작하기 (무료 이용 1회 사용)
             </button>
           </>
         )}
@@ -474,7 +474,7 @@ export default function ConsistencyCheckPage() {
           <div style={{ background: '#fff', borderRadius: 20, padding: '28px 26px', maxWidth: 340, width: '100%' }}>
             <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0f2244', margin: '0 0 10px' }}>정합성 검증을 시작할까요?</h3>
             <p style={{ fontSize: 13, color: '#888', lineHeight: 1.7, margin: '0 0 20px' }}>
-              보유하신 정합성 검증 크레딧 1회가 차감됩니다. (잔여 {credits}회)
+              보유하신 무료 정합성 검증 1회가 사용됩니다. (잔여 {credits}회)
             </p>
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setShowConfirmModal(false)} style={{ flex: 1, background: '#f7f6f3', color: '#888', border: 'none', borderRadius: 12, padding: '13px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>취소</button>
