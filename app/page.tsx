@@ -756,8 +756,49 @@ export default function Home() {
           </div>
         </section>
 
+        {/* ── 정합성 검증 홍보 섹션 ── */}
+        <section style={{ background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', padding: '72px 24px' }}>
+          <div style={{ maxWidth: 900, margin: '0 auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20, flexWrap: 'wrap' }}>
+              <div style={{ flex: '1 1 380px', minWidth: 280 }}>
+                <div style={{ display: 'inline-block', background: 'rgba(230,168,0,0.15)', border: '1px solid rgba(230,168,0,0.4)', borderRadius: 20, padding: '5px 16px', fontSize: 12, fontWeight: 700, color: '#e6a800', marginBottom: 16, letterSpacing: '0.05em' }}>
+                  NEW · 무료
+                </div>
+                <h2 style={{ fontSize: 28, fontWeight: 900, color: '#fff', marginBottom: 14, letterSpacing: '-0.5px', lineHeight: 1.35 }}>
+                  자소서랑 이력서, 따로따로 완벽해도<br />채용담당자는 이어서 읽습니다
+                </h2>
+                <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.65)', lineHeight: 1.8, marginBottom: 24 }}>
+                  자소서에서 강조한 강점이 이력서에는 안 보이거나, 이력서의 강력한 경력이 자소서에서 전혀 활용되지 않는 경우가 많습니다. 잡통의 <strong style={{ color: '#fff' }}>자소서 ↔ 이력서 정합성 검증</strong>은 두 문서를 나란히 대조해, 하나의 일관된 지원자 스토리로 읽히는지 짚어드립니다.
+                </p>
+                <p style={{ fontSize: 13, color: '#e6a800', fontWeight: 700, marginBottom: 24 }}>
+                  🎁 이력서·경력기술서와 자기소개서를 각각 1회 이상 정밀 분석하시면 무료로 열립니다
+                </p>
+                <button
+                  onClick={handleStartAnalyze}
+                  style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '16px 36px', fontWeight: 800, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 8px 24px rgba(230,168,0,0.3)' }}
+                >
+                  정밀 분석하고 무료로 받기 →
+                </button>
+              </div>
+              <div style={{ flex: '1 1 300px', minWidth: 260, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: '28px 30px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {[
+                    { icon: '🔗', text: '자소서에서 말한 강점이 이력서로 실제 증명되는지 대조' },
+                    { icon: '⚠️', text: '자소서와 이력서에서 서로 어긋나는 부분을 콕 짚어 지적' },
+                    { icon: '✏️', text: '어느 문서를 어떻게 보완하면 되는지 구체적인 수정 방향 제시' },
+                  ].map((item, i) => (
+                    <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                      <span style={{ fontSize: 20, flexShrink: 0 }}>{item.icon}</span>
+                      <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)', lineHeight: 1.7, margin: 0 }}>{item.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-        {/* ── 샘플 분석 결과 섹션 ── */}
+
         <section style={{ background: '#0f2244', padding: '80px 24px' }}>
           <div style={{ maxWidth: 900, margin: '0 auto' }}>
 
