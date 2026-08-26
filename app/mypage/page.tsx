@@ -7,6 +7,7 @@ export default function MyPage() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [analyses, setAnalyses] = useState<any[]>([])
+  const [docTypeFilter, setDocTypeFilter] = useState<'all' | 'coverletter' | 'resume'>('all')
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<any>(null)
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
@@ -55,6 +56,26 @@ export default function MyPage() {
 
   const getScoreColor = (s: number) => s >= 80 ? '#10b981' : s >= 60 ? '#f59e0b' : '#ef4444'
   const getScoreLabel = (s: number) => s >= 80 ? '우수' : s >= 60 ? '보통' : '미흡'
+
+  const scoreItemsCoverLetter = [
+    { label: '논리성', key: 'logic' },
+    { label: '구체성', key: 'specific' },
+    { label: '직무 적합성', key: 'fit' },
+    { label: '표현력', key: 'expression' },
+  ]
+  const scoreItemsResume = [
+    { label: '구조·가독성', key: 'structure' },
+    { label: '성과 정량화', key: 'achievement' },
+    { label: '직무 연관성', key: 'relevance' },
+    { label: '완결성', key: 'completeness' },
+  ]
+  const getDocTypeLabel = (docType: string) => docType === 'resume' ? '이력서·경력기술서' : '자기소개서'
+
+  const filteredAnalyses = analyses.filter(a => {
+    if (docTypeFilter === 'all') return true
+    const dt = a.doc_type || 'coverletter' // 기존 데이터는 doc_type이 없으므로 자소서로 간주
+    return dt === docTypeFilter
+  })
 
   const Emblem = () => (
     <div style={{ width: 36, height: 36, background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', flexShrink: 0 }}>
@@ -131,11 +152,36 @@ export default function MyPage() {
           </button>
         </div>
 
-        {analyses.length === 0 ? (
+        {/* 문서 유형 필터 탭 */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          {[
+            { key: 'all', label: '전체' },
+            { key: 'coverletter', label: '✏️ 자기소개서' },
+            { key: 'resume', label: '📋 이력서·경력기술서' },
+          ].map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setDocTypeFilter(tab.key as any)}
+              style={{
+                padding: '9px 16px', borderRadius: 20,
+                border: `1.5px solid ${docTypeFilter === tab.key ? '#0f2244' : '#e5e3dc'}`,
+                background: docTypeFilter === tab.key ? '#0f2244' : '#fff',
+                color: docTypeFilter === tab.key ? '#fff' : '#555',
+                fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {filteredAnalyses.length === 0 ? (
           <div style={{ background: '#fff', borderRadius: 20, padding: '60px', textAlign: 'center', border: '1px solid #ece9e1' }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>📝</div>
-            <p style={{ fontSize: 16, fontWeight: 700, color: '#333', marginBottom: 8 }}>아직 분석 기록이 없어요</p>
-            <p style={{ fontSize: 14, color: '#aaa', marginBottom: 24 }}>자소서를 분석하면 여기에 기록이 저장됩니다</p>
+            <p style={{ fontSize: 16, fontWeight: 700, color: '#333', marginBottom: 8 }}>
+              {docTypeFilter === 'all' ? '아직 분석 기록이 없어요' : `아직 ${getDocTypeLabel(docTypeFilter)} 분석 기록이 없어요`}
+            </p>
+            <p style={{ fontSize: 14, color: '#aaa', marginBottom: 24 }}>서류를 분석하면 여기에 기록이 저장됩니다</p>
             <button onClick={() => window.location.href = '/'}
               style={{ background: '#0f2244', color: '#fff', border: 'none', borderRadius: 12, padding: '12px 28px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}>
               첫 분석 시작하기
@@ -143,7 +189,7 @@ export default function MyPage() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {analyses.map((analysis) => (
+            {filteredAnalyses.map((analysis) => (
               <div key={analysis.id}
                 onClick={() => setSelected(selected?.id === analysis.id ? null : analysis)}
                 style={{ background: '#fff', borderRadius: 16, padding: '20px 24px', border: selected?.id === analysis.id ? '2px solid #0f2244' : '1px solid #ece9e1', cursor: 'pointer', transition: 'all 0.2s' }}>
@@ -164,6 +210,9 @@ export default function MyPage() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ background: '#eef2ff', color: '#4338ca', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
+                      {getDocTypeLabel(analysis.doc_type || 'coverletter')}
+                    </span>
                     <span style={{ background: analysis.analyze_type === 'paid' ? '#0f2244' : '#f7f6f3', color: analysis.analyze_type === 'paid' ? '#fff' : '#888', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
                       {analysis.analyze_type === 'paid' ? '전체 분석' : '무료 분석'}
                     </span>
@@ -199,12 +248,7 @@ export default function MyPage() {
                         <div style={{ marginBottom: 16, padding: '16px', background: '#f7f6f3', borderRadius: 12 }}>
                           <p style={{ fontSize: 12, fontWeight: 700, color: '#888', marginBottom: 12 }}>📊 항목별 점수</p>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                            {[
-                              { label: '논리성', key: 'logic' },
-                              { label: '구체성', key: 'specific' },
-                              { label: '직무 적합성', key: 'fit' },
-                              { label: '표현력', key: 'expression' },
-                            ].map(item => {
+                            {(analysis.doc_type === 'resume' ? scoreItemsResume : scoreItemsCoverLetter).map(item => {
                               const score = analysis.result_json.scores[item.key] || 0
                               return (
                                 <div key={item.key}>
@@ -224,7 +268,7 @@ export default function MyPage() {
                         {/* 개선 제안 */}
                         {analysis.result_json.improvements?.length > 0 && (
                           <div style={{ marginBottom: 16 }}>
-                            <p style={{ fontSize: 12, fontWeight: 700, color: '#888', marginBottom: 10 }}>✏️ 문장 개선 제안</p>
+                            <p style={{ fontSize: 12, fontWeight: 700, color: '#888', marginBottom: 10 }}>✏️ {analysis.doc_type === 'resume' ? '구체적 개선 제안' : '문장 개선 제안'}</p>
                             {analysis.result_json.improvements.map((imp: any, i: number) => (
                               <div key={i} style={{ padding: '14px 16px', background: '#fff', borderRadius: 10, marginBottom: 8, border: '1px solid #ece9e1' }}>
                                 <p style={{ fontSize: 12, fontWeight: 700, color: '#0f2244', margin: '0 0 6px' }}>#{i + 1} {imp.category}</p>
@@ -257,7 +301,7 @@ export default function MyPage() {
                     )}
 
                     <p style={{ fontSize: 12, color: '#bbb', textAlign: 'right', marginTop: 12, marginBottom: 0 }}>
-                      자소서 {analysis.content_length?.toLocaleString()}자
+                      {analysis.doc_type === 'resume' ? '첨부 문서' : '자소서'} {analysis.content_length?.toLocaleString()}자
                     </p>
                   </div>
                 )}
@@ -289,7 +333,7 @@ export default function MyPage() {
             </p>
             <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '14px 16px', marginBottom: 24, textAlign: 'left' }}>
               <p style={{ fontSize: 13, color: '#991b1b', margin: 0, lineHeight: 2 }}>
-                ✕ 모든 자소서 분석 기록<br />
+                ✕ 모든 서류 분석 기록<br />
                 ✕ 잔여 분석 크레딧<br />
                 ✕ 결제 내역<br />
                 ✕ 계정 정보
