@@ -238,6 +238,18 @@ export async function POST(req: NextRequest) {
         '  · addContent: 이 지원자가 실제로 겪었을 법한 경험 중, 언급 안 됐지만 추가하면 직무 적합성이 크게 올라갈 구체적 소재\n' +
         '- strongPoints: 실제 채용 담당자가 눈여겨볼 강점 3-4개. 단순 칭찬이 아니라 "이 부분이 왜 다른 지원자와 차별화되는지" 설명 포함\n' +
         '- finalAdvice: 이 자소서를 서류 합격 수준으로 끌어올리기 위한 최우선 실행 전략 3-4문장. 가장 효과가 큰 수정 포인트부터 순서대로 제시\n\n' +
+        '[AI 작성 흔적 탐지 - 진정성 검증]\n' +
+        '최근 기업 서류 심사에서는 AI가 대신 쓴 것 같은 지원서를 반려시키는 경향이 강해지고 있습니다. 자소서 전체를 훑어 아래 6가지 패턴이 나타나는지 각각 판별하세요.\n' +
+        '1. 클리셰 표현: "책임감이 강한 사람입니다", "최선을 다하겠습니다" 같은 뻔한 상투구\n' +
+        '2. AI 서식 남용: 마크다운 볼드(**), 불릿 기호(-,•), 이모지, 소제목 등 사람이 일반 자소서에 잘 쓰지 않는 서식\n' +
+        '3. 정형화된 문단 구조: "결론→근거→결론" 같은 패턴이 여러 문단에서 기계적으로 반복\n' +
+        '4. 균일한 문장 리듬: 문장 길이·접속사 사용이 부자연스럽게 일정하게 반복\n' +
+        '5. 추상적 서술: 수치·사례 없이 "다양한 경험으로 성장했습니다" 류의 막연한 문장\n' +
+        '6. 부자연스러운 어휘 선택: "본인은", "~함으로써" 같이 일상 대화에서 안 쓰는 과도한 격식체·번역투 표현\n\n' +
+        '각 패턴에 대해 다음 규칙을 반드시 지키세요:\n' +
+        '- 발견되면: patternType에 위 패턴명을 그대로, original에 자소서 원문에서 실제로 발췌(40자 이내, 절대 지어내지 말 것), suggestion에 더 자연스럽고 개인화된 표현으로 고치는 구체적 방법을 2문장 이내로 제시\n' +
+        '- 발견되지 않으면: original과 suggestion 모두 정확히 "해당 없음"으로 표기\n' +
+        '- 6개 항목 모두, 위 순서 그대로 빠짐없이 출력하세요\n\n' +
         '[톤 가이드 - 반드시 지키세요]\n' +
         '- 비판의 대상은 언제나 "자소서의 문장과 구성"이지, "지원자라는 사람"이 아닙니다\n' +
         '- "무능해 보인다", "자격이 없다", "~라고 자백하는 것과 같다" 처럼 지원자의 인격·능력을 규정하거나\n' +
@@ -254,7 +266,7 @@ export async function POST(req: NextRequest) {
         '- 문자열 내 큰따옴표는 작은따옴표로 바꾸세요\n' +
         '- JSON 외 텍스트 절대 출력 금지\n\n' +
         '반드시 아래 JSON 형식으로만 응답하세요.\n' +
-        '{"totalScore":숫자,"summary":"...","mainIssue":"...","scores":{"logic":숫자,"specific":숫자,"fit":숫자,"expression":숫자},"improvements":[{"category":"...","issue":"...","original":"...","suggestion":"...","addContent":"..."}],"strongPoints":["...","...","..."],"finalAdvice":"..."}'
+        '{"totalScore":숫자,"summary":"...","mainIssue":"...","scores":{"logic":숫자,"specific":숫자,"fit":숫자,"expression":숫자},"improvements":[{"category":"...","issue":"...","original":"...","suggestion":"...","addContent":"..."}],"strongPoints":["...","...","..."],"finalAdvice":"...","aiPatternCheck":[{"patternType":"클리셰 표현","original":"...","suggestion":"..."},{"patternType":"AI 서식 남용","original":"...","suggestion":"..."},{"patternType":"정형화된 문단 구조","original":"...","suggestion":"..."},{"patternType":"균일한 문장 리듬","original":"...","suggestion":"..."},{"patternType":"추상적 서술","original":"...","suggestion":"..."},{"patternType":"부자연스러운 어휘 선택","original":"...","suggestion":"..."}]}'
 
     } else {
       fullPrompt = '당신은 삼성전자, LG, 현대자동차, SK 등 국내 주요 대기업과 다수의 스타트업에서 10년 이상 채용 실무를 담당해온 인사 전문가이자 헤드헌터입니다. 매년 수천 건의 이력서를 검토하며, 서류 통과 여부를 결정하는 첫 6초의 스캔에서 무엇이 당락을 가르는지 정확히 알고 있습니다.\n\n' +
@@ -293,6 +305,21 @@ export async function POST(req: NextRequest) {
         '- finalAdvice: 이 문서를 서류 통과 수준으로 끌어올리기 위한 최우선 실행 전략 3-4문장. 가장 효과가 큰 수정 포인트부터 순서대로 제시\n' +
         '- hasCoverLetterContent: 0단계에서 판별한 boolean 값(true 또는 false)\n' +
         '- coverLetterHint: 0단계에서 판별한 1문장 요약. 자기소개서 요소가 감지되지 않았다면 빈 문자열로 설정\n\n' +
+        '[AI 작성 흔적 탐지 - 진정성 검증]\n' +
+        '최근 기업 서류 심사에서는 AI가 대신 쓴 것 같은 지원서를 반려시키는 경향이 강해지고 있습니다. 문서 전체를 훑어 아래 6가지 패턴이 나타나는지 각각 판별하세요.\n' +
+        '1. 클리셰 표현: "책임감이 강한 사람입니다", "최선을 다하겠습니다" 같은 뻔한 상투구\n' +
+        '2. AI 서식 남용: 마크다운 볼드(**), 이모지, 소제목 남발 등 사람이 잘 쓰지 않는 서식\n' +
+        '3. 정형화된 문단 구조: "결론→근거→결론" 같은 패턴이 여러 항목에서 기계적으로 반복\n' +
+        '4. 균일한 문장 리듬: 문장 길이·접속사 사용이 부자연스럽게 일정하게 반복\n' +
+        '5. 추상적 서술: 수치·사례 없이 "다양한 경험으로 성장했습니다" 류의 막연한 문장\n' +
+        '6. 부자연스러운 어휘 선택: "본인은", "~함으로써" 같이 일상 대화에서 안 쓰는 과도한 격식체·번역투 표현\n\n' +
+        '단, 이 문서는 이력서·경력기술서이므로 아래 기준을 반드시 적용하세요:\n' +
+        '- 패턴 2(AI 서식 남용): 불릿 기호(-,•)로 항목을 나열하는 것은 이력서의 정상적인 관행이므로 그것만으로는 플래그하지 마세요. 마크다운 볼드(**)나 이모지, 소제목 남발처럼 실제로 어색한 경우만 지적하세요\n' +
+        '- 패턴 4(균일한 문장 리듬): "○○ 프로젝트 진행", "○○ 시스템 개발"처럼 경력 항목을 짧고 건조하게 반복 서술하는 것은 이력서의 정상적인 문체이므로 플래그하지 마세요. 부자연스럽게 긴 문장이 기계적으로 반복되는 경우만 지적하세요\n\n' +
+        '각 패턴에 대해 다음 규칙을 반드시 지키세요:\n' +
+        '- 발견되면: patternType에 위 패턴명을 그대로, original에 문서 원문에서 실제로 발췌(40자 이내, 절대 지어내지 말 것), suggestion에 더 자연스럽고 개인화된 표현으로 고치는 구체적 방법을 2문장 이내로 제시\n' +
+        '- 발견되지 않으면: original과 suggestion 모두 정확히 "해당 없음"으로 표기\n' +
+        '- 6개 항목 모두, 위 순서 그대로 빠짐없이 출력하세요\n\n' +
         '[톤 가이드 - 반드시 지키세요]\n' +
         '- 비판의 대상은 언제나 문서의 구성과 서술 방식이지, 지원자라는 사람이 아닙니다\n' +
         '- "역량이 부족해 보인다", "이 정도로는 안 된다", "경쟁력이 없다" 처럼 지원자의 능력이나 자격을 규정하거나 판정하는 표현은 사용하지 마세요. 대신 "이 서술은 채용담당자에게 ~라는 인상을 줄 수 있습니다", "~로 읽혀 성과의 크기를 가늠하기 어렵게 만듭니다"처럼 문서가 만드는 인상을 지적하세요\n' +
@@ -306,7 +333,7 @@ export async function POST(req: NextRequest) {
         '- 문자열 내 큰따옴표는 작은따옴표로 바꾸세요\n' +
         '- JSON 외 텍스트 절대 출력 금지\n\n' +
         '반드시 아래 JSON 형식으로만 응답하세요.\n' +
-        '{"totalScore":숫자,"summary":"...","mainIssue":"...","scores":{"structure":숫자,"achievement":숫자,"relevance":숫자,"completeness":숫자},"improvements":[{"category":"...","issue":"...","original":"...","suggestion":"...","addContent":"..."}],"strongPoints":["...","...","..."],"finalAdvice":"...","hasCoverLetterContent":true또는false,"coverLetterHint":"..."}'
+        '{"totalScore":숫자,"summary":"...","mainIssue":"...","scores":{"structure":숫자,"achievement":숫자,"relevance":숫자,"completeness":숫자},"improvements":[{"category":"...","issue":"...","original":"...","suggestion":"...","addContent":"..."}],"strongPoints":["...","...","..."],"finalAdvice":"...","hasCoverLetterContent":true또는false,"coverLetterHint":"...","aiPatternCheck":[{"patternType":"클리셰 표현","original":"...","suggestion":"..."},{"patternType":"AI 서식 남용","original":"...","suggestion":"..."},{"patternType":"정형화된 문단 구조","original":"...","suggestion":"..."},{"patternType":"균일한 문장 리듬","original":"...","suggestion":"..."},{"patternType":"추상적 서술","original":"...","suggestion":"..."},{"patternType":"부자연스러운 어휘 선택","original":"...","suggestion":"..."}]}'
     }
 
     // 8. AI 분석 — 무료/유료 모두 동일한 전체 분석 프롬프트 사용 (퀄리티 동일)
@@ -385,10 +412,14 @@ export async function POST(req: NextRequest) {
 
     // 10. 응답 반환 — 무료는 일부 필드만 노출 (퀄리티는 유료와 동일, 공개 범위만 다름)
     if (!isPaid) {
+      const aiPatterns = Array.isArray(analysisResult.aiPatternCheck) ? analysisResult.aiPatternCheck : []
+      const aiPatternCount = aiPatterns.filter((p: any) => p && p.original && p.original !== '해당 없음').length
       return NextResponse.json({
         totalScore: analysisResult.totalScore,
         summary: analysisResult.summary,
         mainIssue: analysisResult.mainIssue,
+        hasAiPatterns: aiPatternCount > 0,
+        aiPatternCount,
       })
     }
 
