@@ -1,5 +1,7 @@
 'use client'
 
+import { useState } from 'react'
+
 interface Score {
   logic?: number
   specific?: number
@@ -42,6 +44,7 @@ interface PaidResultProps {
 export default function PaidResult({ result, company, position, docType = 'coverletter', onReanalyze }: PaidResultProps) {
 
   const isResume = docType === 'resume'
+  const [isDownloading, setIsDownloading] = useState(false)
 
   const getScoreColor = (s: number) => s >= 80 ? '#10b981' : s >= 60 ? '#f59e0b' : '#ef4444'
   const getScoreLabel = (s: number) => s >= 80 ? '우수' : s >= 60 ? '보통' : '미흡'
@@ -105,33 +108,51 @@ export default function PaidResult({ result, company, position, docType = 'cover
   const dashOffset = circumference - (totalScore / 100) * circumference
 
   const handleDownloadPDF = async () => {
+    // 버튼이 위/아래 두 곳에 있고 둘 다 같은 숨김 요소(#pdf-all-content)를 공유하므로,
+    // 이미 생성 중일 때 다시 누르면 두 호출이 display 토글을 서로 덮어써서
+    // 중간에 캡처가 끊기는(내용이 비거나 일부만 담기는) 문제가 생긴다. 그래서 막는다.
+    if (isDownloading) return
     const element = document.getElementById('pdf-all-content')
     if (!element) return
 
-    // html2pdf.js CDN 로드
-    if (!(window as any).html2pdf) {
-      const script = document.createElement('script')
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'
-      document.head.appendChild(script)
-      await new Promise(resolve => { script.onload = resolve })
+    setIsDownloading(true)
+    try {
+      // html2pdf.js CDN 로드
+      if (!(window as any).html2pdf) {
+        const script = document.createElement('script')
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'
+        document.head.appendChild(script)
+        await new Promise(resolve => { script.onload = resolve })
+      }
+
+      const filenamePrefix = isResume ? '잡통_서류분석' : '잡통_자소서분석'
+      const filename = `${filenamePrefix}_${new Date().toLocaleDateString('ko-KR').replace(/\. /g, '-').replace('.', '')}.pdf`
+
+      const opt = {
+        margin: [10, 10, 10, 10],
+        filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      }
+
+      // 잠깐 보이게 했다가 PDF 생성 후 다시 숨김.
+      // display:none → block으로 바꾼 직후에는 브라우저가 아직 레이아웃/페인트를
+      // 끝내지 않은 상태라, 바로 html2canvas로 캡처하면 텅 비거나 일부만 그려진
+      // 스크린샷이 찍힌다(첫 클릭에서만 우연히 스크립트 로딩 대기 시간 덕에 괜찮았던 것).
+      // 강제 리플로우 + 두 번의 requestAnimationFrame으로 실제 페인트가 끝날 때까지 기다린다.
+      element.style.display = 'block'
+      void element.offsetHeight
+      await new Promise<void>(resolve => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+      })
+
+      await (window as any).html2pdf().set(opt).from(element).save()
+    } finally {
+      element.style.display = 'none'
+      setIsDownloading(false)
     }
-
-    const filenamePrefix = isResume ? '잡통_서류분석' : '잡통_자소서분석'
-    const filename = `${filenamePrefix}_${new Date().toLocaleDateString('ko-KR').replace(/\. /g, '-').replace('.', '')}.pdf`
-
-    const opt = {
-      margin: [10, 10, 10, 10],
-      filename,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-    }
-
-    // 잠깐 보이게 했다가 PDF 생성 후 다시 숨김
-    element.style.display = 'block'
-    await (window as any).html2pdf().set(opt).from(element).save()
-    element.style.display = 'none'
   }
 
   return (
@@ -178,9 +199,9 @@ export default function PaidResult({ result, company, position, docType = 'cover
 
       {/* PDF 다운로드 버튼 */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 20 }}>
-        <button onClick={handleDownloadPDF}
-          style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 12, padding: '10px 16px', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', flexShrink: 0 }}>
-          📄 PDF 저장
+        <button onClick={handleDownloadPDF} disabled={isDownloading}
+          style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 12, padding: '10px 16px', fontWeight: 700, fontSize: 13, cursor: isDownloading ? 'default' : 'pointer', opacity: isDownloading ? 0.6 : 1, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', flexShrink: 0 }}>
+          {isDownloading ? '⏳ 생성 중...' : '📄 PDF 저장'}
         </button>
       </div>
 
@@ -392,9 +413,9 @@ export default function PaidResult({ result, company, position, docType = 'cover
       {/* 하단 버튼 */}
       {/* 하단 버튼 영역 */}
       <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>
-        <button onClick={handleDownloadPDF}
-          style={{ flex: 1, background: '#f7f6f3', color: '#0f2244', border: '1.5px solid #ddd', borderRadius: 14, padding: '16px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-          📄 전체 결과 PDF 저장
+        <button onClick={handleDownloadPDF} disabled={isDownloading}
+          style={{ flex: 1, background: '#f7f6f3', color: '#0f2244', border: '1.5px solid #ddd', borderRadius: 14, padding: '16px', fontWeight: 700, fontSize: 15, cursor: isDownloading ? 'default' : 'pointer', opacity: isDownloading ? 0.6 : 1, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          {isDownloading ? '⏳ PDF 생성 중...' : '📄 전체 결과 PDF 저장'}
         </button>
         <button onClick={onReanalyze}
           style={{ flex: 1, background: '#0f2244', color: '#fff', border: 'none', borderRadius: 14, padding: '16px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}>
