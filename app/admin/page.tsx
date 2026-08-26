@@ -8,7 +8,12 @@ export default function AdminPage() {
   const [users, setUsers] = useState<any[]>([])
   const [filteredUsers, setFilteredUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'stats' | 'users' | 'payments'>('stats')
+  const [activeTab, setActiveTab] = useState<'stats' | 'features' | 'users' | 'payments'>('stats')
+  const [featureRows, setFeatureRows] = useState<any[]>([])
+  const [featureLoading, setFeatureLoading] = useState(false)
+  const [featurePeriod, setFeaturePeriod] = useState<'today' | 'week' | 'month' | 'custom'>('month')
+  const [featureCustomStart, setFeatureCustomStart] = useState('')
+  const [featureCustomEnd, setFeatureCustomEnd] = useState('')
   const [payments, setPayments] = useState<any[]>([])
   const [paymentsLoading, setPaymentsLoading] = useState(false)
   const [paymentPeriod, setPaymentPeriod] = useState<'today' | 'week' | 'month' | 'custom'>('month')
@@ -29,6 +34,10 @@ export default function AdminPage() {
   const [refundError, setRefundError] = useState('')
 
   useEffect(() => { checkAdmin() }, [])
+
+  useEffect(() => {
+    if (activeTab === 'features') loadFeatureStats()
+  }, [activeTab, featurePeriod, featureCustomStart, featureCustomEnd])
 
   useEffect(() => {
     const q = searchQuery.toLowerCase()
@@ -134,6 +143,38 @@ export default function AdminPage() {
     if (paymentPeriod === 'month') { const start = new Date(now); start.setDate(1); start.setHours(0,0,0,0); return { start, end } }
     if (paymentPeriod === 'custom' && paymentCustomStart && paymentCustomEnd) return { start: new Date(paymentCustomStart), end: new Date(paymentCustomEnd + 'T23:59:59') }
     return null
+  }
+
+  const getFeatureRange = () => {
+    const now = new Date()
+    const end = new Date(now); end.setHours(23, 59, 59, 999)
+    if (featurePeriod === 'today') { const start = new Date(now); start.setHours(0,0,0,0); return { start, end } }
+    if (featurePeriod === 'week') { const start = new Date(now); start.setDate(now.getDate()-6); start.setHours(0,0,0,0); return { start, end } }
+    if (featurePeriod === 'month') { const start = new Date(now); start.setDate(1); start.setHours(0,0,0,0); return { start, end } }
+    if (featurePeriod === 'custom' && featureCustomStart && featureCustomEnd) return { start: new Date(featureCustomStart), end: new Date(featureCustomEnd + 'T23:59:59') }
+    return null
+  }
+
+  const loadFeatureStats = async () => {
+    setFeatureLoading(true)
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { setFeatureLoading(false); return }
+
+    const range = getFeatureRange()
+    const params = new URLSearchParams()
+    if (range) {
+      params.set('from', range.start.toISOString())
+      params.set('to', range.end.toISOString())
+    }
+
+    const res = await fetch(`/api/admin/feature-stats?${params.toString()}`, {
+      headers: { 'Authorization': `Bearer ${session.access_token}` },
+    })
+    if (res.ok) {
+      const data = await res.json()
+      setFeatureRows(data.rows || [])
+    }
+    setFeatureLoading(false)
   }
 
   const handleRefund = async () => {
@@ -258,8 +299,8 @@ export default function AdminPage() {
 
         {/* 탭 */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 28 }}>
-          {[{ key: 'stats', label: '📊 통계' }, { key: 'users', label: '👥 회원 관리' }, { key: 'payments', label: '💳 결제 내역' }].map(tab => (
-            <button key={tab.key} onClick={() => { setActiveTab(tab.key as any); if (tab.key === 'payments') loadPayments() }}
+          {[{ key: 'stats', label: '📊 통계' }, { key: 'features', label: '🧩 기능별 사용량' }, { key: 'users', label: '👥 회원 관리' }, { key: 'payments', label: '💳 결제 내역' }].map(tab => (
+            <button key={tab.key} onClick={() => { setActiveTab(tab.key as any); if (tab.key === 'payments') loadPayments(); if (tab.key === 'features') loadFeatureStats() }}
               style={{ background: activeTab === tab.key ? '#0f2244' : '#fff', color: activeTab === tab.key ? '#fff' : '#555', border: '1px solid #e8e5dc', borderRadius: 10, padding: '10px 20px', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
               {tab.label}
             </button>
@@ -334,6 +375,99 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+
+        {/* 기능별 사용량 탭 */}
+        {activeTab === 'features' && (() => {
+          const totalCount = featureRows.reduce((sum, r) => sum + r.count, 0)
+
+          // 그룹별로 묶어서 rowSpan 계산
+          const groupOrder: string[] = []
+          const groupMap: Record<string, any[]> = {}
+          featureRows.forEach(row => {
+            if (!groupMap[row.group]) { groupMap[row.group] = []; groupOrder.push(row.group) }
+            groupMap[row.group].push(row)
+          })
+
+          return (
+            <div>
+              {/* 기간 필터 */}
+              <div style={{ background: '#fff', borderRadius: 16, padding: '20px 24px', border: '1px solid #ece9e1', marginBottom: 20 }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#555', margin: '0 0 12px' }}>기간 선택</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                  {[
+                    { key: 'today', label: '오늘' },
+                    { key: 'week', label: '이번 주' },
+                    { key: 'month', label: '이번 달' },
+                    { key: 'custom', label: '기간 지정' },
+                  ].map(p => (
+                    <button key={p.key} onClick={() => setFeaturePeriod(p.key as any)}
+                      style={{ background: featurePeriod === p.key ? '#0f2244' : '#f7f6f3', color: featurePeriod === p.key ? '#fff' : '#555', border: `1px solid ${featurePeriod === p.key ? '#0f2244' : '#e8e5dc'}`, borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                      {p.label}
+                    </button>
+                  ))}
+                  {featurePeriod === 'custom' && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                      <input type="date" value={featureCustomStart} onChange={e => setFeatureCustomStart(e.target.value)}
+                        style={{ border: '1.5px solid #e5e3dc', borderRadius: 8, padding: '7px 10px', fontSize: 13, outline: 'none', fontFamily: 'inherit' }} />
+                      <span style={{ color: '#888', fontSize: 13 }}>~</span>
+                      <input type="date" value={featureCustomEnd} onChange={e => setFeatureCustomEnd(e.target.value)}
+                        style={{ border: '1.5px solid #e5e3dc', borderRadius: 8, padding: '7px 10px', fontSize: 13, outline: 'none', fontFamily: 'inherit' }} />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 기간 내 총 이용 건수 카드 */}
+              <div style={{ background: '#fff', borderRadius: 16, padding: '24px', border: '1px solid #ece9e1', marginBottom: 20, maxWidth: 260 }}>
+                <p style={{ fontSize: 12, color: '#888', margin: '0 0 8px', fontWeight: 600 }}>기간 내 총 이용 건수</p>
+                <p style={{ fontSize: 32, fontWeight: 800, color: '#0f2244', margin: 0 }}>{totalCount.toLocaleString()}건</p>
+              </div>
+
+              {/* 기능별 사용량 표 */}
+              <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', overflow: 'hidden' }}>
+                {featureLoading ? (
+                  <div style={{ padding: '40px', textAlign: 'center', color: '#aaa' }}>로딩 중...</div>
+                ) : featureRows.length === 0 ? (
+                  <div style={{ padding: '40px', textAlign: 'center', color: '#aaa', fontSize: 14 }}>데이터가 없습니다.</div>
+                ) : (
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ background: '#f7f6f3' }}>
+                        {['메뉴', '세부 유형', '건수', '비중'].map(h => (
+                          <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#888', whiteSpace: 'nowrap' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {groupOrder.map(group => {
+                        const rows = groupMap[group]
+                        const groupSum = rows.reduce((s, r) => s + r.count, 0)
+                        return rows.map((row, i) => (
+                          <tr key={`${group}-${row.label}`} style={{ borderTop: '1px solid #f0ede6' }}>
+                            {i === 0 && (
+                              <td rowSpan={rows.length + 1} style={{ padding: '12px 16px', fontSize: 13, fontWeight: 700, color: '#0f2244', verticalAlign: 'top', borderRight: '1px solid #f0ede6', background: '#faf9f7' }}>
+                                {group}
+                              </td>
+                            )}
+                            <td style={{ padding: '12px 16px', fontSize: 13, color: '#333' }}>{row.label}</td>
+                            <td style={{ padding: '12px 16px', fontSize: 14, fontWeight: 700, color: '#0f2244' }}>{row.count.toLocaleString()}건</td>
+                            <td style={{ padding: '12px 16px', fontSize: 13, color: '#888' }}>{totalCount ? Math.round(row.count / totalCount * 100) : 0}%</td>
+                          </tr>
+                        )).concat([
+                          <tr key={`${group}-subtotal`} style={{ borderTop: '1px solid #e8e5dc', background: '#f7f6f3' }}>
+                            <td style={{ padding: '10px 16px', fontSize: 12, fontWeight: 700, color: '#555' }}>소계</td>
+                            <td style={{ padding: '10px 16px', fontSize: 13, fontWeight: 800, color: '#0f2244' }}>{groupSum.toLocaleString()}건</td>
+                            <td style={{ padding: '10px 16px', fontSize: 12, fontWeight: 700, color: '#888' }}>{totalCount ? Math.round(groupSum / totalCount * 100) : 0}%</td>
+                          </tr>
+                        ])
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+          )
+        })()}
 
 
         {/* 결제 내역 탭 */}
