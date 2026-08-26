@@ -233,6 +233,9 @@ export default function Home() {
   const [position, setPosition] = useState('')
   const [companyInfo, setCompanyInfo] = useState('')
   const [content, setContent] = useState('')
+  const [docType, setDocType] = useState<'coverletter' | 'resume'>('coverletter')
+  const [resumeFiles, setResumeFiles] = useState<{ base64: string; fileName: string; sizeLabel: string }[]>([])
+  const [resumeFileError, setResumeFileError] = useState('')
   const [result, setResult] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [loadingStage, setLoadingStage] = useState(0)
@@ -245,6 +248,7 @@ export default function Home() {
   const [confirmType, setConfirmType] = useState<'free' | 'paid'>('free')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const jobPostingInputRef = useRef<HTMLInputElement>(null)
+  const resumeFileInputRef = useRef<HTMLInputElement>(null)
   const [user, setUser] = useState<any>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
   const [authLoading, setAuthLoading] = useState(true)
@@ -390,6 +394,53 @@ export default function Home() {
     setJobPostingError('')
   }
 
+  // 이력서+경력기술서 다중 파일 업로드 (PDF/DOCX, 최대 3개, 파일당 10MB)
+  const RESUME_FILE_MAX_SIZE = 10 * 1024 * 1024 // 10MB
+  const RESUME_FILE_MAX_COUNT = 3
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)}KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)}MB`
+  }
+  const handleResumeFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
+    setResumeFileError('')
+
+    if (resumeFiles.length + files.length > RESUME_FILE_MAX_COUNT) {
+      setResumeFileError(`파일은 최대 ${RESUME_FILE_MAX_COUNT}개까지 업로드 가능합니다.`)
+      e.target.value = ''
+      return
+    }
+
+    files.forEach(file => {
+      const lowerName = file.name.toLowerCase()
+      if (!lowerName.endsWith('.pdf') && !lowerName.endsWith('.docx') && !lowerName.endsWith('.doc')) {
+        setResumeFileError(`${file.name}: PDF 또는 DOCX 파일만 업로드 가능합니다.`)
+        return
+      }
+      if (file.size > RESUME_FILE_MAX_SIZE) {
+        setResumeFileError(`${file.name}: 파일 용량은 10MB 이하만 업로드 가능합니다.`)
+        return
+      }
+
+      const reader = new FileReader()
+      reader.onload = (ev) => {
+        const result = ev.target?.result as string
+        const base64 = result.split(',')[1] || ''
+        setResumeFiles(prev => [...prev, { base64, fileName: file.name, sizeLabel: formatFileSize(file.size) }])
+      }
+      reader.onerror = () => setResumeFileError(`${file.name}: 파일을 읽는 중 오류가 발생했습니다.`)
+      reader.readAsDataURL(file)
+    })
+
+    e.target.value = ''
+  }
+
+  const removeResumeFile = (index: number) => {
+    setResumeFiles(prev => prev.filter((_, i) => i !== index))
+    setResumeFileError('')
+  }
+
   // 어떤 분석 타입인지 계산
   const getAnalyzeMode = (): 'login' | 'paid' | 'both' | 'free' | 'purchase' => {
     if (!user) return 'login'
@@ -400,18 +451,26 @@ export default function Home() {
 
   // 분석 버튼 클릭 시 바로 실행하지 않고 확인 모달을 먼저 띄움
   const openConfirmModal = (type: 'free' | 'paid') => {
-    if (!content.trim()) { setError('자소서 내용을 입력해주세요.'); return }
-    if (content.trim().length < 100) { setError('자소서를 100자 이상 입력해주세요.'); return }
-    if (content.trim().length > 5000) { setError('자소서는 5,000자 이하로 입력해주세요.'); return }
+    if (docType === 'coverletter') {
+      if (!content.trim()) { setError('자소서 내용을 입력해주세요.'); return }
+      if (content.trim().length < 100) { setError('자소서를 100자 이상 입력해주세요.'); return }
+      if (content.trim().length > 5000) { setError('자소서는 5,000자 이하로 입력해주세요.'); return }
+    } else {
+      if (resumeFiles.length === 0) { setError('이력서 또는 경력기술서 파일을 1개 이상 업로드해주세요.'); return }
+    }
     setError('')
     setConfirmType(type)
     setShowConfirmModal(true)
   }
 
   const handleAnalyze = async (type: 'free' | 'paid') => {
-    if (!content.trim()) { setError('자소서 내용을 입력해주세요.'); return }
-    if (content.trim().length < 100) { setError('자소서를 100자 이상 입력해주세요.'); return }
-    if (content.trim().length > 5000) { setError('자소서는 5,000자 이하로 입력해주세요.'); return }
+    if (docType === 'coverletter') {
+      if (!content.trim()) { setError('자소서 내용을 입력해주세요.'); return }
+      if (content.trim().length < 100) { setError('자소서를 100자 이상 입력해주세요.'); return }
+      if (content.trim().length > 5000) { setError('자소서는 5,000자 이하로 입력해주세요.'); return }
+    } else {
+      if (resumeFiles.length === 0) { setError('이력서 또는 경력기술서 파일을 1개 이상 업로드해주세요.'); return }
+    }
     setError(''); setLoading(true); setAnalyzeType(type); setLoadingStage(0)
 
     // 대기 중 단계별 안내 문구 전환 (실제 진행률이 아닌 체감 UX용)
@@ -430,7 +489,13 @@ export default function Home() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ company, position, content, type, jobPostingBase64: type === 'paid' ? jobPostingBase64 : '', companyInfo }),
+        body: JSON.stringify({
+          docType,
+          company, position, content, type,
+          jobPostingBase64: type === 'paid' ? jobPostingBase64 : '',
+          companyInfo,
+          resumeFiles: docType === 'resume' ? resumeFiles.map(f => ({ base64: f.base64, fileName: f.fileName })) : [],
+        }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || '분석 중 오류가 발생했습니다.')
@@ -737,7 +802,7 @@ export default function Home() {
                 <div style={{ fontSize: 40, fontWeight: 900, color: '#0f2244', marginBottom: 4 }}>₩0</div>
                 <div style={{ fontSize: 14, color: '#aaa', marginBottom: 28, paddingBottom: 24, borderBottom: '1px solid #f0ede6' }}>지금 바로 체험</div>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {[{ t: '종합 점수', ok: true }, { t: '전체 총평', ok: true }, { t: '핵심 문제 1가지', ok: true }, { t: '항목별 세부 점수', ok: false }, { t: '문장 단위 개선 제안', ok: false }, { t: '"이런 내용 추가하세요" 제안', ok: false }, { t: '잘 된 점 피드백', ok: false }, { t: '최종 종합 조언', ok: false }].map(item => (
+                  {[{ t: '종합 점수', ok: true }, { t: '전체 총평', ok: true }, { t: '핵심 문제 1가지', ok: true }, { t: '항목별 세부 점수', ok: false }, { t: '구체적 개선 제안', ok: false }, { t: '보완 소재 제안', ok: false }, { t: '잘 된 점 피드백', ok: false }, { t: '최종 종합 조언', ok: false }].map(item => (
                     <li key={item.t} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: item.ok ? '#222' : '#bbb' }}>
                       <span style={{ fontWeight: 800, color: item.ok ? '#10b981' : '#ddd', fontSize: 16, flexShrink: 0 }}>{item.ok ? '✓' : '✗'}</span>{item.t}
                     </li>
@@ -750,7 +815,7 @@ export default function Home() {
                 <div style={{ fontSize: 40, fontWeight: 900, color: '#0f2244', marginBottom: 4 }}>₩2,900</div>
                 <div style={{ fontSize: 14, color: '#aaa', marginBottom: 28, paddingBottom: 24, borderBottom: '1px solid #f0ede6' }}>1회 전체 분석</div>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {['종합 점수', '전체 총평', '핵심 문제 1가지', '항목별 세부 점수', '문장 단위 개선 제안', '"이런 내용 추가하세요" 제안', '잘 된 점 피드백', '최종 종합 조언'].map(item => (
+                  {['종합 점수', '전체 총평', '핵심 문제 1가지', '항목별 세부 점수', '구체적 개선 제안', '보완 소재 제안', '잘 된 점 피드백', '최종 종합 조언'].map(item => (
                     <li key={item} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: '#222' }}><span style={{ fontWeight: 800, color: '#10b981', fontSize: 16, flexShrink: 0 }}>✓</span>{item}</li>
                   ))}
                 </ul>
@@ -762,7 +827,7 @@ export default function Home() {
                 <div style={{ fontSize: 40, fontWeight: 900, color: '#fff', marginBottom: 4 }}>₩9,900</div>
                 <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)', marginBottom: 28, paddingBottom: 24, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>1회당 ₩1,980 · 32% 할인</div>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {['종합 점수', '전체 총평', '핵심 문제 1가지', '항목별 세부 점수', '문장 단위 개선 제안', '"이런 내용 추가하세요" 제안', '잘 된 점 피드백', '최종 종합 조언'].map(item => (
+                  {['종합 점수', '전체 총평', '핵심 문제 1가지', '항목별 세부 점수', '구체적 개선 제안', '보완 소재 제안', '잘 된 점 피드백', '최종 종합 조언'].map(item => (
                     <li key={item} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: 'rgba(255,255,255,0.85)' }}><span style={{ fontWeight: 800, color: '#f0c040', fontSize: 16, flexShrink: 0 }}>✓</span>{item}</li>
                   ))}
                 </ul>
@@ -1003,8 +1068,21 @@ export default function Home() {
                   )}
 
                   <div style={{ borderTop: '1px solid #e8e5dc', paddingTop: 12 }}>
-                    <div style={{ fontSize: 12, color: '#aaa', fontWeight: 600, marginBottom: 5 }}>자소서 <span style={{ color: '#bbb', fontWeight: 400 }}>· {content.length.toLocaleString()}자</span></div>
-                    <p style={{ fontSize: 12, color: '#555', lineHeight: 1.65, margin: 0, whiteSpace: 'pre-wrap' }}>{content}</p>
+                    {docType === 'coverletter' ? (
+                      <>
+                        <div style={{ fontSize: 12, color: '#aaa', fontWeight: 600, marginBottom: 5 }}>자소서 <span style={{ color: '#bbb', fontWeight: 400 }}>· {content.length.toLocaleString()}자</span></div>
+                        <p style={{ fontSize: 12, color: '#555', lineHeight: 1.65, margin: 0, whiteSpace: 'pre-wrap' }}>{content}</p>
+                      </>
+                    ) : (
+                      <>
+                        <div style={{ fontSize: 12, color: '#aaa', fontWeight: 600, marginBottom: 5 }}>첨부 파일 <span style={{ color: '#bbb', fontWeight: 400 }}>· {resumeFiles.length}개</span></div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          {resumeFiles.map((f, i) => (
+                            <p key={i} style={{ fontSize: 12, color: '#555', margin: 0 }}>📄 {f.fileName} <span style={{ color: '#bbb' }}>({f.sizeLabel})</span></p>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </div>
 
                 </div>
@@ -1048,7 +1126,38 @@ export default function Home() {
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-              {/* ── 필수 섹션 ── */}
+              {/* ── 문서 유형 선택 ── */}
+              <div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={() => { setDocType('coverletter'); setError('') }}
+                    style={{
+                      flex: 1, padding: '14px 12px', borderRadius: 12,
+                      border: `2px solid ${docType === 'coverletter' ? '#0f2244' : '#e5e3dc'}`,
+                      background: docType === 'coverletter' ? '#0f2244' : '#faf9f7',
+                      color: docType === 'coverletter' ? '#fff' : '#555',
+                      fontWeight: 800, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
+                    }}
+                  >
+                    ✏️ 자기소개서
+                  </button>
+                  <button
+                    onClick={() => { setDocType('resume'); setError('') }}
+                    style={{
+                      flex: 1, padding: '14px 12px', borderRadius: 12,
+                      border: `2px solid ${docType === 'resume' ? '#0f2244' : '#e5e3dc'}`,
+                      background: docType === 'resume' ? '#0f2244' : '#faf9f7',
+                      color: docType === 'resume' ? '#fff' : '#555',
+                      fontWeight: 800, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
+                    }}
+                  >
+                    📋 이력서·경력기술서
+                  </button>
+                </div>
+              </div>
+
+              {/* ── 필수 섹션: 자기소개서 ── */}
+              {docType === 'coverletter' && (
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <span style={{ background: '#0f2244', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>필수</span>
@@ -1090,6 +1199,49 @@ export default function Home() {
                   <div style={{ position: 'absolute', bottom: 12, right: 16, fontSize: 12, color: '#bbb' }}>{content.length}자</div>
                 </div>
               </div>
+              )}
+
+              {/* ── 필수 섹션: 이력서·경력기술서 ── */}
+              {docType === 'resume' && (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <span style={{ background: '#0f2244', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>필수</span>
+                  <span style={{ fontSize: 13, color: '#aaa', fontWeight: 600 }}>이력서 또는 경력기술서 파일을 업로드해주세요</span>
+                </div>
+                <p style={{ fontSize: 12, color: '#aaa', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  🔒 파일 원본은 저장되지 않으며, 분석 완료 즉시 삭제됩니다.
+                </p>
+
+                {resumeFiles.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+                    {resumeFiles.map((f, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1.5px solid #d1fae5', borderRadius: 10, padding: '10px 14px', background: '#f0fdf4' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                          <span style={{ fontSize: 16 }}>📄</span>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: '#10b981', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.fileName}</span>
+                          <span style={{ fontSize: 11, color: '#aaa', flexShrink: 0 }}>({f.sizeLabel})</span>
+                        </div>
+                        <button onClick={() => removeResumeFile(i)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 16, padding: 4, flexShrink: 0 }}>✕</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {resumeFiles.length < RESUME_FILE_MAX_COUNT && (
+                  <div onClick={() => resumeFileInputRef.current?.click()} style={{ border: '2px dashed #e5e3dc', borderRadius: 12, padding: '20px', textAlign: 'center', cursor: 'pointer', background: '#faf9f7' }}>
+                    <input ref={resumeFileInputRef} type="file" accept=".pdf,.docx,.doc" multiple onChange={handleResumeFileUpload} style={{ display: 'none' }} />
+                    <div style={{ fontSize: 28, marginBottom: 8 }}>📋</div>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: '#0f2244', margin: 0 }}>PDF 또는 DOCX 파일 업로드</p>
+                    <p style={{ fontSize: 12, color: '#aaa', margin: '4px 0 0' }}>클릭하여 업로드 ({resumeFiles.length}/{RESUME_FILE_MAX_COUNT}, 파일당 최대 10MB)</p>
+                    <p style={{ fontSize: 11, color: '#bbb', margin: '6px 0 0', lineHeight: 1.6 }}>이력서와 경력기술서가 별도 파일이라면 함께 첨부해주세요. 한글(hwp) 파일은 PDF로 변환 후 업로드해주세요.</p>
+                  </div>
+                )}
+
+                {resumeFileError && (
+                  <p style={{ fontSize: 12, color: '#ef4444', margin: '8px 0 0' }}>{resumeFileError}</p>
+                )}
+              </div>
+              )}
 
               {/* ── 선택 섹션 ── */}
               <div style={{ borderTop: '1px solid #f0ede6', paddingTop: 24 }}>
@@ -1295,7 +1447,7 @@ export default function Home() {
               result={result}
               company={company}
               position={position}
-              onReanalyze={() => { setStep('analyze'); setResult(null); setContent(''); setFileName(''); removeJobPosting() }}
+              onReanalyze={() => { setStep('analyze'); setResult(null); setContent(''); setFileName(''); setResumeFiles([]); removeJobPosting() }}
             />
           )}
 
@@ -1331,7 +1483,7 @@ export default function Home() {
           )}
 
           {!isPaid && (
-            <button onClick={() => { setStep('analyze'); setResult(null); setContent(''); setFileName(''); removeJobPosting() }} style={{ width: '100%', background: '#fff', color: '#0f2244', border: '2px solid #0f2244', borderRadius: 14, padding: '16px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button onClick={() => { setStep('analyze'); setResult(null); setContent(''); setFileName(''); setResumeFiles([]); removeJobPosting() }} style={{ width: '100%', background: '#fff', color: '#0f2244', border: '2px solid #0f2244', borderRadius: 14, padding: '16px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}>
               다른 자소서 분석하기
             </button>
           )}
