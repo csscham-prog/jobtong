@@ -22,12 +22,24 @@ export async function downloadElementAsPdf(elementId: string, filename: string) 
     margin: [10, 10, 10, 10],
     filename,
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+    // scrollX/scrollY를 명시적으로 0으로 고정 — 안 그러면 html2canvas가
+    // 캡처 시점의 window 스크롤 위치를 기준으로 좌표를 잡아서, 페이지를
+    // 스크롤한 상태(예: 마이페이지에서 히스토리를 한참 내려가서 카드를
+    // 펼친 뒤 다운로드)에서는 캡처 결과 맨 위에 스크롤한 만큼 빈 여백이
+    // 찍히고 그만큼 아래 내용이 밀려 페이지 수도 늘어난다.
+    html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
   }
 
+  const originalScrollX = window.scrollX
+  const originalScrollY = window.scrollY
+
   element.style.display = 'block'
+  // 위 scrollX/scrollY 옵션과 짝을 맞춰 실제 window 스크롤도 맨 위로
+  // 옮겨둔다 (옵션만으로는 일부 html2canvas 버전에서 완전히 상쇄되지
+  // 않는 경우가 있어 이중으로 방어).
+  window.scrollTo(0, 0)
   // 강제 리플로우 + 이중 requestAnimationFrame으로 실제 페인트가 끝날
   // 때까지 기다린 다음 캡처한다 (곧바로 캡처하면 레이아웃이 안 끝난
   // 상태가 찍힐 수 있음).
@@ -40,5 +52,6 @@ export async function downloadElementAsPdf(elementId: string, filename: string) 
     await (window as any).html2pdf().set(opt).from(element).save()
   } finally {
     element.style.display = 'none'
+    window.scrollTo(originalScrollX, originalScrollY)
   }
 }
