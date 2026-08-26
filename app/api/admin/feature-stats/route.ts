@@ -50,15 +50,18 @@ export async function GET(req: NextRequest) {
     const [
       analysisCoverletter,
       analysisResume,
+      consistencyCheck,
     ] = await Promise.all([
       countRows('analyses', q => q.eq('analyze_type', 'paid').eq('doc_type', 'coverletter')),
       countRows('analyses', q => q.eq('analyze_type', 'paid').eq('doc_type', 'resume')),
+      countRows('analyses', q => q.eq('analyze_type', 'consistency').eq('doc_type', 'consistency')),
     ])
 
     return NextResponse.json({
       rows: [
         { group: '정밀 분석', label: '자기소개서', count: analysisCoverletter },
         { group: '정밀 분석', label: '이력서·경력기술서', count: analysisResume },
+        { group: '정합성 검증', label: '자소서↔이력서 대조', count: consistencyCheck },
       ],
     })
   } catch (e) {
