@@ -1410,6 +1410,21 @@ export default function Home() {
             <p style={{ color: '#444', lineHeight: 1.85, fontSize: 15 }}>{result.mainIssue}</p>
           </div>
 
+          {/* AI 작성 흔적 감지 안내 (무료) */}
+          {!isPaid && result.hasAiPatterns && (
+            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 16, padding: '18px 22px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+              <span style={{ fontSize: 20, flexShrink: 0 }}>🕵️</span>
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 700, color: '#991b1b', margin: '0 0 4px' }}>
+                  AI 작성 흔적이 {result.aiPatternCount}건 감지되었어요
+                </p>
+                <p style={{ fontSize: 13, color: '#7f1d1d', margin: 0, lineHeight: 1.6 }}>
+                  최근 기업 AI 서류 심사는 이런 흔적이 있는 지원서를 반려시키는 경향이 있어요. 어떤 문장이 문제인지, 어떻게 고치면 좋은지는 전체 분석에서 확인하실 수 있어요.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* 채용공고 반영 여부 안내 */}
           {isPaid && result.jobPostingApplied && (
             <div style={{ background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: 12, padding: '12px 16px', marginBottom: 16, fontSize: 13, color: '#4338ca', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
