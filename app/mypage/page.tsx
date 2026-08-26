@@ -8,7 +8,7 @@ export default function MyPage() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [analyses, setAnalyses] = useState<any[]>([])
-  const [docTypeFilter, setDocTypeFilter] = useState<'all' | 'coverletter' | 'resume'>('all')
+  const [docTypeFilter, setDocTypeFilter] = useState<'all' | 'coverletter' | 'resume' | 'consistency'>('all')
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<any>(null)
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
@@ -73,7 +73,7 @@ export default function MyPage() {
     { label: '직무 연관성', key: 'relevance', icon: '🎯' },
     { label: '완결성', key: 'completeness', icon: '✅' },
   ]
-  const getDocTypeLabel = (docType: string) => docType === 'resume' ? '이력서·경력기술서' : '자기소개서'
+  const getDocTypeLabel = (docType: string) => docType === 'resume' ? '이력서·경력기술서' : docType === 'consistency' ? '정합성 검증' : '자기소개서'
 
   // PDF에는 실제 결과 화면(PaidResult)과 같은 안내 문구를 담아 일관성을 맞춘다.
   const getUsageSteps = (isResume: boolean) => isResume
@@ -229,6 +229,7 @@ export default function MyPage() {
             { key: 'all', label: '전체' },
             { key: 'coverletter', label: '✏️ 자기소개서' },
             { key: 'resume', label: '📋 이력서·경력기술서' },
+            { key: 'consistency', label: '🔗 정합성 검증' },
           ].map(tab => (
             <button
               key={tab.key}
@@ -284,9 +285,15 @@ export default function MyPage() {
                     <span style={{ background: '#eef2ff', color: '#4338ca', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
                       {getDocTypeLabel(analysis.doc_type || 'coverletter')}
                     </span>
-                    <span style={{ background: analysis.analyze_type === 'paid' ? '#0f2244' : '#f7f6f3', color: analysis.analyze_type === 'paid' ? '#fff' : '#888', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
-                      {analysis.analyze_type === 'paid' ? '전체 분석' : '무료 분석'}
-                    </span>
+                    {analysis.doc_type === 'consistency' ? (
+                      <span style={{ background: '#e6a800', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
+                        무료 검증
+                      </span>
+                    ) : (
+                      <span style={{ background: analysis.analyze_type === 'paid' ? '#0f2244' : '#f7f6f3', color: analysis.analyze_type === 'paid' ? '#fff' : '#888', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
+                        {analysis.analyze_type === 'paid' ? '전체 분석' : '무료 분석'}
+                      </span>
+                    )}
                     <span style={{ background: getScoreColor(analysis.total_score) + '20', color: getScoreColor(analysis.total_score), fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
                       {getScoreLabel(analysis.total_score)}
                     </span>
@@ -297,7 +304,47 @@ export default function MyPage() {
                 </div>
 
                 {/* 펼쳐진 결과 */}
-                {selected?.id === analysis.id && analysis.result_json && (
+                {selected?.id === analysis.id && analysis.result_json && analysis.doc_type === 'consistency' ? (
+                  <div style={{ borderTop: '1px solid #f0ede6', paddingTop: 16 }}>
+                    {/* 종합 총평 */}
+                    <div style={{ marginBottom: 16, padding: '16px', background: '#f7f6f3', borderRadius: 12 }}>
+                      <p style={{ fontSize: 12, fontWeight: 700, color: '#888', marginBottom: 8 }}>📋 종합 총평</p>
+                      <p style={{ fontSize: 14, color: '#333', lineHeight: 1.8, margin: 0 }}>{analysis.result_json.summary}</p>
+                    </div>
+
+                    {/* 잘 연결된 부분 */}
+                    {analysis.result_json.strongAlignments?.length > 0 && (
+                      <div style={{ marginBottom: 16, padding: '14px 16px', background: '#ecfdf5', borderRadius: 12, border: '1px solid #bbf7d0' }}>
+                        <p style={{ fontSize: 12, fontWeight: 700, color: '#065f46', marginBottom: 8 }}>⭐ 일관되게 잘 연결된 부분</p>
+                        {analysis.result_json.strongAlignments.map((p: string, i: number) => (
+                          <p key={i} style={{ fontSize: 13, color: '#065f46', margin: '0 0 4px' }}>✓ {p}</p>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* 보완 필요한 부분 */}
+                    {analysis.result_json.gaps?.length > 0 && (
+                      <div style={{ marginBottom: 16 }}>
+                        <p style={{ fontSize: 12, fontWeight: 700, color: '#888', marginBottom: 10 }}>⚠️ 보완이 필요한 부분</p>
+                        {analysis.result_json.gaps.map((gap: any, i: number) => (
+                          <div key={i} style={{ padding: '14px 16px', background: '#fff', borderRadius: 10, marginBottom: 8, border: '1px solid #ece9e1' }}>
+                            <p style={{ fontSize: 12, fontWeight: 700, color: '#0f2244', margin: '0 0 6px' }}>#{i + 1} {gap.category} ({gap.missingIn} 보완 필요)</p>
+                            <p style={{ fontSize: 13, color: '#555', margin: '0 0 8px', lineHeight: 1.7 }}>{gap.issue}</p>
+                            <div style={{ background: '#ecfdf5', borderRadius: 6, padding: '8px 10px', fontSize: 12, color: '#064e3b' }}>{gap.suggestion}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* 최종 조언 */}
+                    {analysis.result_json.finalAdvice && (
+                      <div style={{ padding: '14px 16px', background: '#0f2244', borderRadius: 12 }}>
+                        <p style={{ fontSize: 12, fontWeight: 700, color: '#e6a800', marginBottom: 8 }}>🎯 최종 조언</p>
+                        <p style={{ fontSize: 13, color: '#b8d9ee', lineHeight: 1.8, margin: 0 }}>{analysis.result_json.finalAdvice}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : selected?.id === analysis.id && analysis.result_json && (
                   <div style={{ borderTop: '1px solid #f0ede6', paddingTop: 16 }}>
 
                     {/* 총평 */}
@@ -381,9 +428,11 @@ export default function MyPage() {
                       </>
                     )}
 
-                    <p style={{ fontSize: 12, color: '#bbb', textAlign: 'right', marginTop: 12, marginBottom: 0 }}>
-                      {analysis.doc_type === 'resume' ? '첨부 문서' : '자소서'} {analysis.content_length?.toLocaleString()}자
-                    </p>
+                    {analysis.doc_type !== 'consistency' && (
+                      <p style={{ fontSize: 12, color: '#bbb', textAlign: 'right', marginTop: 12, marginBottom: 0 }}>
+                        {analysis.doc_type === 'resume' ? '첨부 문서' : '자소서'} {analysis.content_length?.toLocaleString()}자
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
