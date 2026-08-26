@@ -615,7 +615,7 @@ export default function AdminPage() {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ background: '#f7f6f3' }}>
-                      {['이메일', '이름', '가입일', '무료체험', '잔여횟수', '총분석', '역할', '관리'].map(h => (
+                      {['이메일', '이름', '가입일', '무료체험', '잔여횟수', '총분석', '정합성', '역할', '관리'].map(h => (
                         <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#888', whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
@@ -623,7 +623,7 @@ export default function AdminPage() {
                   <tbody>
                     {filteredUsers.length === 0 ? (
                       <tr>
-                        <td colSpan={8} style={{ padding: '40px', textAlign: 'center', color: '#aaa', fontSize: 14 }}>
+                        <td colSpan={9} style={{ padding: '40px', textAlign: 'center', color: '#aaa', fontSize: 14 }}>
                           {searchQuery ? '검색 결과가 없습니다.' : '회원이 없습니다.'}
                         </td>
                       </tr>
@@ -643,6 +643,9 @@ export default function AdminPage() {
                           {u.paid_credits || 0}회
                         </td>
                         <td style={{ padding: '12px 16px', fontSize: 13, color: '#555' }}>{u.total_analyses || 0}건</td>
+                        <td style={{ padding: '12px 16px', fontSize: 14, fontWeight: 600, color: (u.consistency_credits || 0) > 0 ? '#0f2244' : '#aaa' }}>
+                          {u.consistency_credits || 0}회
+                        </td>
                         <td style={{ padding: '12px 16px' }}>
                           <span style={{ background: u.role === 'admin' ? '#EEEDFE' : '#f7f6f3', color: u.role === 'admin' ? '#3C3489' : '#888', fontSize: 11, padding: '3px 8px', borderRadius: 20, fontWeight: 600 }}>
                             {u.role === 'admin' ? 'admin' : 'user'}
