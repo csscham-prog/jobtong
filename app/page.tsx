@@ -1370,40 +1370,16 @@ export default function Home() {
         <Header />
         <div style={{ maxWidth: 680, margin: '0 auto', padding: '48px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-          {/* 분석 타입 표시 + PDF 버튼 */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ flex: 1 }} />
+          {/* 분석 타입 표시 */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <span style={{ background: isPaid ? '#0f2244' : '#f7f6f3', color: isPaid ? '#fff' : '#888', fontSize: 13, fontWeight: 700, padding: '6px 16px', borderRadius: 20 }}>
               {isPaid ? '✓ 전체 분석 결과' : '무료 분석 결과'}
             </span>
-            <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
-              {isPaid && (
-                <button
-                  onClick={async () => {
-                    const element = document.getElementById('pdf-all-content')
-                    if (!element) return
-                    if (!(window as any).html2pdf) {
-                      const script = document.createElement('script')
-                      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'
-                      document.head.appendChild(script)
-                      await new Promise(resolve => { script.onload = resolve })
-                    }
-                    const filename = `잡통_자소서분석_${new Date().toLocaleDateString('ko-KR').replace(/\. /g, '-').replace('.', '')}.pdf`
-                    element.style.display = 'block'
-                    await (window as any).html2pdf().set({
-                      margin: [10, 10, 10, 10], filename,
-                      image: { type: 'jpeg', quality: 0.98 },
-                      html2canvas: { scale: 2, useCORS: true },
-                      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                    }).from(element).save()
-                    element.style.display = 'none'
-                  }}
-                  style={{ background: '#fff', color: '#0f2244', border: '1.5px solid #0f2244', borderRadius: 10, padding: '8px 16px', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  📄 전체 결과 PDF 저장
-                </button>
-              )}
-            </div>
           </div>
+          {/* PDF 다운로드는 아래 상세 리포트(PaidResult)의 버튼을 사용합니다.
+              — 예전에는 여기에도 별도 버튼이 있었는데, 같은 숨김 요소를 놓고
+              PaidResult의 두 버튼과 경합하면서 다운로드 내용이 버튼마다 달라지는
+              원인이 되어 제거했습니다. */}
 
           {/* 종합 점수 */}
           <div style={{ background: '#fff', borderRadius: 20, padding: '40px 36px', border: '1px solid #ece9e1', textAlign: 'center' }}>
