@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { downloadElementAsPdf } from '@/lib/downloadPdf'
 
 interface Score {
   logic?: number
@@ -112,45 +113,12 @@ export default function PaidResult({ result, company, position, docType = 'cover
     // 이미 생성 중일 때 다시 누르면 두 호출이 display 토글을 서로 덮어써서
     // 중간에 캡처가 끊기는(내용이 비거나 일부만 담기는) 문제가 생긴다. 그래서 막는다.
     if (isDownloading) return
-    const element = document.getElementById('pdf-all-content')
-    if (!element) return
-
     setIsDownloading(true)
     try {
-      // html2pdf.js CDN 로드
-      if (!(window as any).html2pdf) {
-        const script = document.createElement('script')
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'
-        document.head.appendChild(script)
-        await new Promise(resolve => { script.onload = resolve })
-      }
-
       const filenamePrefix = isResume ? '잡통_서류분석' : '잡통_자소서분석'
       const filename = `${filenamePrefix}_${new Date().toLocaleDateString('ko-KR').replace(/\. /g, '-').replace('.', '')}.pdf`
-
-      const opt = {
-        margin: [10, 10, 10, 10],
-        filename,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-      }
-
-      // 잠깐 보이게 했다가 PDF 생성 후 다시 숨김.
-      // display:none → block으로 바꾼 직후에는 브라우저가 아직 레이아웃/페인트를
-      // 끝내지 않은 상태라, 바로 html2canvas로 캡처하면 텅 비거나 일부만 그려진
-      // 스크린샷이 찍힌다(첫 클릭에서만 우연히 스크립트 로딩 대기 시간 덕에 괜찮았던 것).
-      // 강제 리플로우 + 두 번의 requestAnimationFrame으로 실제 페인트가 끝날 때까지 기다린다.
-      element.style.display = 'block'
-      void element.offsetHeight
-      await new Promise<void>(resolve => {
-        requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
-      })
-
-      await (window as any).html2pdf().set(opt).from(element).save()
+      await downloadElementAsPdf('pdf-all-content', filename)
     } finally {
-      element.style.display = 'none'
       setIsDownloading(false)
     }
   }
