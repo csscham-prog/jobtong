@@ -76,17 +76,23 @@ export async function POST(req: NextRequest) {
     // 현재 크레딧 조회
     const { data: profile } = await adminSupabase
       .from('profiles')
-      .select('paid_credits')
+      .select('paid_credits, consistency_credits')
       .eq('id', user.id)
       .single()
 
     const currentCredits = profile?.paid_credits || 0
     const newCredits = currentCredits + plan.credits
 
-    // 크레딧 업데이트
+    // 크레딧 업데이트 (5회권 결제 시 정합성 검증 크레딧도 함께 지급)
+    const updatePayload: Record<string, number> = { paid_credits: newCredits }
+    if (planType === 'plan_5') {
+      const currentConsistencyCredits = (profile as any)?.consistency_credits || 0
+      updatePayload.consistency_credits = currentConsistencyCredits + 1
+    }
+
     await adminSupabase
       .from('profiles')
-      .update({ paid_credits: newCredits })
+      .update(updatePayload)
       .eq('id', user.id)
 
     // 결제 내역 저장
@@ -105,7 +111,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       credits: newCredits,
-      message: `${plan.name} 결제가 완료되었습니다. ${plan.credits}회가 충전되었습니다.`,
+      consistencyCreditGranted: planType === 'plan_5',
+      message: planType === 'plan_5'
+        ? `${plan.name} 결제가 완료되었습니다. ${plan.credits}회가 충전되었고, 정합성 검증 1회가 추가로 지급되었습니다.`
+        : `${plan.name} 결제가 완료되었습니다. ${plan.credits}회가 충전되었습니다.`,
     })
 
   } catch (error: any) {
