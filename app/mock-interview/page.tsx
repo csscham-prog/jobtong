@@ -39,6 +39,7 @@ const GUIDELINES = [
 export default function MockInterviewPage() {
   const [authLoading, setAuthLoading] = useState(true)
   const [credits, setCredits] = useState(0)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   const [step, setStep] = useState<'notice' | 'form' | 'interview' | 'summary' | 'result'>('notice')
   const [agreed, setAgreed] = useState(false)
@@ -81,10 +82,11 @@ export default function MockInterviewPage() {
       if (!session) { window.location.href = '/login'; return }
       const { data: profile } = await supabase
         .from('profiles')
-        .select('mock_interview_credits')
+        .select('paid_credits, role')
         .eq('id', session.user.id)
         .single()
-      setCredits(profile?.mock_interview_credits || 0)
+      setCredits(profile?.paid_credits || 0)
+      setIsAdmin(profile?.role === 'admin')
       setAuthLoading(false)
     }
     init()
@@ -436,11 +438,11 @@ export default function MockInterviewPage() {
         <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 24px 60px' }}>
           <h1 style={{ fontSize: 20, fontWeight: 900, color: '#0f2244', margin: '0 0 20px' }}>서류 입력</h1>
 
-          <div style={{ background: credits > 0 ? '#eef2ff' : '#fffbeb', border: `1px solid ${credits > 0 ? '#c7d2fe' : '#fde68a'}`, borderRadius: 14, padding: '14px 18px', marginBottom: 24, fontSize: 13, color: credits > 0 ? '#3730a3' : '#78350f', fontWeight: 700 }}>
-            {credits > 0 ? `보유한 모의 면접 크레딧: ${credits}회` : '보유한 모의 면접 크레딧이 없습니다.'}
+          <div style={{ background: (credits > 0 || isAdmin) ? '#eef2ff' : '#fffbeb', border: `1px solid ${(credits > 0 || isAdmin) ? '#c7d2fe' : '#fde68a'}`, borderRadius: 14, padding: '14px 18px', marginBottom: 24, fontSize: 13, color: (credits > 0 || isAdmin) ? '#3730a3' : '#78350f', fontWeight: 700 }}>
+            {isAdmin ? `관리자 계정 — 크레딧 소모 없이 테스트 가능 (잔여 분석권 ${credits}회)` : credits > 0 ? `잔여 분석권: ${credits}회` : '보유한 분석권이 없습니다.'}
           </div>
 
-          {credits <= 0 ? (
+          {(credits <= 0 && !isAdmin) ? (
             <button onClick={() => window.location.href = '/'} style={{ width: '100%', background: '#0f2244', color: '#fff', border: 'none', borderRadius: 14, padding: '16px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}>
               잡통 홈으로
             </button>
@@ -531,7 +533,7 @@ export default function MockInterviewPage() {
               {error && <p style={{ fontSize: 13, color: '#ef4444', marginBottom: 16 }}>{error}</p>}
 
               <button onClick={openConfirm} style={{ width: '100%', background: '#0f2244', color: '#fff', border: 'none', borderRadius: 14, padding: '18px', fontWeight: 800, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit' }}>
-                모의 면접 시작 (크레딧 1회 사용)
+                모의 면접 시작 (분석권 1회 사용)
               </button>
             </>
           )}
@@ -548,7 +550,7 @@ export default function MockInterviewPage() {
                 {jobPostingFile && <p style={{ margin: 0 }}>📋 채용공고 첨부됨</p>}
               </div>
               <p style={{ fontSize: 13, color: '#991b1b', fontWeight: 700, margin: '0 0 20px' }}>
-                진행 시 모의 면접 크레딧 1회가 즉시 차감돼요. (잔여 {credits}회)
+                {isAdmin ? '관리자 계정은 크레딧이 차감되지 않아요.' : `진행 시 분석권 1회가 즉시 차감돼요. (잔여 ${credits}회)`}
               </p>
               <div style={{ display: 'flex', gap: 10 }}>
                 <button onClick={() => setShowConfirmModal(false)} style={{ flex: 1, background: '#f7f6f3', color: '#444', border: 'none', borderRadius: 12, padding: '13px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>다시 확인</button>
