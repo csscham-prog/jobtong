@@ -1636,21 +1636,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* 정합성 검증 크레딧 오픈 안내 */}
-          {isPaid && result.consistencyCreditGained && (
-            <div style={{ background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', borderRadius: 16, padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-              <div>
-                <p style={{ fontSize: 14, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>🎁 정합성 검증이 새로 열렸어요</p>
-                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', margin: 0, lineHeight: 1.6 }}>
-                  이력서와 자소서가 하나의 지원자 스토리로 읽히는지 무료로 대조 분석해드려요.
-                </p>
-              </div>
-              <button onClick={() => window.location.href = '/consistency-check'} style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 12, padding: '12px 20px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
-                지금 검증하기 →
-              </button>
-            </div>
-          )}
-
           {/* 채용공고 반영 여부 안내 */}
           {isPaid && result.jobPostingApplied && (
             <div style={{ background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: 12, padding: '12px 16px', marginBottom: 16, fontSize: 13, color: '#4338ca', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
