@@ -44,7 +44,8 @@ export default function ConsistencyCheckPage() {
   const [step, setStep] = useState<'form' | 'result'>('form')
   const [company, setCompany] = useState('')
   const [position, setPosition] = useState('')
-  const [jobPostingText, setJobPostingText] = useState('')
+  const [jobPostingFile, setJobPostingFile] = useState<{ base64: string; fileName: string; sizeLabel: string } | null>(null)
+  const [jobPostingFileError, setJobPostingFileError] = useState('')
   const [companyVision, setCompanyVision] = useState('')
   const [copied, setCopied] = useState(false)
   const [coverLetterContent, setCoverLetterContent] = useState('')
@@ -59,6 +60,7 @@ export default function ConsistencyCheckPage() {
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const coverLetterFileInputRef = useRef<HTMLInputElement>(null)
+  const jobPostingFileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const init = async () => {
@@ -148,6 +150,39 @@ export default function ConsistencyCheckPage() {
     e.target.value = ''
   }
 
+  const handleJobPostingFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setJobPostingFileError('')
+
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      setJobPostingFileError('PDF 파일만 업로드 가능합니다.')
+      e.target.value = ''
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setJobPostingFileError('파일 용량은 5MB 이하만 업로드 가능합니다.')
+      e.target.value = ''
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const res = ev.target?.result as string
+      const base64 = res.split(',')[1] || ''
+      setJobPostingFile({ base64, fileName: file.name, sizeLabel: formatFileSize(file.size) })
+    }
+    reader.onerror = () => setJobPostingFileError('파일을 읽는 중 오류가 발생했습니다.')
+    reader.readAsDataURL(file)
+
+    e.target.value = ''
+  }
+
+  const removeJobPostingFile = () => {
+    setJobPostingFile(null)
+    setJobPostingFileError('')
+  }
+
   const validate = () => {
     if (!coverLetterContent.trim()) { setError('자소서 내용을 입력해주세요.'); return false }
     if (coverLetterContent.trim().length < 100) { setError('자소서를 100자 이상 입력해주세요.'); return false }
@@ -183,7 +218,7 @@ export default function ConsistencyCheckPage() {
         body: JSON.stringify({
           company, position,
           companyVision: companyVision.trim(),
-          jobPostingText: jobPostingText.trim(),
+          jobPostingFile: jobPostingFile ? { base64: jobPostingFile.base64, fileName: jobPostingFile.fileName } : null,
           coverLetterContent: coverLetterContent.trim(),
           resumeFiles: resumeFiles.map(f => ({ base64: f.base64, fileName: f.fileName })),
         }),
@@ -586,13 +621,20 @@ export default function ConsistencyCheckPage() {
               </div>
 
               <div>
-                <p style={{ fontSize: 12, fontWeight: 700, color: '#333', margin: '0 0 6px' }}>채용공고</p>
-                <textarea
-                  value={jobPostingText}
-                  onChange={e => setJobPostingText(e.target.value.slice(0, 4000))}
-                  placeholder="채용공고 내용을 붙여넣어주세요"
-                  style={{ width: '100%', minHeight: 100, padding: '13px 14px', borderRadius: 12, border: '1.5px solid #ccc', fontSize: 14, fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box', color: '#222' }}
-                />
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#333', margin: '0 0 6px' }}>채용공고 (PDF)</p>
+                <input ref={jobPostingFileInputRef} type="file" accept=".pdf" onChange={handleJobPostingFileUpload} style={{ display: 'none' }} />
+                {jobPostingFile ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f0fdf4', border: '1.5px solid #d1fae5', borderRadius: 12, padding: '12px 14px' }}>
+                    <span style={{ fontSize: 13, color: '#065f46', fontWeight: 600 }}>📄 {jobPostingFile.fileName} · {jobPostingFile.sizeLabel}</span>
+                    <button onClick={removeJobPostingFile} style={{ background: 'none', border: 'none', color: '#555', cursor: 'pointer', fontSize: 14 }}>✕</button>
+                  </div>
+                ) : (
+                  <div onClick={() => jobPostingFileInputRef.current?.click()} style={{ border: '2px dashed #ccc', borderRadius: 12, padding: '18px', textAlign: 'center', cursor: 'pointer', background: '#faf9f7' }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#444' }}>+ 채용공고 PDF 업로드</span>
+                    <p style={{ fontSize: 11, color: '#777', margin: '4px 0 0' }}>채용공고 페이지를 PDF로 저장해서 올려주세요 · 최대 5MB</p>
+                  </div>
+                )}
+                {jobPostingFileError && <p style={{ fontSize: 12, color: '#ef4444', margin: '6px 0 0' }}>{jobPostingFileError}</p>}
               </div>
             </div>
 
