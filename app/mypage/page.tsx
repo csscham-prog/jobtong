@@ -73,7 +73,7 @@ export default function MyPage() {
     { label: '직무 연관성', key: 'relevance', icon: '🎯' },
     { label: '완결성', key: 'completeness', icon: '✅' },
   ]
-  const getDocTypeLabel = (docType: string) => docType === 'resume' ? '이력서·경력기술서' : docType === 'consistency' ? '정합성 검증' : '자기소개서'
+  const getDocTypeLabel = (docType: string) => docType === 'resume' ? '이력서·경력기술서' : docType === 'consistency' ? '잡통 플러스' : '자기소개서'
 
   // PDF에는 실제 결과 화면(PaidResult)과 같은 안내 문구를 담아 일관성을 맞춘다.
   const getUsageSteps = (isResume: boolean) => isResume
@@ -198,16 +198,16 @@ export default function MyPage() {
               <p style={{ fontSize: 24, fontWeight: 900, margin: '0 0 4px', color: (profile?.consistency_credits || 0) > 0 ? '#f0c040' : '#aaa' }}>
                 {profile?.consistency_credits || 0}
               </p>
-              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', margin: 0 }}>정합성 검증</p>
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', margin: 0 }}>잡통 플러스</p>
             </div>
           </div>
         </div>
 
-        {/* 정합성 검증 크레딧 안내 배너 */}
+        {/* 잡통 플러스 크레딧 안내 배너 */}
         {(profile?.consistency_credits || 0) > 0 && (
           <div style={{ background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', borderRadius: 16, padding: '18px 24px', marginBottom: 28, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
             <div>
-              <p style={{ fontSize: 14, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>🎁 정합성 검증 {profile.consistency_credits}회 사용 가능</p>
+              <p style={{ fontSize: 14, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>🎁 잡통 플러스 {profile.consistency_credits}회 사용 가능</p>
               <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', margin: 0 }}>이력서와 자소서가 하나의 스토리로 읽히는지 무료로 대조 분석해드려요.</p>
             </div>
             <button onClick={() => window.location.href = '/consistency-check'} style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 12, padding: '12px 20px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
@@ -229,7 +229,7 @@ export default function MyPage() {
             { key: 'all', label: '전체' },
             { key: 'coverletter', label: '✏️ 자기소개서' },
             { key: 'resume', label: '📋 이력서·경력기술서' },
-            { key: 'consistency', label: '🔗 정합성 검증' },
+            { key: 'consistency', label: '✨ 잡통 플러스' },
           ].map(tab => (
             <button
               key={tab.key}
