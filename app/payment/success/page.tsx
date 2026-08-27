@@ -107,7 +107,7 @@ export default function PaymentSuccessPage() {
               onClick={() => window.location.href = '/'}
               style={{ width: '100%', background: '#0f2244', color: '#fff', border: 'none', borderRadius: 12, padding: '16px', fontWeight: 700, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit' }}
             >
-              자소서 분석 시작하기 →
+              취업 서류 분석 시작하기 →
             </button>
           </>
         )}
