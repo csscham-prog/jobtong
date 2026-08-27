@@ -615,7 +615,7 @@ export default function AdminPage() {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ background: '#f7f6f3' }}>
-                      {['이메일', '이름', '가입일', '무료체험', '잔여횟수', '총분석', '정합성', '역할', '관리'].map(h => (
+                      {['이메일', '이름', '가입일', '무료체험', '잔여횟수', '총분석', '잡통+', '역할', '관리'].map(h => (
                         <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#888', whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
