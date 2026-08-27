@@ -55,6 +55,20 @@ function SampleResult() {
         suggestion: '"입사 첫 해에는 카카오페이 사용성 개선 TF에 참여해 결제 완료율을 5% 이상 개선하는 것을 첫 목표로 삼겠습니다"처럼 구체적인 직무·지표·시간축으로 포부를 서술하세요.',
         addContent: '카카오의 최근 신규 서비스나 투자 방향(AI, 헬스케어, 금융 등)과 연결해 본인의 성장 방향을 제시하면 시장 이해도와 주체성을 동시에 보여줄 수 있습니다.',
       },
+      {
+        category: '직무 연결성',
+        issue: '보유한 경험들이 카카오 서비스 기획 직무와 어떻게 연결되는지 명시적으로 서술되지 않아, 면접관이 연결고리를 스스로 추론해야 하는 부담이 생깁니다. 자소서는 면접관의 해석에 의존해서는 안 됩니다.',
+        original: '다양한 동아리 활동과 대외활동을 통해 협업 능력과 커뮤니케이션 스킬을 키웠습니다.',
+        suggestion: '"UX 스터디에서 6개월간 매주 앱 서비스를 분석하며 사용자 여정 지도 작성 역량을 키웠고, 이 경험이 카카오 서비스의 사용자 경험 개선 업무에 직접 활용될 것이라 확신합니다"처럼 경험과 직무를 명시적으로 연결하세요.',
+        addContent: '카카오 공식 블로그나 if(kakao) 개발자 컨퍼런스 내용을 인용해 카카오의 기획 방향성을 이해하고 있다는 것을 보여주면 인상적입니다.',
+      },
+      {
+        category: '논리 구조',
+        issue: '각 문단이 독립적으로 구성되어 있어 자소서 전체의 스토리가 하나의 흐름으로 읽히지 않습니다. 면접관은 수백 개의 자소서를 읽기 때문에, 처음부터 끝까지 하나의 메시지로 관통되는 서사가 없으면 기억에 남기 어렵습니다.',
+        original: '저는 항상 사용자의 입장에서 생각하려고 노력합니다. 또한 데이터를 중요시하며 의사결정을 합니다.',
+        suggestion: '"사용자의 불편 → 데이터로 검증 → 해결책 기획 → 실행 및 검증"이라는 일관된 프레임을 자소서 전체에 적용하세요. 지원 동기부터 경험 사례, 입사 후 포부까지 이 흐름 위에서 서술하면 면접관이 "이 사람은 기획자처럼 생각한다"는 인상을 받게 됩니다.',
+        addContent: '카카오가 실제로 사용하는 의사결정 방식(A/B테스트, 데이터 기반 UX 개선 등)을 언급하면 직무 이해도가 높다는 인상을 줄 수 있습니다.',
+      },
     ],
     aiPatternCheck: [
       { patternType: '클리셰 표현', original: '저는 성실하고 꼼꼼한 성격으로, 팀원들과의 소통을 중요시합니다.', suggestion: '성격을 나열하지 말고, 그 성격이 드러난 구체적인 에피소드 하나로 대체하세요.' },
@@ -749,7 +763,11 @@ export default function Home() {
           )}
         </div>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <p className="jobtong-slogan" style={{ fontWeight: 800, margin: 0, letterSpacing: '-0.5px', lineHeight: 1.3, textAlign: 'center' }}>
+          <p
+            className="jobtong-slogan"
+            onClick={() => window.location.href = '/'}
+            style={{ fontWeight: 800, margin: 0, letterSpacing: '-0.5px', lineHeight: 1.3, textAlign: 'center', cursor: 'pointer' }}
+          >
             <span style={{ color: '#0f2244' }}>취업을 위한 정직한 조언,&nbsp;</span>
             <span style={{ color: '#e6a800' }}>잡통의 바른 서류 전형 검토</span>
           </p>
