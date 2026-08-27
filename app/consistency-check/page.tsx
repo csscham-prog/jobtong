@@ -45,6 +45,7 @@ export default function ConsistencyCheckPage() {
   const [company, setCompany] = useState('')
   const [position, setPosition] = useState('')
   const [jobPostingText, setJobPostingText] = useState('')
+  const [companyVision, setCompanyVision] = useState('')
   const [copied, setCopied] = useState(false)
   const [coverLetterContent, setCoverLetterContent] = useState('')
   const [coverLetterFileError, setCoverLetterFileError] = useState('')
@@ -181,6 +182,7 @@ export default function ConsistencyCheckPage() {
         },
         body: JSON.stringify({
           company, position,
+          companyVision: companyVision.trim(),
           jobPostingText: jobPostingText.trim(),
           coverLetterContent: coverLetterContent.trim(),
           resumeFiles: resumeFiles.map(f => ({ base64: f.base64, fileName: f.fileName })),
@@ -474,14 +476,30 @@ export default function ConsistencyCheckPage() {
       <Header />
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 24px 60px' }}>
 
-        <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 900, color: '#0f2244', margin: '0 0 8px' }}>잡통 플러스 · 정합성 검증</h1>
-          <p style={{ fontSize: 14, color: '#888', lineHeight: 1.7, margin: 0 }}>
-            두 문서가 하나의 지원자 스토리로 일관되게 읽히는지 정밀 대조합니다. 개인정보처리방침에 따라 원문은 저장되지 않습니다.
+        <div style={{ marginBottom: 20 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 900, color: '#0f2244', margin: '0 0 8px' }}>잡통 플러스</h1>
+          <p style={{ fontSize: 14, color: '#444', lineHeight: 1.7, margin: 0 }}>
+            이력서와 자기소개서를 함께 넣으시면, 아래 3가지를 한 번에 받아보실 수 있어요. 개인정보처리방침에 따라 원문은 저장되지 않습니다.
           </p>
         </div>
 
-        <div style={{ background: credits > 0 ? '#eef2ff' : '#fffbeb', border: `1px solid ${credits > 0 ? '#c7d2fe' : '#fde68a'}`, borderRadius: 14, padding: '14px 18px', marginBottom: 24, fontSize: 13, color: credits > 0 ? '#4338ca' : '#92400e', fontWeight: 600 }}>
+        <div style={{ background: '#fff', border: '1px solid #ece9e1', borderRadius: 16, padding: '18px 20px', marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {[
+            { icon: '🔗', title: '정합성 검증', desc: '이력서·자소서가 하나의 지원자 스토리로 읽히는지 대조 분석' },
+            { icon: '🎤', title: '예상 면접 질문 5개', desc: '서류 내용에서 실제로 파생된 질문 + 근거 + 답변 팁' },
+            { icon: '🗣️', title: '1분 자기소개 스크립트', desc: '가장 강력한 강점을 중심으로 구성한 실전 스크립트' },
+          ].map(item => (
+            <div key={item.title} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+              <span style={{ fontSize: 20, flexShrink: 0 }}>{item.icon}</span>
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 700, color: '#0f2244', margin: '0 0 2px' }}>{item.title}</p>
+                <p style={{ fontSize: 13, color: '#555', margin: 0, lineHeight: 1.6 }}>{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ background: credits > 0 ? '#eef2ff' : '#fffbeb', border: `1px solid ${credits > 0 ? '#c7d2fe' : '#fde68a'}`, borderRadius: 14, padding: '14px 18px', marginBottom: 24, fontSize: 13, color: credits > 0 ? '#3730a3' : '#78350f', fontWeight: 700 }}>
           {credits > 0
             ? `🎁 사용 가능한 잡통 플러스: ${credits}회`
             : '5회권을 결제하시면 잡통 플러스가 무료로 1회 지급됩니다.'}
@@ -493,27 +511,10 @@ export default function ConsistencyCheckPage() {
           </button>
         ) : (
           <>
-            <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-              <input value={company} onChange={e => setCompany(e.target.value)} placeholder="지원 회사 (선택)" style={{ flex: 1, padding: '13px 14px', borderRadius: 12, border: '1.5px solid #e5e3dc', fontSize: 14, fontFamily: 'inherit' }} />
-              <input value={position} onChange={e => setPosition(e.target.value)} placeholder="지원 직무 (선택)" style={{ flex: 1, padding: '13px 14px', borderRadius: 12, border: '1.5px solid #e5e3dc', fontSize: 14, fontFamily: 'inherit' }} />
-            </div>
-
+            {/* 1순위: 이력서·경력기술서 파일 */}
             <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', padding: '20px', marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#0f2244', marginBottom: 4 }}>📋 채용공고 (선택)</div>
-              <p style={{ fontSize: 11, color: '#aaa', margin: '0 0 10px', lineHeight: 1.6 }}>
-                붙여넣으시면 면접 예상 질문과 1분 자기소개가 공고 요구사항까지 반영해 더 정교해져요.
-              </p>
-              <textarea
-                value={jobPostingText}
-                onChange={e => setJobPostingText(e.target.value.slice(0, 4000))}
-                placeholder="채용공고 내용을 붙여넣어주세요 (선택)"
-                style={{ width: '100%', minHeight: 100, padding: '14px', borderRadius: 12, border: '1.5px solid #e5e3dc', fontSize: 14, fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box' }}
-              />
-            </div>
-
-            <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', padding: '20px', marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#0f2244', marginBottom: 4 }}>📄 이력서 · 경력기술서 파일</div>
-              <p style={{ fontSize: 11, color: '#aaa', margin: '0 0 12px', lineHeight: 1.6 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#0f2244', marginBottom: 4 }}>📄 이력서 · 경력기술서 파일 <span style={{ color: '#ef4444' }}>*</span></div>
+              <p style={{ fontSize: 12, color: '#555', margin: '0 0 12px', lineHeight: 1.6 }}>
                 이력서와 경력기술서가 별도 파일이라면 최대 3개까지 함께 첨부해주세요. 파일 안에 자기소개서 내용도 포함되어 있다면, 아래 자기소개서 칸에 그 부분만 복사해서 붙여넣어주세요.
               </p>
               <input ref={fileInputRef} type="file" accept=".pdf,.docx,.doc" multiple onChange={handleResumeFileUpload} style={{ display: 'none' }} />
@@ -523,30 +524,31 @@ export default function ConsistencyCheckPage() {
                   if (f) {
                     return (
                       <div key={slot} style={{ border: '1.5px solid #d1fae5', borderRadius: 12, padding: '14px 10px', background: '#f0fdf4', position: 'relative', textAlign: 'center', minHeight: 96, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                        <button onClick={() => removeResumeFile(slot)} style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,0.06)', border: 'none', borderRadius: '50%', width: 20, height: 20, color: '#888', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>✕</button>
+                        <button onClick={() => removeResumeFile(slot)} style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,0.06)', border: 'none', borderRadius: '50%', width: 20, height: 20, color: '#555', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>✕</button>
                         <span style={{ fontSize: 20, marginBottom: 4 }}>📄</span>
                         <span style={{ fontSize: 12, fontWeight: 700, color: '#10b981', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%', padding: '0 4px' }}>{f.fileName}</span>
-                        <span style={{ fontSize: 10, color: '#aaa', marginTop: 2 }}>{f.sizeLabel}</span>
+                        <span style={{ fontSize: 11, color: '#666', marginTop: 2 }}>{f.sizeLabel}</span>
                       </div>
                     )
                   }
                   return (
-                    <div key={slot} onClick={() => fileInputRef.current?.click()} style={{ border: '2px dashed #e5e3dc', borderRadius: 12, padding: '14px 10px', textAlign: 'center', cursor: 'pointer', background: '#faf9f7', minHeight: 96, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                      <span style={{ fontSize: 22, color: '#bbb', marginBottom: 4 }}>+</span>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: '#555' }}>파일 업로드</span>
-                      <span style={{ fontSize: 10, color: '#bbb', marginTop: 2 }}>PDF · DOCX</span>
+                    <div key={slot} onClick={() => fileInputRef.current?.click()} style={{ border: '2px dashed #ccc', borderRadius: 12, padding: '14px 10px', textAlign: 'center', cursor: 'pointer', background: '#faf9f7', minHeight: 96, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ fontSize: 22, color: '#999', marginBottom: 4 }}>+</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#444' }}>파일 업로드</span>
+                      <span style={{ fontSize: 11, color: '#777', marginTop: 2 }}>PDF · DOCX</span>
                     </div>
                   )
                 })}
               </div>
-              <p style={{ fontSize: 11, color: '#aaa', margin: '8px 0 0', textAlign: 'right' }}>{resumeFiles.length}/{RESUME_FILE_MAX_COUNT} · 파일당 최대 10MB</p>
+              <p style={{ fontSize: 12, color: '#666', margin: '8px 0 0', textAlign: 'right' }}>{resumeFiles.length}/{RESUME_FILE_MAX_COUNT} · 파일당 최대 10MB</p>
               {resumeFileError && <p style={{ fontSize: 12, color: '#ef4444', margin: '8px 0 0' }}>{resumeFileError}</p>}
             </div>
 
-            <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', padding: '20px', marginBottom: 20 }}>
+            {/* 2순위: 자기소개서 */}
+            <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', padding: '20px', marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#0f2244' }}>✍️ 자기소개서</div>
-                <button onClick={() => coverLetterFileInputRef.current?.click()} style={{ background: '#f7f6f3', color: '#555', border: '1px solid #e5e3dc', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#0f2244' }}>✍️ 자기소개서 <span style={{ color: '#ef4444' }}>*</span></div>
+                <button onClick={() => coverLetterFileInputRef.current?.click()} style={{ background: '#f7f6f3', color: '#333', border: '1px solid #ccc', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                   📎 TXT 파일 불러오기
                 </button>
                 <input ref={coverLetterFileInputRef} type="file" accept=".txt" onChange={handleCoverLetterFileUpload} style={{ display: 'none' }} />
@@ -555,10 +557,43 @@ export default function ConsistencyCheckPage() {
                 value={coverLetterContent}
                 onChange={e => setCoverLetterContent(e.target.value)}
                 placeholder="자기소개서 내용을 붙여넣거나, TXT 파일을 불러와주세요 (100자 이상, 5,000자 이하)"
-                style={{ width: '100%', minHeight: 180, padding: '14px', borderRadius: 12, border: '1.5px solid #e5e3dc', fontSize: 14, fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box' }}
+                style={{ width: '100%', minHeight: 180, padding: '14px', borderRadius: 12, border: '1.5px solid #ccc', fontSize: 14, fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box', color: '#222' }}
               />
               {coverLetterFileError && <p style={{ fontSize: 12, color: '#ef4444', margin: '6px 0 0' }}>{coverLetterFileError}</p>}
-              <p style={{ fontSize: 11, color: '#aaa', margin: '6px 0 0', textAlign: 'right' }}>{coverLetterContent.trim().length} / 5,000자</p>
+              <p style={{ fontSize: 12, color: '#666', margin: '6px 0 0', textAlign: 'right' }}>{coverLetterContent.trim().length} / 5,000자</p>
+            </div>
+
+            {/* 3순위: 선택 항목 */}
+            <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', padding: '20px', marginBottom: 20 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#0f2244', marginBottom: 4 }}>➕ 추가 정보 (선택)</div>
+              <p style={{ fontSize: 12, color: '#555', margin: '0 0 14px', lineHeight: 1.6 }}>
+                입력하실수록 면접 예상 질문과 1분 자기소개가 더 정교해져요.
+              </p>
+
+              <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+                <input value={company} onChange={e => setCompany(e.target.value)} placeholder="회사명" style={{ flex: 1, padding: '13px 14px', borderRadius: 12, border: '1.5px solid #ccc', fontSize: 14, fontFamily: 'inherit', color: '#222' }} />
+                <input value={position} onChange={e => setPosition(e.target.value)} placeholder="채용 직무" style={{ flex: 1, padding: '13px 14px', borderRadius: 12, border: '1.5px solid #ccc', fontSize: 14, fontFamily: 'inherit', color: '#222' }} />
+              </div>
+
+              <div style={{ marginBottom: 10 }}>
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#333', margin: '0 0 6px' }}>회사의 비전·인재상</p>
+                <textarea
+                  value={companyVision}
+                  onChange={e => setCompanyVision(e.target.value.slice(0, 1000))}
+                  placeholder="회사 홈페이지 등에서 확인한 비전·인재상을 붙여넣어주세요"
+                  style={{ width: '100%', minHeight: 70, padding: '13px 14px', borderRadius: 12, border: '1.5px solid #ccc', fontSize: 14, fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box', color: '#222' }}
+                />
+              </div>
+
+              <div>
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#333', margin: '0 0 6px' }}>채용공고</p>
+                <textarea
+                  value={jobPostingText}
+                  onChange={e => setJobPostingText(e.target.value.slice(0, 4000))}
+                  placeholder="채용공고 내용을 붙여넣어주세요"
+                  style={{ width: '100%', minHeight: 100, padding: '13px 14px', borderRadius: 12, border: '1.5px solid #ccc', fontSize: 14, fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box', color: '#222' }}
+                />
+              </div>
             </div>
 
             {error && <p style={{ fontSize: 13, color: '#ef4444', marginBottom: 16 }}>{error}</p>}
@@ -575,11 +610,11 @@ export default function ConsistencyCheckPage() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 24 }}>
           <div style={{ background: '#fff', borderRadius: 20, padding: '28px 26px', maxWidth: 340, width: '100%' }}>
             <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0f2244', margin: '0 0 10px' }}>잡통 플러스를 시작할까요?</h3>
-            <p style={{ fontSize: 13, color: '#888', lineHeight: 1.7, margin: '0 0 20px' }}>
+            <p style={{ fontSize: 13, color: '#555', lineHeight: 1.7, margin: '0 0 20px' }}>
               보유하신 무료 잡통 플러스 1회가 사용됩니다. (잔여 {credits}회)
             </p>
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setShowConfirmModal(false)} style={{ flex: 1, background: '#f7f6f3', color: '#888', border: 'none', borderRadius: 12, padding: '13px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>취소</button>
+              <button onClick={() => setShowConfirmModal(false)} style={{ flex: 1, background: '#f7f6f3', color: '#444', border: 'none', borderRadius: 12, padding: '13px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>취소</button>
               <button onClick={handleAnalyze} style={{ flex: 1, background: '#0f2244', color: '#fff', border: 'none', borderRadius: 12, padding: '13px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>시작하기</button>
             </div>
           </div>
