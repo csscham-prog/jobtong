@@ -18,12 +18,21 @@ interface Gap {
   suggestion: string
 }
 
+interface InterviewQuestion {
+  question: string
+  basis: string
+  tip: string
+}
+
 interface ConsistencyResult {
   matchScore: number
   summary: string
   strongAlignments: string[]
   gaps: Gap[]
   finalAdvice: string
+  interviewQuestions?: InterviewQuestion[]
+  selfIntroScript?: string
+  selfIntroBasis?: string
   resumeFileWarning?: string
 }
 
@@ -35,6 +44,8 @@ export default function ConsistencyCheckPage() {
   const [step, setStep] = useState<'form' | 'result'>('form')
   const [company, setCompany] = useState('')
   const [position, setPosition] = useState('')
+  const [jobPostingText, setJobPostingText] = useState('')
+  const [copied, setCopied] = useState(false)
   const [coverLetterContent, setCoverLetterContent] = useState('')
   const [coverLetterFileError, setCoverLetterFileError] = useState('')
   const [isDownloading, setIsDownloading] = useState(false)
@@ -170,6 +181,7 @@ export default function ConsistencyCheckPage() {
         },
         body: JSON.stringify({
           company, position,
+          jobPostingText: jobPostingText.trim(),
           coverLetterContent: coverLetterContent.trim(),
           resumeFiles: resumeFiles.map(f => ({ base64: f.base64, fileName: f.fileName })),
         }),
@@ -317,6 +329,62 @@ export default function ConsistencyCheckPage() {
             </div>
           )}
 
+          {result.interviewQuestions && result.interviewQuestions.length > 0 && (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                <span style={{ background: '#e6a800', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>잡통 플러스</span>
+                <h3 style={{ fontSize: 18, fontWeight: 900, color: '#0f2244', margin: 0 }}>🎤 예상 면접 질문</h3>
+              </div>
+              <p style={{ fontSize: 13, color: '#888', margin: '4px 0 4px', lineHeight: 1.7 }}>
+                제출하신 서류에서 실제로 파생된 질문이에요. 뻔한 일반 질문은 넣지 않았어요.
+              </p>
+              {result.interviewQuestions.map((q, i) => (
+                <div key={i} style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', padding: '20px 22px' }}>
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 12 }}>
+                    <span style={{ background: '#0f2244', color: '#fff', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, flexShrink: 0 }}>{i + 1}</span>
+                    <p style={{ fontSize: 15, fontWeight: 700, color: '#0f2244', margin: 0, lineHeight: 1.6 }}>{q.question}</p>
+                  </div>
+                  <div style={{ background: '#f7f6f3', borderRadius: 10, padding: '10px 14px', marginBottom: 8 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#888' }}>이 질문이 나오는 이유</span>
+                    <p style={{ fontSize: 13, color: '#555', margin: '4px 0 0', lineHeight: 1.7 }}>{q.basis}</p>
+                  </div>
+                  <div style={{ background: '#ecfdf5', borderRadius: 10, padding: '10px 14px' }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#065f46' }}>💡 답변 팁</span>
+                    <p style={{ fontSize: 13, color: '#065f46', margin: '4px 0 0', lineHeight: 1.7 }}>{q.tip}</p>
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+
+          {result.selfIntroScript && (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                <span style={{ background: '#e6a800', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>잡통 플러스</span>
+                <h3 style={{ fontSize: 18, fontWeight: 900, color: '#0f2244', margin: 0 }}>🗣️ 1분 자기소개 스크립트</h3>
+              </div>
+              <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', padding: '22px' }}>
+                {result.selfIntroBasis && (
+                  <div style={{ background: '#eef2ff', borderRadius: 10, padding: '10px 14px', marginBottom: 14 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#4338ca' }}>왜 이 내용으로 구성했는지</span>
+                    <p style={{ fontSize: 13, color: '#3730a3', margin: '4px 0 0', lineHeight: 1.7 }}>{result.selfIntroBasis}</p>
+                  </div>
+                )}
+                <p style={{ fontSize: 15, color: '#333', lineHeight: 1.9, whiteSpace: 'pre-wrap', margin: '0 0 14px' }}>{result.selfIntroScript}</p>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(result.selfIntroScript || '')
+                    setCopied(true)
+                    setTimeout(() => setCopied(false), 2000)
+                  }}
+                  style={{ background: copied ? '#10b981' : '#f7f6f3', color: copied ? '#fff' : '#555', border: 'none', borderRadius: 10, padding: '10px 18px', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  {copied ? '✓ 복사됐어요' : '📋 스크립트 복사'}
+                </button>
+              </div>
+            </>
+          )}
+
           <button
             onClick={() => window.location.href = '/'}
             style={{ width: '100%', background: '#fff', color: '#0f2244', border: '2px solid #0f2244', borderRadius: 14, padding: '16px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}
@@ -372,6 +440,27 @@ export default function ConsistencyCheckPage() {
                   <p style={{ fontSize: 13, color: '#b8d9ee', lineHeight: 1.8, margin: 0 }}>{result.finalAdvice}</p>
                 </div>
               )}
+
+              {result.interviewQuestions && result.interviewQuestions.length > 0 && (
+                <div style={{ marginTop: 20 }}>
+                  <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0f2244', marginBottom: 16 }}>🎤 예상 면접 질문 (잡통 플러스)</h2>
+                  {result.interviewQuestions.map((q, i) => (
+                    <div key={i} style={{ padding: '14px 18px', background: '#fff', borderRadius: 10, marginBottom: 10, border: '1px solid #ece9e1' }}>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: '#0f2244', margin: '0 0 6px' }}>{i + 1}. {q.question}</p>
+                      <p style={{ fontSize: 12, color: '#888', margin: '0 0 4px' }}>근거: {q.basis}</p>
+                      <p style={{ fontSize: 12, color: '#065f46', margin: 0 }}>답변 팁: {q.tip}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {result.selfIntroScript && (
+                <div style={{ marginTop: 20, padding: '20px 24px', background: '#f7f6f3', borderRadius: 12 }}>
+                  <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0f2244', marginBottom: 10 }}>🗣️ 1분 자기소개 스크립트 (잡통 플러스)</h2>
+                  {result.selfIntroBasis && <p style={{ fontSize: 12, color: '#4338ca', margin: '0 0 10px' }}>{result.selfIntroBasis}</p>}
+                  <p style={{ fontSize: 13, color: '#333', lineHeight: 1.8, margin: 0, whiteSpace: 'pre-wrap' }}>{result.selfIntroScript}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -407,6 +496,19 @@ export default function ConsistencyCheckPage() {
             <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
               <input value={company} onChange={e => setCompany(e.target.value)} placeholder="지원 회사 (선택)" style={{ flex: 1, padding: '13px 14px', borderRadius: 12, border: '1.5px solid #e5e3dc', fontSize: 14, fontFamily: 'inherit' }} />
               <input value={position} onChange={e => setPosition(e.target.value)} placeholder="지원 직무 (선택)" style={{ flex: 1, padding: '13px 14px', borderRadius: 12, border: '1.5px solid #e5e3dc', fontSize: 14, fontFamily: 'inherit' }} />
+            </div>
+
+            <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', padding: '20px', marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#0f2244', marginBottom: 4 }}>📋 채용공고 (선택)</div>
+              <p style={{ fontSize: 11, color: '#aaa', margin: '0 0 10px', lineHeight: 1.6 }}>
+                붙여넣으시면 면접 예상 질문과 1분 자기소개가 공고 요구사항까지 반영해 더 정교해져요.
+              </p>
+              <textarea
+                value={jobPostingText}
+                onChange={e => setJobPostingText(e.target.value.slice(0, 4000))}
+                placeholder="채용공고 내용을 붙여넣어주세요 (선택)"
+                style={{ width: '100%', minHeight: 100, padding: '14px', borderRadius: 12, border: '1.5px solid #e5e3dc', fontSize: 14, fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box' }}
+              />
             </div>
 
             <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', padding: '20px', marginBottom: 16 }}>
