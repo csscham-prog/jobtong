@@ -364,8 +364,8 @@ export default function MockInterviewPage() {
       <main style={base}>
         <Header />
         <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 24px 60px' }}>
-          <h1 style={{ fontSize: 22, fontWeight: 900, color: '#0f2244', margin: '0 0 8px' }}>모의 면접</h1>
-          <p style={{ fontSize: 14, color: '#444', lineHeight: 1.7, margin: '0 0 28px' }}>
+          <h1 style={{ fontSize: 26, fontWeight: 900, color: '#0f2244', margin: '0 0 10px' }}>모의 면접</h1>
+          <p style={{ fontSize: 16, color: '#444', lineHeight: 1.7, margin: '0 0 28px' }}>
             서류 기반 맞춤 질문 5개에 실제로 답변하고, AI에게 정밀 피드백을 받아보세요.
           </p>
 
@@ -377,10 +377,10 @@ export default function MockInterviewPage() {
                 { icon: '🎬', title: '시작하기', desc: '이 시점에\n크레딧 차감', accent: true },
                 { icon: '🤖', title: '질문 5개 생성', desc: '서류 기반\n맞춤 질문' },
               ].map((s, i) => (
-                <div key={i} style={{ flex: 1, background: s.accent ? 'rgba(230,168,0,0.1)' : 'rgba(255,255,255,0.06)', border: s.accent ? '1px solid rgba(230,168,0,0.3)' : '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: '12px 8px', textAlign: 'center' }}>
-                  <div style={{ fontSize: 18, marginBottom: 4 }}>{s.icon}</div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: s.accent ? '#f0c040' : '#fff', marginBottom: 2 }}>{s.title}</div>
-                  <div style={{ fontSize: 9.5, color: s.accent ? 'rgba(240,192,64,0.75)' : 'rgba(255,255,255,0.55)', lineHeight: 1.4, whiteSpace: 'pre-line' }}>{s.desc}</div>
+                <div key={i} style={{ flex: 1, background: s.accent ? 'rgba(230,168,0,0.1)' : 'rgba(255,255,255,0.06)', border: s.accent ? '1px solid rgba(230,168,0,0.3)' : '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: '16px 10px', textAlign: 'center' }}>
+                  <div style={{ fontSize: 24, marginBottom: 6 }}>{s.icon}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: s.accent ? '#f0c040' : '#fff', marginBottom: 4 }}>{s.title}</div>
+                  <div style={{ fontSize: 12.5, color: s.accent ? 'rgba(240,192,64,0.8)' : 'rgba(255,255,255,0.65)', lineHeight: 1.5, whiteSpace: 'pre-line' }}>{s.desc}</div>
                 </div>
               ))}
             </div>
@@ -391,10 +391,10 @@ export default function MockInterviewPage() {
                 { icon: '🧠', title: '분석하기', desc: '5개 답변\n종합 분석' },
                 { icon: '📋', title: '결과 확인', desc: '피드백\n리포트', accent: true },
               ].map((s, i) => (
-                <div key={i} style={{ flex: 1, background: s.accent ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.06)', border: s.accent ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: '12px 8px', textAlign: 'center' }}>
-                  <div style={{ fontSize: 18, marginBottom: 4 }}>{s.icon}</div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: s.accent ? '#6ee7b7' : '#fff', marginBottom: 2 }}>{s.title}</div>
-                  <div style={{ fontSize: 9.5, color: s.accent ? 'rgba(110,231,183,0.75)' : 'rgba(255,255,255,0.55)', lineHeight: 1.4, whiteSpace: 'pre-line' }}>{s.desc}</div>
+                <div key={i} style={{ flex: 1, background: s.accent ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.06)', border: s.accent ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: '16px 10px', textAlign: 'center' }}>
+                  <div style={{ fontSize: 24, marginBottom: 6 }}>{s.icon}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: s.accent ? '#6ee7b7' : '#fff', marginBottom: 4 }}>{s.title}</div>
+                  <div style={{ fontSize: 12.5, color: s.accent ? 'rgba(110,231,183,0.8)' : 'rgba(255,255,255,0.65)', lineHeight: 1.5, whiteSpace: 'pre-line' }}>{s.desc}</div>
                 </div>
               ))}
             </div>
@@ -402,12 +402,12 @@ export default function MockInterviewPage() {
 
           {/* 주의사항 */}
           <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 16, padding: '20px 22px', marginBottom: 20 }}>
-            <p style={{ fontSize: 14, fontWeight: 800, color: '#92400e', margin: '0 0 12px' }}>⚠️ 시작하기 전에 꼭 확인해주세요</p>
+            <p style={{ fontSize: 17, fontWeight: 800, color: '#92400e', margin: '0 0 14px' }}>⚠️ 시작하기 전에 꼭 확인해주세요</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {GUIDELINES.map((g, i) => (
                 <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: 12, fontWeight: 800, color: '#92400e', flexShrink: 0, marginTop: 1 }}>{i + 1}.</span>
-                  <p style={{ fontSize: 13, color: '#78350f', lineHeight: 1.7, margin: 0 }}>{g}</p>
+                  <span style={{ fontSize: 15, fontWeight: 800, color: '#92400e', flexShrink: 0, marginTop: 1 }}>{i + 1}.</span>
+                  <p style={{ fontSize: 15, color: '#78350f', lineHeight: 1.8, margin: 0 }}>{g}</p>
                 </div>
               ))}
             </div>
@@ -415,7 +415,7 @@ export default function MockInterviewPage() {
 
           <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, cursor: 'pointer' }}>
             <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} style={{ width: 18, height: 18 }} />
-            <span style={{ fontSize: 14, color: '#222', fontWeight: 600 }}>위 내용을 모두 확인했으며 동의합니다</span>
+            <span style={{ fontSize: 16, color: '#222', fontWeight: 600 }}>위 내용을 모두 확인했으며 동의합니다</span>
           </label>
 
           <button
