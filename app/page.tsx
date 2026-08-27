@@ -502,8 +502,9 @@ export default function Home() {
     setUser(null); setUserProfile(null); setStep('landing')
   }
 
-  const handleStartAnalyze = () => {
+  const handleStartAnalyze = (targetDocType?: 'coverletter' | 'resume') => {
     if (!user) { window.location.href = '/login'; return }
+    if (targetDocType) setDocType(targetDocType)
     setStep('analyze')
   }
 
@@ -922,6 +923,54 @@ export default function Home() {
                   <p style={{ fontSize: 15, color: '#444', lineHeight: 1.85 }}>{item.desc}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── FEATURES 섹션 ── */}
+        <section style={{ background: '#0f2244', padding: '72px 24px 56px' }}>
+          <div style={{ maxWidth: 900, margin: '0 auto' }}>
+
+            <div style={{ textAlign: 'center', marginBottom: 44 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.15em', marginBottom: 14 }}>FEATURES</div>
+              <h2 style={{ fontSize: 28, fontWeight: 900, color: '#fff', marginBottom: 10, letterSpacing: '-0.5px' }}>취준생을 위한 잡통의 기능</h2>
+              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.55)', margin: 0 }}>정밀 분석부터 진정성 검증까지, 잡통 하나로 끝내세요</p>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <span style={{ fontSize: 15 }}>📄</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>서류 정밀 분석</span>
+              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.12)' }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16, marginBottom: 32 }}>
+              <div onClick={() => handleStartAnalyze('coverletter')} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: 22, cursor: 'pointer' }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 10 }}>✏️ 자기소개서 분석</div>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.62)', lineHeight: 1.75, marginBottom: 12 }}>논리성·구체성·직무적합성·표현력 4개 항목을 채점하고, 왜 서류 통과가 어려운지 핵심 문제를 짚어드려요. 문장 하나하나를 BEFORE·AFTER로 비교해 구체적으로 어떻게 고치면 되는지까지 알려드려요.</div>
+                <div style={{ fontSize: 11.5, color: 'rgba(240,192,64,0.85)' }}>✓ 채용공고 반영 &nbsp;·&nbsp; ✓ 강점 피드백 &nbsp;·&nbsp; ✓ 최종 합격 전략</div>
+              </div>
+              <div onClick={() => handleStartAnalyze('resume')} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: 22, cursor: 'pointer' }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 10 }}>📋 이력서·경력기술서 분석</div>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.62)', lineHeight: 1.75, marginBottom: 12 }}>구조·가독성, 성과 정량화, 직무 연관성, 완결성 4가지 기준으로 채점해요. 채용담당자가 6초 안에 핵심을 파악할 수 있는 구조인지, 성과가 수치로 증명되는지까지 세밀하게 진단해드려요.</div>
+                <div style={{ fontSize: 11.5, color: 'rgba(240,192,64,0.85)' }}>✓ PDF·DOCX 지원 &nbsp;·&nbsp; ✓ 최대 3개 파일 첨부 &nbsp;·&nbsp; ✓ 개선 제안 6개 이상</div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <span style={{ fontSize: 15 }}>🕵️</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>진정성 검증</span>
+              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.12)' }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
+              <div onClick={() => handleStartAnalyze('coverletter')} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: 22, cursor: 'pointer' }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 10 }}>🤖 AI 작성 흔적 검증</div>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.62)', lineHeight: 1.75, marginBottom: 12 }}>요즘 기업 AI 서류 심사는 AI가 대신 써준 것 같은 지원서를 반려시켜요. 클리셰 표현, AI 서식 남용, 정형화된 구조 등 6가지 패턴을 감지해, 더 사람다운 문장으로 고치는 구체적인 방법을 알려드려요.</div>
+                <div style={{ fontSize: 11.5, color: 'rgba(240,192,64,0.85)' }}>✓ 6가지 패턴 전수 검사 &nbsp;·&nbsp; ✓ 감지 시 수정 제안 포함</div>
+              </div>
+              <div onClick={() => handleStartAnalyze('coverletter')} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: 22, cursor: 'pointer' }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 10 }}>🔤 오탈자·맞춤법 체크</div>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.62)', lineHeight: 1.75, marginBottom: 12 }}>오탈자, 맞춤법, 띄어쓰기, 문장부호까지 문장 단위로 꼼꼼히 훑어드려요. 오류가 있으면 원문과 교정본을 나란히 보여드리고, 없으면 없다고 명확하게 알려드려요.</div>
+                <div style={{ fontSize: 11.5, color: 'rgba(240,192,64,0.85)' }}>✓ 원문 · 교정본 비교 &nbsp;·&nbsp; ✓ 오류 없을 시 명확히 안내</div>
+              </div>
             </div>
           </div>
         </section>
