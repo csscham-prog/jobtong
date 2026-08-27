@@ -941,10 +941,10 @@ export default function Home() {
                   두 문서를 나란히 대조해 어긋난 부분을 짚어드립니다.
                 </p>
                 <p style={{ fontSize: 13, color: '#e6a800', fontWeight: 700, marginBottom: 24 }}>
-                  🎁 이력서·자소서 각 1회 정밀 분석 시 무료 오픈
+                  🎁 5회권 결제 시 무료로 1회 지급
                 </p>
                 <button
-                  onClick={handleStartAnalyze}
+                  onClick={() => window.location.href = '/consistency-check'}
                   style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '16px 36px', fontWeight: 800, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 8px 24px rgba(230,168,0,0.3)' }}
                 >
                   무료로 검증받기 →
