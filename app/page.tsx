@@ -972,6 +972,19 @@ export default function Home() {
                 <div style={{ fontSize: 11.5, color: 'rgba(240,192,64,0.85)' }}>✓ 원문 · 교정본 비교 &nbsp;·&nbsp; ✓ 오류 없을 시 명확히 안내</div>
               </div>
             </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 32, marginBottom: 16 }}>
+              <span style={{ fontSize: 15 }}>🎙️</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>면접 준비</span>
+              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.12)' }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
+              <div onClick={() => window.location.href = '/mock-interview'} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: 22, cursor: 'pointer' }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 10 }}>🎤 모의 면접</div>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.62)', lineHeight: 1.75, marginBottom: 12 }}>서류 기반 맞춤 질문 5개에 직접 음성으로 답변하고, AI가 답변 내용을 6가지 기준으로 정밀 채점해드려요. 실전처럼 즉흥으로 답하는 연습이라 진짜 면접 감각을 키울 수 있어요.</div>
+                <div style={{ fontSize: 11.5, color: 'rgba(240,192,64,0.85)' }}>✓ 서류 기반 맞춤 질문 5개 &nbsp;·&nbsp; ✓ 질문별 정밀 피드백</div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -1432,6 +1445,18 @@ export default function Home() {
                     }}
                   >
                     ✏️ 자기소개서
+                  </button>
+                  <button
+                    onClick={() => window.location.href = '/mock-interview'}
+                    style={{
+                      flex: 1, padding: '14px 12px', borderRadius: 12,
+                      border: '2px solid #e6a800',
+                      background: '#fffbeb',
+                      color: '#92400e',
+                      fontWeight: 800, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
+                    }}
+                  >
+                    🎤 모의 면접
                   </button>
                 </div>
               </div>
