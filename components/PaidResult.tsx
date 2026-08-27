@@ -28,6 +28,11 @@ interface AiPatternCheck {
   suggestion: string
 }
 
+interface TypoCheck {
+  original: string
+  corrected: string
+}
+
 interface AnalysisResult {
   totalScore: number
   summary: string
@@ -39,6 +44,7 @@ interface AnalysisResult {
   hasCoverLetterContent?: boolean
   coverLetterHint?: string
   aiPatternCheck?: AiPatternCheck[]
+  typoCheck?: TypoCheck[]
 }
 
 interface PaidResultProps {
@@ -359,6 +365,34 @@ export default function PaidResult({ result, company, position, docType = 'cover
         </>
       )}
 
+      {/* ── 오탈자·맞춤법 체크 ── */}
+      {result.typoCheck && (
+        <>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 40, marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #0f2244' }}>
+            <span style={{ fontSize: 18 }}>🔤</span>
+            <h2 style={{ fontSize: 18, fontWeight: 900, color: '#0f2244', margin: 0 }}>오탈자·맞춤법 체크</h2>
+          </div>
+          <div style={{ background: '#fff', borderRadius: 20, padding: '28px 32px', border: '1px solid #ece9e1', marginBottom: 16 }}>
+            {result.typoCheck.length === 0 ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 4px' }}>
+                <span style={{ fontSize: 20 }}>✅</span>
+                <p style={{ fontSize: 14, color: '#065f46', fontWeight: 600, margin: 0 }}>오탈자·맞춤법 오류가 발견되지 않았습니다.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {result.typoCheck.map((t, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '12px 16px' }}>
+                    <span style={{ fontSize: 13, color: '#991b1b', textDecoration: 'line-through', fontStyle: 'italic' }}>{t.original}</span>
+                    <span style={{ fontSize: 13, color: '#aaa' }}>→</span>
+                    <span style={{ fontSize: 13, color: '#065f46', fontWeight: 700 }}>{t.corrected}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
       {/* ── 강점 & 조언 ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 40, marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #0f2244' }}>
         <span style={{ fontSize: 18 }}>⭐</span>
@@ -519,6 +553,24 @@ export default function PaidResult({ result, company, position, docType = 'cover
                   </div>
                 )
               })}
+            </div>
+          )}
+
+          {/* 오탈자·맞춤법 체크 */}
+          {result.typoCheck && (
+            <div style={{ marginBottom: 20 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0f2244', marginBottom: 16 }}>🔤 오탈자·맞춤법 체크</h2>
+              {result.typoCheck.length === 0 ? (
+                <p style={{ fontSize: 12, color: '#065f46' }}>✅ 오탈자·맞춤법 오류가 발견되지 않았습니다.</p>
+              ) : (
+                result.typoCheck.map((t, i) => (
+                  <div key={i} style={{ padding: '10px 14px', background: '#fef2f2', borderRadius: 8, marginBottom: 8, fontSize: 12 }}>
+                    <span style={{ color: '#991b1b', textDecoration: 'line-through' }}>{t.original}</span>
+                    {' → '}
+                    <span style={{ color: '#065f46', fontWeight: 700 }}>{t.corrected}</span>
+                  </div>
+                ))
+              )}
             </div>
           )}
 
