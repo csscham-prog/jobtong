@@ -926,13 +926,13 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── 정합성 검증 홍보 섹션 ── */}
+        {/* ── 잡통 플러스 홍보 섹션 ── */}
         <section style={{ background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', padding: '72px 24px' }}>
           <div style={{ maxWidth: 900, margin: '0 auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20, flexWrap: 'wrap' }}>
               <div style={{ flex: '1 1 380px', minWidth: 280 }}>
                 <div style={{ display: 'inline-block', background: 'rgba(230,168,0,0.15)', border: '1px solid rgba(230,168,0,0.4)', borderRadius: 20, padding: '5px 16px', fontSize: 12, fontWeight: 700, color: '#e6a800', marginBottom: 16, letterSpacing: '0.05em' }}>
-                  NEW · 무료
+                  ✨ 잡통 플러스 · 무료
                 </div>
                 <h2 style={{ fontSize: 28, fontWeight: 900, color: '#fff', marginBottom: 14, letterSpacing: '-0.5px', lineHeight: 1.35 }}>
                   자소서와 이력서, 한 사람 이야기로 읽히나요?
@@ -941,13 +941,13 @@ export default function Home() {
                   두 문서를 나란히 대조해 어긋난 부분을 짚어드립니다.
                 </p>
                 <p style={{ fontSize: 13, color: '#e6a800', fontWeight: 700, marginBottom: 24 }}>
-                  🎁 5회권 결제 시 무료로 1회 지급
+                  🎁 5회권 결제 시 잡통 플러스 무료로 1회 지급
                 </p>
                 <button
                   onClick={() => window.location.href = '/consistency-check'}
                   style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '16px 36px', fontWeight: 800, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 8px 24px rgba(230,168,0,0.3)' }}
                 >
-                  무료로 검증받기 →
+                  잡통 플러스 받아보기 →
                 </button>
               </div>
               <div style={{ flex: '1 1 300px', minWidth: 260, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: '28px 30px' }}>
