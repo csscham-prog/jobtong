@@ -75,6 +75,12 @@ export default function MockInterviewPage() {
 
   const [analyzing, setAnalyzing] = useState(false)
   const [result, setResult] = useState<AnalysisResult | null>(null)
+  const [speechSupported, setSpeechSupported] = useState(true)
+
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    setSpeechSupported(!!SpeechRecognition)
+  }, [])
 
   useEffect(() => {
     const init = async () => {
@@ -369,6 +375,18 @@ export default function MockInterviewPage() {
             서류 기반 맞춤 질문 5개에 실제로 답변하고, AI에게 정밀 피드백을 받아보세요.
           </p>
 
+          {!speechSupported && (
+            <div style={{ background: '#fef2f2', border: '1.5px solid #fecaca', borderRadius: 16, padding: '18px 22px', marginBottom: 24, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+              <span style={{ fontSize: 22, flexShrink: 0 }}>🚫</span>
+              <div>
+                <p style={{ fontSize: 15, fontWeight: 800, color: '#991b1b', margin: '0 0 4px' }}>이 브라우저는 음성 인식을 지원하지 않아요</p>
+                <p style={{ fontSize: 14, color: '#7f1d1d', margin: 0, lineHeight: 1.7 }}>
+                  모의 면접은 브라우저의 음성 인식 기능을 사용해요. 지금 접속하신 브라우저에서는 이 기능이 지원되지 않아 답변을 녹음할 수 없어요. <strong>크롬(Chrome)</strong> 브라우저로 다시 접속해주세요.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* 진행 절차 도식 */}
           <div style={{ background: '#0f2244', borderRadius: 16, padding: '24px 20px', marginBottom: 28 }}>
             <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
@@ -419,11 +437,11 @@ export default function MockInterviewPage() {
           </label>
 
           <button
-            onClick={() => agreed && setStep('form')}
-            disabled={!agreed}
-            style={{ width: '100%', background: agreed ? '#0f2244' : '#ccc', color: '#fff', border: 'none', borderRadius: 14, padding: '18px', fontWeight: 800, fontSize: 16, cursor: agreed ? 'pointer' : 'not-allowed', fontFamily: 'inherit' }}
+            onClick={() => agreed && speechSupported && setStep('form')}
+            disabled={!agreed || !speechSupported}
+            style={{ width: '100%', background: (agreed && speechSupported) ? '#0f2244' : '#ccc', color: '#fff', border: 'none', borderRadius: 14, padding: '18px', fontWeight: 800, fontSize: 16, cursor: (agreed && speechSupported) ? 'pointer' : 'not-allowed', fontFamily: 'inherit' }}
           >
-            다음
+            {speechSupported ? '다음' : '크롬 브라우저로 접속해주세요'}
           </button>
         </div>
       </main>
