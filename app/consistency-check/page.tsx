@@ -196,7 +196,7 @@ export default function ConsistencyCheckPage() {
     if (isDownloading) return
     setIsDownloading(true)
     try {
-      const filename = `잡통_정합성검증_${new Date().toLocaleDateString('ko-KR').replace(/\. /g, '-').replace('.', '')}.pdf`
+      const filename = `잡통_잡통플러스_${new Date().toLocaleDateString('ko-KR').replace(/\. /g, '-').replace('.', '')}.pdf`
       await downloadElementAsPdf('consistency-pdf-content', filename)
     } finally {
       setIsDownloading(false)
@@ -216,7 +216,7 @@ export default function ConsistencyCheckPage() {
         <button onClick={() => window.location.href = '/'} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 20, fontWeight: 900, color: '#0f2244', fontFamily: 'inherit' }}>
           잡통
         </button>
-        <span style={{ fontSize: 13, color: '#aaa' }}>정합성 검증</span>
+        <span style={{ fontSize: 13, color: '#aaa' }}>잡통 플러스</span>
       </div>
     </header>
   )
@@ -261,7 +261,7 @@ export default function ConsistencyCheckPage() {
           </div>
 
           <div style={{ background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', borderRadius: 20, padding: '32px 36px', color: '#fff', textAlign: 'center' }}>
-            <span style={{ background: '#e6a800', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>정합성 검증</span>
+            <span style={{ background: '#e6a800', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>잡통 플러스</span>
             <div style={{ fontSize: 64, fontWeight: 900, marginTop: 16, lineHeight: 1 }}>{result.matchScore}</div>
             <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginBottom: 12 }}>/ 100점</div>
             <div style={{ display: 'inline-block', background: getScoreBg(result.matchScore), color: getScoreTxt(result.matchScore), fontSize: 13, fontWeight: 700, padding: '5px 16px', borderRadius: 20 }}>
@@ -328,8 +328,8 @@ export default function ConsistencyCheckPage() {
           <div id="consistency-pdf-content" style={{ display: 'none' }}>
             <div style={{ fontFamily: "'Pretendard', sans-serif", padding: 20 }}>
               <div style={{ background: '#0f2244', color: '#fff', borderRadius: 12, padding: '24px 28px', marginBottom: 20 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#e6a800', marginBottom: 8 }}>정합성 검증 · {new Date().toLocaleDateString('ko-KR')}</div>
-                <h1 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 4px' }}>자소서 ↔ 이력서 정합성 검증 리포트</h1>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#e6a800', marginBottom: 8 }}>잡통 플러스 · {new Date().toLocaleDateString('ko-KR')}</div>
+                <h1 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 4px' }}>잡통 플러스 · 정합성 검증 리포트</h1>
                 <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', margin: 0 }}>
                   {company && position ? `${company} · ${position}` : company || position || '지원 직무 전반'}
                 </p>
@@ -386,7 +386,7 @@ export default function ConsistencyCheckPage() {
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 24px 60px' }}>
 
         <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 900, color: '#0f2244', margin: '0 0 8px' }}>자소서 ↔ 이력서 정합성 검증</h1>
+          <h1 style={{ fontSize: 22, fontWeight: 900, color: '#0f2244', margin: '0 0 8px' }}>잡통 플러스 · 정합성 검증</h1>
           <p style={{ fontSize: 14, color: '#888', lineHeight: 1.7, margin: 0 }}>
             두 문서가 하나의 지원자 스토리로 일관되게 읽히는지 정밀 대조합니다. 개인정보처리방침에 따라 원문은 저장되지 않습니다.
           </p>
@@ -394,8 +394,8 @@ export default function ConsistencyCheckPage() {
 
         <div style={{ background: credits > 0 ? '#eef2ff' : '#fffbeb', border: `1px solid ${credits > 0 ? '#c7d2fe' : '#fde68a'}`, borderRadius: 14, padding: '14px 18px', marginBottom: 24, fontSize: 13, color: credits > 0 ? '#4338ca' : '#92400e', fontWeight: 600 }}>
           {credits > 0
-            ? `🎁 사용 가능한 무료 정합성 검증: ${credits}회`
-            : '5회권을 결제하시면 정합성 검증이 무료로 1회 지급됩니다.'}
+            ? `🎁 사용 가능한 잡통 플러스: ${credits}회`
+            : '5회권을 결제하시면 잡통 플러스가 무료로 1회 지급됩니다.'}
         </div>
 
         {credits <= 0 ? (
@@ -462,7 +462,7 @@ export default function ConsistencyCheckPage() {
             {error && <p style={{ fontSize: 13, color: '#ef4444', marginBottom: 16 }}>{error}</p>}
 
             <button onClick={openConfirm} style={{ width: '100%', background: '#0f2244', color: '#fff', border: 'none', borderRadius: 14, padding: '18px', fontWeight: 800, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit' }}>
-              정합성 검증 시작하기 (무료 이용 1회 사용)
+              잡통 플러스 시작하기 (무료 이용 1회 사용)
             </button>
           </>
         )}
@@ -472,9 +472,9 @@ export default function ConsistencyCheckPage() {
       {showConfirmModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 24 }}>
           <div style={{ background: '#fff', borderRadius: 20, padding: '28px 26px', maxWidth: 340, width: '100%' }}>
-            <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0f2244', margin: '0 0 10px' }}>정합성 검증을 시작할까요?</h3>
+            <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0f2244', margin: '0 0 10px' }}>잡통 플러스를 시작할까요?</h3>
             <p style={{ fontSize: 13, color: '#888', lineHeight: 1.7, margin: '0 0 20px' }}>
-              보유하신 무료 정합성 검증 1회가 사용됩니다. (잔여 {credits}회)
+              보유하신 무료 잡통 플러스 1회가 사용됩니다. (잔여 {credits}회)
             </p>
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setShowConfirmModal(false)} style={{ flex: 1, background: '#f7f6f3', color: '#888', border: 'none', borderRadius: 12, padding: '13px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>취소</button>
