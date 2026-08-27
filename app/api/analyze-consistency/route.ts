@@ -96,13 +96,14 @@ export async function POST(req: NextRequest) {
 
     const isAdmin = profile.role === 'admin'
     if (!isAdmin && (profile.consistency_credits || 0) <= 0) {
-      return NextResponse.json({ error: '정합성 검증 크레딧이 없습니다. 이력서와 자소서를 각각 1회 이상 정밀 분석하시면 크레딧이 지급됩니다.' }, { status: 403 })
+      return NextResponse.json({ error: '잡통 플러스 크레딧이 없습니다. 5회권을 결제하시면 무료로 1회 지급됩니다.' }, { status: 403 })
     }
 
     // 4. 요청 데이터
     const body = await req.json()
     const company = body.company || ''
     const position = body.position || ''
+    const jobPostingText = (body.jobPostingText || '').trim().slice(0, 4000)
     const coverLetterContent = (body.coverLetterContent || '').trim()
     const resumeFiles: UploadedFile[] = Array.isArray(body.resumeFiles) ? body.resumeFiles.slice(0, RESUME_FILE_MAX_COUNT) : []
 
@@ -134,9 +135,13 @@ export async function POST(req: NextRequest) {
     const resumeText = extractedParts.join('\n\n').slice(0, RESUME_TOTAL_TEXT_MAX_LENGTH)
     const safeResume = safeText(resumeText)
     const safeCoverLetter = safeText(coverLetterContent)
+    const safeJobPosting = jobPostingText ? safeText(jobPostingText) : ''
 
     const companyLine = company ? '지원 회사: ' + company : '지원 회사: 명시되지 않음'
     const positionLine = position ? '지원 직무: ' + position : '지원 직무: 명시되지 않음'
+    const jobPostingSection = safeJobPosting
+      ? '\n채용공고 원문:\n' + safeJobPosting + '\n'
+      : ''
 
     // 6. 프롬프트 구성
     const fullPrompt = '당신은 삼성전자, LG, 현대자동차, SK 등 국내 주요 대기업에서 10년 이상 서류 전형을 담당해온 인사 전문가입니다. ' +
@@ -145,7 +150,7 @@ export async function POST(req: NextRequest) {
       '당신의 목표는 이 지원자의 이력서(경력기술서)와 자기소개서가 하나의 일관된 지원자 스토리로 읽히는지 정밀하게 대조 진단하는 것입니다.\n\n' +
       '[분석 대상]\n' + companyLine + '\n' + positionLine + '\n\n' +
       '이력서/경력기술서 원문:\n' + safeResume + '\n\n' +
-      '자기소개서 원문:\n' + safeCoverLetter + '\n\n' +
+      '자기소개서 원문:\n' + safeCoverLetter + '\n' + jobPostingSection + '\n' +
       '[분석 순서 - 반드시 이 순서로 사고하세요]\n' +
       '1단계: 자기소개서에서 지원자가 강조하는 핵심 경험·강점·역량을 모두 추출하세요\n' +
       '2단계: 이력서/경력기술서에서 실제 경력·성과 항목을 모두 추출하세요\n' +
@@ -163,17 +168,34 @@ export async function POST(req: NextRequest) {
       '  · issue: 채용담당자가 두 문서를 이어 읽을 때 드는 실제 의문을 2-3문장으로. 자소서/이력서 원문에서 실제로 발췌한 표현을 포함할 것(지어내지 말 것)\n' +
       '  · suggestion: missingIn으로 지목한 문서에 구체적으로 무엇을 어떻게 추가·수정하면 정합성이 올라가는지 2-3문장으로. 막연한 조언 금지\n' +
       '- finalAdvice: 이 두 문서를 하나의 일관된 스토리로 만들기 위한 최우선 실행 전략 3-4문장. 가장 효과가 큰 수정 포인트부터 순서대로 제시\n\n' +
+      '[면접 예상 질문 - 잡통 플러스]\n' +
+      '이력서와 자기소개서(제공된 경우 채용공고 포함)를 종합해서, 이 지원자가 실제 면접에서 받을 가능성이 높은 질문 정확히 5개를 만드세요.\n' +
+      '반드시 지켜야 할 규칙:\n' +
+      '- "지원 동기가 무엇인가요", "장단점을 말해보세요", "왜 우리 회사인가요" 같이 어떤 지원자에게나 통용되는 뻔한 일반 질문은 절대 만들지 마세요. 이런 질문은 0점 처리됩니다\n' +
+      '- 모든 질문은 반드시 이력서나 자기소개서에 실제로 적힌 특정 문장·경험·수치·경력 공백·직무 미스매치 등에서 파생되어야 합니다. 그 문서가 없었다면 나올 수 없는 질문이어야 합니다\n' +
+      '- 채용공고가 제공된 경우, 공고의 요구 역량과 지원자 서류 사이의 간극에서도 질문을 뽑아내세요\n' +
+      '- 각 질문마다 basis(이 질문이 왜 나오는지, 서류의 어느 부분 때문인지 1-2문장. 실제 원문 표현을 포함해 구체적으로)와 tip(답변할 때 무엇을 강조하면 좋은지 1-2문장)을 반드시 함께 제공하세요\n' +
+      '- 5개 질문은 서로 다른 관점(경력 검증형, 직무 역량형, 공백·리스크 해명형, 성장 가능성형 등)을 골고루 다루도록 배분하세요\n\n' +
+      '[1분 자기소개 스크립트 - 잡통 플러스]\n' +
+      '이 지원자가 실제 면접장에서 1분(약 280~320자) 동안 말할 자기소개 스크립트를 작성하세요.\n' +
+      '반드시 지켜야 할 규칙:\n' +
+      '- 이력서·자기소개서에 실제로 있는 경험·성과·수치만 사용하세요. 지어내지 마세요\n' +
+      '- 이 지원자만의 가장 강력한 차별화 포인트(다른 지원자와 겹치지 않는, 서류에 드러난 구체적 강점) 하나를 중심으로 구성하세요. 여러 강점을 나열하지 말고 하나에 집중하세요\n' +
+      '- 채용공고가 제공된 경우, 그 회사·직무가 요구하는 역량과 이 강점을 명시적으로 연결하세요\n' +
+      '- 구어체로, 실제로 말하듯 자연스럽게 작성하세요. 문어체·격식체(~하였습니다 남발) 금지\n' +
+      '- selfIntroBasis 필드에 왜 이 강점을 중심으로 구성했는지 1-2문장으로 설명하세요 (예: "이력서의 A 경력과 자소서의 B 서술이 겹치는 지점이라 가장 설득력이 높습니다")\n\n' +
       '[톤 가이드 - 반드시 지키세요]\n' +
       '- 비판의 대상은 언제나 문서 간의 연결이지, 지원자라는 사람이 아닙니다\n' +
       '- 냉정함은 평가를 흐리지 않는 정직함이지 사람을 깎아내리는 날카로움이 아닙니다\n' +
       '- 모든 지적 뒤에는 반드시 그래서 어떻게 고치면 되는지가 함께 제시되어야 합니다\n\n' +
       '[금지 사항]\n' +
-      '- issue/strongAlignments에 문서에 없는 내용을 지어내지 마세요\n' +
+      '- issue/strongAlignments/interviewQuestions/selfIntroScript에 문서에 없는 내용을 지어내지 마세요\n' +
       '- 근거 없이 좋게 포장하지 말고, 실제 정합성 문제는 냉정하게 전달하되, 지원자 개인을 비하하는 표현은 금지\n' +
+      '- 면접 질문에 "자기소개를 해보세요", "지원 동기는", "마지막으로 하고 싶은 말" 같은 뻔한 질문 절대 금지\n' +
       '- 문자열 내 큰따옴표는 작은따옴표로 바꾸세요\n' +
       '- JSON 외 텍스트 절대 출력 금지\n\n' +
       '반드시 아래 JSON 형식으로만 응답하세요.\n' +
-      '{"matchScore":숫자,"summary":"...","strongAlignments":["...","..."],"gaps":[{"category":"...","missingIn":"이력서 또는 자소서","issue":"...","suggestion":"..."}],"finalAdvice":"..."}'
+      '{"matchScore":숫자,"summary":"...","strongAlignments":["...","..."],"gaps":[{"category":"...","missingIn":"이력서 또는 자소서","issue":"...","suggestion":"..."}],"finalAdvice":"...","interviewQuestions":[{"question":"...","basis":"...","tip":"..."}],"selfIntroScript":"...","selfIntroBasis":"..."}'
 
     // 7. AI 분석
     const message = await client.messages.create({
