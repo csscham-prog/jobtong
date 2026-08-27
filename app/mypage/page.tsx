@@ -8,7 +8,7 @@ export default function MyPage() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [analyses, setAnalyses] = useState<any[]>([])
-  const [docTypeFilter, setDocTypeFilter] = useState<'all' | 'coverletter' | 'resume' | 'consistency'>('all')
+  const [docTypeFilter, setDocTypeFilter] = useState<'all' | 'coverletter' | 'resume' | 'consistency' | 'mock_interview'>('all')
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<any>(null)
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
@@ -73,7 +73,7 @@ export default function MyPage() {
     { label: '직무 연관성', key: 'relevance', icon: '🎯' },
     { label: '완결성', key: 'completeness', icon: '✅' },
   ]
-  const getDocTypeLabel = (docType: string) => docType === 'resume' ? '이력서·경력기술서' : docType === 'consistency' ? '잡통 플러스' : '자기소개서'
+  const getDocTypeLabel = (docType: string) => docType === 'resume' ? '이력서·경력기술서' : docType === 'consistency' ? '잡통 플러스' : docType === 'mock_interview' ? '모의 면접' : '자기소개서'
 
   // PDF에는 실제 결과 화면(PaidResult)과 같은 안내 문구를 담아 일관성을 맞춘다.
   const getUsageSteps = (isResume: boolean) => isResume
@@ -110,9 +110,9 @@ export default function MyPage() {
     setIsDownloading(true)
     try {
       const docType = analysis.doc_type || 'coverletter'
-      const filenamePrefix = docType === 'resume' ? '잡통_서류분석' : docType === 'consistency' ? '잡통_잡통플러스' : '잡통_자소서분석'
+      const filenamePrefix = docType === 'resume' ? '잡통_서류분석' : docType === 'consistency' ? '잡통_잡통플러스' : docType === 'mock_interview' ? '잡통_모의면접' : '잡통_자소서분석'
       const dateLabel = new Date(analysis.created_at).toLocaleDateString('ko-KR').replace(/\. /g, '-').replace('.', '')
-      await downloadElementAsPdf(docType === 'consistency' ? 'mypage-consistency-pdf-content' : 'mypage-pdf-content', `${filenamePrefix}_${dateLabel}.pdf`)
+      await downloadElementAsPdf(docType === 'consistency' ? 'mypage-consistency-pdf-content' : docType === 'mock_interview' ? 'mypage-mock-interview-pdf-content' : 'mypage-pdf-content', `${filenamePrefix}_${dateLabel}.pdf`)
     } finally {
       setIsDownloading(false)
     }
@@ -230,6 +230,7 @@ export default function MyPage() {
             { key: 'coverletter', label: '✏️ 자기소개서' },
             { key: 'resume', label: '📋 이력서·경력기술서' },
             { key: 'consistency', label: '✨ 잡통 플러스' },
+            { key: 'mock_interview', label: '🎤 모의 면접' },
           ].map(tab => (
             <button
               key={tab.key}
@@ -289,6 +290,10 @@ export default function MyPage() {
                       <span style={{ background: '#e6a800', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
                         무료 검증
                       </span>
+                    ) : analysis.doc_type === 'mock_interview' ? (
+                      <span style={{ background: '#0f2244', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
+                        분석권 사용
+                      </span>
                     ) : (
                       <span style={{ background: analysis.analyze_type === 'paid' ? '#0f2244' : '#f7f6f3', color: analysis.analyze_type === 'paid' ? '#fff' : '#888', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
                         {analysis.analyze_type === 'paid' ? '전체 분석' : '무료 분석'}
@@ -304,7 +309,61 @@ export default function MyPage() {
                 </div>
 
                 {/* 펼쳐진 결과 */}
-                {selected?.id === analysis.id && analysis.result_json && analysis.doc_type === 'consistency' ? (
+                {selected?.id === analysis.id && analysis.result_json && analysis.doc_type === 'mock_interview' ? (
+                  <div style={{ borderTop: '1px solid #f0ede6', paddingTop: 16 }}>
+                    {/* PDF 저장 */}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDownloadHistoryPdf(analysis) }}
+                        disabled={isDownloading}
+                        style={{ background: '#fff', color: '#0f2244', border: '1.5px solid #0f2244', borderRadius: 10, padding: '8px 16px', fontWeight: 700, fontSize: 13, cursor: isDownloading ? 'default' : 'pointer', opacity: isDownloading ? 0.6 : 1, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {isDownloading ? '⏳ 생성 중...' : '📄 PDF 저장'}
+                      </button>
+                    </div>
+
+                    {/* 종합 총평 */}
+                    <div style={{ marginBottom: 16, padding: '16px', background: '#f7f6f3', borderRadius: 12 }}>
+                      <p style={{ fontSize: 12, fontWeight: 700, color: '#888', marginBottom: 8 }}>📋 종합 총평</p>
+                      <p style={{ fontSize: 14, color: '#333', lineHeight: 1.8, margin: 0 }}>{analysis.result_json.overallSummary}</p>
+                    </div>
+
+                    {/* 반복된 패턴 */}
+                    {analysis.result_json.repeatedPatterns?.length > 0 && (
+                      <div style={{ marginBottom: 16, padding: '14px 16px', background: '#fffbeb', borderRadius: 12, border: '1px solid #fde68a' }}>
+                        <p style={{ fontSize: 12, fontWeight: 700, color: '#92400e', marginBottom: 8 }}>🔁 반복된 패턴</p>
+                        {analysis.result_json.repeatedPatterns.map((p: string, i: number) => (
+                          <p key={i} style={{ fontSize: 13, color: '#78350f', margin: '0 0 6px', lineHeight: 1.7 }}>• {p}</p>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* 질문별 피드백 */}
+                    {analysis.result_json.questionFeedback?.length > 0 && (
+                      <div style={{ marginBottom: 16 }}>
+                        <p style={{ fontSize: 12, fontWeight: 700, color: '#888', marginBottom: 10 }}>🎤 질문별 피드백</p>
+                        {analysis.result_json.questionFeedback.map((qf: any, i: number) => (
+                          <div key={i} style={{ padding: '14px 16px', background: '#fff', borderRadius: 10, marginBottom: 8, border: '1px solid #ece9e1' }}>
+                            <p style={{ fontSize: 13, fontWeight: 700, color: '#0f2244', margin: '0 0 6px' }}>{i + 1}. {qf.question} <span style={{ color: getScoreColor(qf.score) }}>({qf.score}점)</span></p>
+                            <p style={{ fontSize: 12, color: '#555', margin: '0 0 6px' }}>내 답변: {qf.answer || '(답변 없음)'}</p>
+                            {qf.issues?.length > 0 && (
+                              <p style={{ fontSize: 11, color: '#991b1b', margin: '0 0 6px' }}>{qf.issues.join(' · ')}</p>
+                            )}
+                            <div style={{ background: '#ecfdf5', borderRadius: 6, padding: '8px 10px', fontSize: 12, color: '#064e3b', marginBottom: 6 }}>잘한 점: {qf.strengths}</div>
+                            <div style={{ background: '#eef2ff', borderRadius: 6, padding: '8px 10px', fontSize: 12, color: '#3730a3' }}>개선 방향: {qf.improvement}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* 최종 조언 */}
+                    {analysis.result_json.finalAdvice && (
+                      <div style={{ padding: '14px 16px', background: '#0f2244', borderRadius: 12 }}>
+                        <p style={{ fontSize: 12, fontWeight: 700, color: '#e6a800', marginBottom: 8 }}>🎯 최종 조언</p>
+                        <p style={{ fontSize: 13, color: '#b8d9ee', lineHeight: 1.8, margin: 0 }}>{analysis.result_json.finalAdvice}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : selected?.id === analysis.id && analysis.result_json && analysis.doc_type === 'consistency' ? (
                   <div style={{ borderTop: '1px solid #f0ede6', paddingTop: 16 }}>
                     {/* PDF 저장 */}
                     <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
@@ -463,7 +522,7 @@ export default function MyPage() {
                       </>
                     )}
 
-                    {analysis.doc_type !== 'consistency' && (
+                    {analysis.doc_type !== 'consistency' && analysis.doc_type !== 'mock_interview' && (
                       <p style={{ fontSize: 12, color: '#bbb', textAlign: 'right', marginTop: 12, marginBottom: 0 }}>
                         {analysis.doc_type === 'resume' ? '첨부 문서' : '자소서'} {analysis.content_length?.toLocaleString()}자
                       </p>
@@ -656,6 +715,63 @@ export default function MyPage() {
                 <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0f2244', marginBottom: 10 }}>🗣️ 1분 자기소개 스크립트 (잡통 플러스)</h2>
                 {selected.result_json.selfIntroBasis && <p style={{ fontSize: 12, color: '#4338ca', margin: '0 0 10px' }}>{selected.result_json.selfIntroBasis}</p>}
                 <p style={{ fontSize: 13, color: '#333', lineHeight: 1.8, margin: 0, whiteSpace: 'pre-wrap' }}>{selected.result_json.selfIntroScript}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 인쇄용 — 모의 면접 히스토리 전용 템플릿 */}
+      {selected && selected.result_json && selected.doc_type === 'mock_interview' && (
+        <div id="mypage-mock-interview-pdf-content" style={{ display: 'none' }}>
+          <div style={{ fontFamily: "'Pretendard', sans-serif", padding: 20 }}>
+            <div style={{ background: '#0f2244', color: '#fff', borderRadius: 12, padding: '24px 28px', marginBottom: 20 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#e6a800', marginBottom: 8 }}>
+                모의 면접 · {new Date(selected.created_at).toLocaleDateString('ko-KR')}
+              </div>
+              <h1 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 4px' }}>모의 면접 결과 리포트</h1>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', margin: 0 }}>
+                {selected.company && selected.position ? `${selected.company} · ${selected.position}` : selected.company || selected.position || '지원 직무 전반'}
+              </p>
+              <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
+                <span style={{ fontSize: 40, fontWeight: 900, color: '#fff' }}>{selected.result_json.overallScore}</span>
+                <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>/ 100점</span>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 20, padding: '20px 24px', background: '#f7f6f3', borderRadius: 12 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0f2244', marginBottom: 10 }}>📋 종합 총평</h2>
+              <p style={{ fontSize: 13, color: '#333', lineHeight: 1.8, margin: 0 }}>{selected.result_json.overallSummary}</p>
+            </div>
+
+            {selected.result_json.repeatedPatterns?.length > 0 && (
+              <div style={{ marginBottom: 20, padding: '20px 24px', background: '#fffbeb', borderRadius: 12, border: '1px solid #fde68a' }}>
+                <h2 style={{ fontSize: 15, fontWeight: 800, color: '#92400e', marginBottom: 12 }}>🔁 반복된 패턴</h2>
+                {selected.result_json.repeatedPatterns.map((p: string, i: number) => (
+                  <p key={i} style={{ fontSize: 13, color: '#78350f', margin: '0 0 8px', lineHeight: 1.7 }}>• {p}</p>
+                ))}
+              </div>
+            )}
+
+            {selected.result_json.questionFeedback?.length > 0 && (
+              <div style={{ marginBottom: 20 }}>
+                <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0f2244', marginBottom: 16 }}>🎤 질문별 피드백</h2>
+                {selected.result_json.questionFeedback.map((qf: any, i: number) => (
+                  <div key={i} style={{ padding: '18px 20px', background: '#fff', borderRadius: 12, marginBottom: 12, border: '1px solid #ece9e1' }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#0f2244', marginBottom: 8 }}>{i + 1}. {qf.question} ({qf.score}점)</div>
+                    <p style={{ fontSize: 12, color: '#555', marginBottom: 8, lineHeight: 1.7 }}>내 답변: {qf.answer || '(답변 없음)'}</p>
+                    {qf.issues?.length > 0 && <p style={{ fontSize: 11, color: '#991b1b', marginBottom: 8 }}>{qf.issues.join(' · ')}</p>}
+                    <div style={{ background: '#ecfdf5', borderRadius: 8, padding: '8px 12px', fontSize: 12, color: '#064e3b', marginBottom: 6 }}>잘한 점: {qf.strengths}</div>
+                    <div style={{ background: '#eef2ff', borderRadius: 8, padding: '8px 12px', fontSize: 12, color: '#3730a3' }}>개선 방향: {qf.improvement}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {selected.result_json.finalAdvice && (
+              <div style={{ padding: '20px 24px', background: '#0f2244', borderRadius: 12 }}>
+                <h2 style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 10 }}>🎯 최종 조언</h2>
+                <p style={{ fontSize: 13, color: '#b8d9ee', lineHeight: 1.8, margin: 0 }}>{selected.result_json.finalAdvice}</p>
               </div>
             )}
           </div>
