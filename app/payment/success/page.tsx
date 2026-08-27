@@ -7,6 +7,7 @@ export default function PaymentSuccessPage() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [message, setMessage] = useState('')
   const [credits, setCredits] = useState(0)
+  const [consistencyCreditGranted, setConsistencyCreditGranted] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -43,6 +44,7 @@ export default function PaymentSuccessPage() {
         setStatus('success')
         setMessage(data.message)
         setCredits(data.credits)
+        setConsistencyCreditGranted(!!data.consistencyCreditGranted)
       } else {
         setStatus('error')
         setMessage(data.error || '결제 처리 중 오류가 발생했습니다.')
@@ -87,6 +89,20 @@ export default function PaymentSuccessPage() {
                 현재 잔여 분석권: <strong style={{ fontSize: 18 }}>{credits}회</strong>
               </p>
             </div>
+            {consistencyCreditGranted && (
+              <div style={{ background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', borderRadius: 12, padding: '18px 20px', marginBottom: 28, textAlign: 'left' }}>
+                <p style={{ fontSize: 14, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>🎁 정합성 검증 1회가 추가로 지급되었어요</p>
+                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', margin: '0 0 12px', lineHeight: 1.6 }}>
+                  이력서와 자소서가 하나의 지원자 스토리로 읽히는지 무료로 대조 분석해드려요.
+                </p>
+                <button
+                  onClick={() => window.location.href = '/consistency-check'}
+                  style={{ width: '100%', background: '#e6a800', color: '#fff', border: 'none', borderRadius: 10, padding: '12px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  지금 검증하기 →
+                </button>
+              </div>
+            )}
             <button
               onClick={() => window.location.href = '/'}
               style={{ width: '100%', background: '#0f2244', color: '#fff', border: 'none', borderRadius: 12, padding: '16px', fontWeight: 700, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit' }}
