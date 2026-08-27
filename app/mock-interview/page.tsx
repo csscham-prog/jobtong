@@ -67,6 +67,7 @@ export default function MockInterviewPage() {
   const [answers, setAnswers] = useState<string[]>([])
   const [qIndex, setQIndex] = useState(0)
   const [recording, setRecording] = useState(false)
+  const recordingRef = useRef(false)
   const [liveTranscript, setLiveTranscript] = useState('')
   const [showAnswerConfirm, setShowAnswerConfirm] = useState(false)
   const [editableAnswer, setEditableAnswer] = useState('')
@@ -268,18 +269,25 @@ export default function MockInterviewPage() {
       }
       setLiveTranscript((finalTranscriptRef.current + interim).trim())
     }
-    rec.onerror = () => {}
+    rec.onerror = (event: any) => {
+      // 무음(no-speech) 등 일시적 오류는 onend에서 자동 재시작되므로 무시
+      if (event.error !== 'no-speech' && event.error !== 'aborted') {
+        console.error('음성 인식 오류:', event.error)
+      }
+    }
     rec.onend = () => {
-      if (recognitionRef.current === rec && recording) {
+      if (recognitionRef.current === rec && recordingRef.current) {
         try { rec.start() } catch (e) {}
       }
     }
     recognitionRef.current = rec
+    recordingRef.current = true
     setRecording(true)
     rec.start()
   }
 
   const stopRecordingInternal = () => {
+    recordingRef.current = false
     if (recognitionRef.current) {
       const rec = recognitionRef.current
       recognitionRef.current = null
@@ -360,6 +368,40 @@ export default function MockInterviewPage() {
     return (
       <main style={{ ...base, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <p style={{ color: '#888', fontSize: 14 }}>불러오는 중...</p>
+      </main>
+    )
+  }
+
+  // ── 질문 생성 중 로딩 (form 화면에서 "시작하기" 누른 직후) ──
+  if (loading) {
+    return (
+      <main style={{ ...base, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <div style={{ textAlign: 'center', maxWidth: 360 }}>
+          <svg style={{ animation: 'spin 1s linear infinite', width: 40, height: 40, marginBottom: 20 }} viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="rgba(15,34,68,0.15)" strokeWidth="4" />
+            <path d="M4 12a8 8 0 018-8" stroke="#0f2244" strokeWidth="4" strokeLinecap="round" />
+          </svg>
+          <p style={{ fontSize: 15, color: '#333', fontWeight: 700, marginBottom: 8 }}>서류를 분석해서 질문을 만들고 있어요.</p>
+          <p style={{ fontSize: 13, color: '#aaa' }}>최대 1분 이상 소요될 수 있습니다.</p>
+        </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </main>
+    )
+  }
+
+  // ── 답변 분석 중 로딩 (summary 화면에서 "분석하기" 누른 직후) ──
+  if (analyzing) {
+    return (
+      <main style={{ ...base, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <div style={{ textAlign: 'center', maxWidth: 360 }}>
+          <svg style={{ animation: 'spin 1s linear infinite', width: 40, height: 40, marginBottom: 20 }} viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="rgba(15,34,68,0.15)" strokeWidth="4" />
+            <path d="M4 12a8 8 0 018-8" stroke="#0f2244" strokeWidth="4" strokeLinecap="round" />
+          </svg>
+          <p style={{ fontSize: 15, color: '#333', fontWeight: 700, marginBottom: 8 }}>답변 5개를 종합해서 분석하고 있어요.</p>
+          <p style={{ fontSize: 13, color: '#aaa' }}>최대 1분 이상 소요될 수 있습니다.</p>
+        </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </main>
     )
   }
@@ -579,22 +621,6 @@ export default function MockInterviewPage() {
             </div>
           </div>
         )}
-      </main>
-    )
-  }
-
-  // ── 로딩 (질문 생성 중) ──
-  if (loading) {
-    return (
-      <main style={{ ...base, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-        <div style={{ textAlign: 'center' }}>
-          <svg style={{ animation: 'spin 1s linear infinite', width: 40, height: 40, marginBottom: 20 }} viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="rgba(15,34,68,0.15)" strokeWidth="4" />
-            <path d="M4 12a8 8 0 018-8" stroke="#0f2244" strokeWidth="4" strokeLinecap="round" />
-          </svg>
-          <p style={{ fontSize: 15, color: '#333', fontWeight: 700 }}>서류를 분석해서 질문을 만들고 있어요...</p>
-        </div>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </main>
     )
   }
