@@ -928,42 +928,58 @@ export default function Home() {
 
         {/* ── 잡통 플러스 홍보 섹션 ── */}
         <section style={{ background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', padding: '72px 24px' }}>
-          <div style={{ maxWidth: 900, margin: '0 auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20, flexWrap: 'wrap' }}>
-              <div style={{ flex: '1 1 380px', minWidth: 280 }}>
-                <div style={{ display: 'inline-block', background: 'rgba(230,168,0,0.15)', border: '1px solid rgba(230,168,0,0.4)', borderRadius: 20, padding: '5px 16px', fontSize: 12, fontWeight: 700, color: '#e6a800', marginBottom: 16, letterSpacing: '0.05em' }}>
-                  ✨ 잡통 플러스 · 무료
-                </div>
-                <h2 style={{ fontSize: 28, fontWeight: 900, color: '#fff', marginBottom: 14, letterSpacing: '-0.5px', lineHeight: 1.35 }}>
-                  자소서와 이력서, 한 사람 이야기로 읽히나요?
-                </h2>
-                <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.65)', lineHeight: 1.8, marginBottom: 24 }}>
-                  두 문서를 나란히 대조해 어긋난 부분을 짚어드립니다.
-                </p>
-                <p style={{ fontSize: 13, color: '#e6a800', fontWeight: 700, marginBottom: 24 }}>
-                  🎁 5회권 결제 시 잡통 플러스 무료로 1회 지급
-                </p>
-                <button
-                  onClick={() => window.location.href = '/consistency-check'}
-                  style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '16px 36px', fontWeight: 800, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 8px 24px rgba(230,168,0,0.3)' }}
-                >
-                  잡통 플러스 받아보기 →
-                </button>
+          <div style={{ maxWidth: 980, margin: '0 auto' }}>
+
+            <div style={{ textAlign: 'center', marginBottom: 44 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'linear-gradient(135deg, #e6a800 0%, #f0c040 100%)', borderRadius: 20, padding: '7px 20px', fontSize: 13, fontWeight: 900, color: '#0f2244', marginBottom: 20, letterSpacing: '0.02em', boxShadow: '0 6px 20px rgba(230,168,0,0.35)' }}>
+                🎉 신규 혜택 추가!
               </div>
-              <div style={{ flex: '1 1 300px', minWidth: 260, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: '28px 30px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  {[
-                    { icon: '🔗', text: '강점이 이력서로 증명되는지 대조' },
-                    { icon: '⚠️', text: '어긋나는 부분을 콕 짚어 지적' },
-                    { icon: '✏️', text: '구체적인 보완 방향 제시' },
-                  ].map((item, i) => (
-                    <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                      <span style={{ fontSize: 20, flexShrink: 0 }}>{item.icon}</span>
-                      <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)', lineHeight: 1.5, margin: 0, whiteSpace: 'nowrap' }}>{item.text}</p>
-                    </div>
-                  ))}
-                </div>
+              <h2 style={{ fontSize: 30, fontWeight: 900, color: '#fff', marginBottom: 14, letterSpacing: '-0.5px', lineHeight: 1.35 }}>
+                5회권 결제하면, <span style={{ color: '#f0c040' }}>잡통 플러스</span> 무료 증정
+              </h2>
+              <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.65)', lineHeight: 1.8, marginBottom: 20 }}>
+                서류 분석만으로 끝내지 마세요. 면접까지 이어지는 3가지 무료 혜택을 드립니다.
+              </p>
+              <div style={{ display: 'inline-block', background: 'rgba(230,168,0,0.15)', border: '1px solid rgba(230,168,0,0.4)', borderRadius: 12, padding: '10px 20px', fontSize: 13, color: '#f0c040', fontWeight: 700 }}>
+                🎁 5회권 결제 시 잡통 플러스 1회 무료 지급
               </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20, marginBottom: 40 }}>
+              {[
+                {
+                  icon: '🔗',
+                  title: '정합성 검증',
+                  desc: '자소서에서 말한 강점이 이력서로 증명되는지, 두 문서를 나란히 대조해 어긋나는 부분을 콕 짚어드려요.',
+                },
+                {
+                  icon: '🎤',
+                  title: '예상 면접 질문 5개',
+                  desc: '뻔한 질문은 없어요. 제출하신 서류에서 실제로 파생된 질문 5개와, 각 질문의 출제 근거·답변 팁까지 함께 드려요.',
+                },
+                {
+                  icon: '🗣️',
+                  title: '1분 자기소개 스크립트',
+                  desc: '서류에 담긴 가장 강력한 강점 하나에 집중해서, 면접장에서 그대로 말할 수 있는 실전 스크립트를 만들어드려요.',
+                },
+              ].map((item, i) => (
+                <div key={i} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 18, padding: '26px 24px' }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(230,168,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, marginBottom: 16 }}>
+                    {item.icon}
+                  </div>
+                  <h3 style={{ fontSize: 16, fontWeight: 800, color: '#fff', marginBottom: 8 }}>{item.title}</h3>
+                  <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.65)', lineHeight: 1.7, margin: 0 }}>{item.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ textAlign: 'center' }}>
+              <button
+                onClick={() => window.location.href = '/consistency-check'}
+                style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '16px 40px', fontWeight: 800, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 8px 24px rgba(230,168,0,0.3)' }}
+              >
+                잡통 플러스 받아보기 →
+              </button>
             </div>
           </div>
         </section>
