@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('mock_interview_credits, role')
+      .select('paid_credits, role')
       .eq('id', user.id)
       .single()
 
@@ -83,8 +83,8 @@ export async function POST(req: NextRequest) {
     }
 
     const isAdmin = profile.role === 'admin'
-    if (!isAdmin && (profile.mock_interview_credits || 0) <= 0) {
-      return NextResponse.json({ error: '모의 면접 크레딧이 없습니다.' }, { status: 403 })
+    if (!isAdmin && (profile.paid_credits || 0) <= 0) {
+      return NextResponse.json({ error: '분석권이 없습니다. 크레딧을 충전해주세요.' }, { status: 403 })
     }
 
     const body = await req.json()
@@ -195,7 +195,7 @@ export async function POST(req: NextRequest) {
     if (!isAdmin) {
       await adminSupabase
         .from('profiles')
-        .update({ mock_interview_credits: Math.max((profile.mock_interview_credits || 0) - 1, 0) })
+        .update({ paid_credits: Math.max((profile.paid_credits || 0) - 1, 0) })
         .eq('id', user.id)
     }
 
