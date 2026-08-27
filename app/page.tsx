@@ -78,6 +78,11 @@ function SampleResult() {
       { patternType: '추상적 서술', original: '다양한 경험을 통해 성장하며 사용자 중심 사고를 키워왔습니다.', suggestion: '어떤 경험에서, 무엇을, 어떻게 배웠는지 하나의 구체적 사례로 좁혀서 서술하세요.' },
       { patternType: '부자연스러운 어휘 선택', original: '해당 없음', suggestion: '해당 없음' },
     ],
+    typoCheck: [
+      { original: '더나은 사용자 경험을', corrected: '더 나은 사용자 경험을' },
+      { original: '성공적으로 마쳤됬습니다', corrected: '성공적으로 마쳤습니다' },
+      { original: '기여하는최고의 서비스', corrected: '기여하는 최고의 서비스' },
+    ],
     strongPoints: [
       '카카오 서비스에 대한 실제 사용 경험이 풍부하고, 서비스 기획 직무에 대한 기본적인 이해도가 확인됩니다.',
       '팀 프로젝트에서 기획 파트를 맡아 결과물을 도출한 실전 경험이 있습니다. 기획을 이론이 아닌 실제로 해본 경험이 있다는 것은 면접관이 신뢰를 가질 수 있는 중요한 근거입니다.',
@@ -150,6 +155,10 @@ function SampleResult() {
       { patternType: '균일한 문장 리듬', original: '해당 없음', suggestion: '해당 없음' },
       { patternType: '추상적 서술', original: '다양한 콘텐츠를 기획하며 많은 것을 배웠습니다.', suggestion: '어떤 콘텐츠를 몇 편, 어떤 반응을 얻었는지로 구체화하세요. "많이 배웠다"는 채용담당자에게 정보를 주지 못합니다.' },
       { patternType: '부자연스러운 어휘 선택', original: '해당 없음', suggestion: '해당 없음' },
+    ],
+    typoCheck: [
+      { original: '운영보조 하였습니다', corrected: '운영 보조를 하였습니다' },
+      { original: '사용가능', corrected: '사용 가능' },
     ],
     strongPoints: [
       '무신사 서포터즈라는, 지원 회사와 직접 관련된 실제 활동 경험이 있습니다. 관심을 서류로 증명했다는 점에서 채용담당자에게 좋은 인상을 줄 수 있는 소재입니다.',
@@ -325,6 +334,28 @@ function SampleResult() {
             )
           })}
         </div>
+
+        {/* ── 오탈자·맞춤법 체크 ── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 40, marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #0f2244' }}>
+          <span style={{ fontSize: 16 }}>🔤</span>
+          <h2 style={{ fontSize: 16, fontWeight: 900, color: '#0f2244', margin: 0 }}>오탈자·맞춤법 체크</h2>
+        </div>
+        {data.typoCheck.length === 0 ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#f7f6f3', borderRadius: 14, padding: '16px 18px' }}>
+            <span style={{ fontSize: 18 }}>✅</span>
+            <p style={{ fontSize: 14, color: '#065f46', fontWeight: 600, margin: 0 }}>오탈자·맞춤법 오류가 발견되지 않았습니다.</p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {data.typoCheck.map((t, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '12px 16px' }}>
+                <span style={{ fontSize: 13, color: '#991b1b', textDecoration: 'line-through', fontStyle: 'italic' }}>{t.original}</span>
+                <span style={{ fontSize: 13, color: '#aaa' }}>→</span>
+                <span style={{ fontSize: 13, color: '#065f46', fontWeight: 700 }}>{t.corrected}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* ── 강점 & 조언 ── */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 40, marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #0f2244' }}>
