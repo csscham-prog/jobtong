@@ -91,7 +91,7 @@ export default function PaymentSuccessPage() {
             </div>
             {consistencyCreditGranted && (
               <div style={{ background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', borderRadius: 12, padding: '18px 20px', marginBottom: 28, textAlign: 'left' }}>
-                <p style={{ fontSize: 14, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>🎁 정합성 검증 1회가 추가로 지급되었어요</p>
+                <p style={{ fontSize: 14, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>🎁 잡통 플러스 1회가 추가로 지급되었어요</p>
                 <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', margin: '0 0 12px', lineHeight: 1.6 }}>
                   이력서와 자소서가 하나의 지원자 스토리로 읽히는지 무료로 대조 분석해드려요.
                 </p>
