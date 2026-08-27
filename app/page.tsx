@@ -1132,7 +1132,7 @@ export default function Home() {
 
         <section style={{ background: '#0f2244', padding: '72px 24px', textAlign: 'center' }}>
           <h2 style={{ fontSize: 30, fontWeight: 800, color: '#fff', marginBottom: 16, letterSpacing: '-0.5px' }}>
-            {!user || !userProfile?.free_trial_used ? '지금 바로 무료로 체험해보세요' : '자소서 분석을 시작해보세요'}
+            {!user || !userProfile?.free_trial_used ? '지금 바로 무료로 체험해보세요' : '취업 서류 분석을 시작해보세요'}
           </h2>
           <p style={{ color: '#b8d9ee', fontSize: 16, marginBottom: 36, lineHeight: 1.8 }}>
             {!user || !userProfile?.free_trial_used ? '첫 분석은 무료입니다. 총평과 핵심 문제점을 바로 확인하세요.' : '합격을 위한 정직한 피드백을 바로 확인하세요.'}
