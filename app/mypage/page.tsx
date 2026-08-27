@@ -110,9 +110,9 @@ export default function MyPage() {
     setIsDownloading(true)
     try {
       const docType = analysis.doc_type || 'coverletter'
-      const filenamePrefix = docType === 'resume' ? '잡통_서류분석' : '잡통_자소서분석'
+      const filenamePrefix = docType === 'resume' ? '잡통_서류분석' : docType === 'consistency' ? '잡통_잡통플러스' : '잡통_자소서분석'
       const dateLabel = new Date(analysis.created_at).toLocaleDateString('ko-KR').replace(/\. /g, '-').replace('.', '')
-      await downloadElementAsPdf('mypage-pdf-content', `${filenamePrefix}_${dateLabel}.pdf`)
+      await downloadElementAsPdf(docType === 'consistency' ? 'mypage-consistency-pdf-content' : 'mypage-pdf-content', `${filenamePrefix}_${dateLabel}.pdf`)
     } finally {
       setIsDownloading(false)
     }
@@ -306,6 +306,16 @@ export default function MyPage() {
                 {/* 펼쳐진 결과 */}
                 {selected?.id === analysis.id && analysis.result_json && analysis.doc_type === 'consistency' ? (
                   <div style={{ borderTop: '1px solid #f0ede6', paddingTop: 16 }}>
+                    {/* PDF 저장 */}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDownloadHistoryPdf(analysis) }}
+                        disabled={isDownloading}
+                        style={{ background: '#fff', color: '#0f2244', border: '1.5px solid #0f2244', borderRadius: 10, padding: '8px 16px', fontWeight: 700, fontSize: 13, cursor: isDownloading ? 'default' : 'pointer', opacity: isDownloading ? 0.6 : 1, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {isDownloading ? '⏳ 생성 중...' : '📄 PDF 저장'}
+                      </button>
+                    </div>
+
                     {/* 종합 총평 */}
                     <div style={{ marginBottom: 16, padding: '16px', background: '#f7f6f3', borderRadius: 12 }}>
                       <p style={{ fontSize: 12, fontWeight: 700, color: '#888', marginBottom: 8 }}>📋 종합 총평</p>
@@ -341,6 +351,31 @@ export default function MyPage() {
                       <div style={{ padding: '14px 16px', background: '#0f2244', borderRadius: 12 }}>
                         <p style={{ fontSize: 12, fontWeight: 700, color: '#e6a800', marginBottom: 8 }}>🎯 최종 조언</p>
                         <p style={{ fontSize: 13, color: '#b8d9ee', lineHeight: 1.8, margin: 0 }}>{analysis.result_json.finalAdvice}</p>
+                      </div>
+                    )}
+
+                    {/* 예상 면접 질문 */}
+                    {analysis.result_json.interviewQuestions?.length > 0 && (
+                      <div style={{ marginTop: 16 }}>
+                        <p style={{ fontSize: 12, fontWeight: 700, color: '#888', marginBottom: 10 }}>🎤 예상 면접 질문 (잡통 플러스)</p>
+                        {analysis.result_json.interviewQuestions.map((q: any, i: number) => (
+                          <div key={i} style={{ padding: '14px 16px', background: '#fff', borderRadius: 10, marginBottom: 8, border: '1px solid #ece9e1' }}>
+                            <p style={{ fontSize: 13, fontWeight: 700, color: '#0f2244', margin: '0 0 6px' }}>{i + 1}. {q.question}</p>
+                            <p style={{ fontSize: 12, color: '#888', margin: '0 0 4px' }}>근거: {q.basis}</p>
+                            <p style={{ fontSize: 12, color: '#065f46', margin: 0 }}>답변 팁: {q.tip}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* 1분 자기소개 스크립트 */}
+                    {analysis.result_json.selfIntroScript && (
+                      <div style={{ marginTop: 16, padding: '16px', background: '#f7f6f3', borderRadius: 12 }}>
+                        <p style={{ fontSize: 12, fontWeight: 700, color: '#888', marginBottom: 8 }}>🗣️ 1분 자기소개 스크립트 (잡통 플러스)</p>
+                        {analysis.result_json.selfIntroBasis && (
+                          <p style={{ fontSize: 12, color: '#4338ca', margin: '0 0 10px' }}>{analysis.result_json.selfIntroBasis}</p>
+                        )}
+                        <p style={{ fontSize: 13, color: '#333', lineHeight: 1.85, margin: 0, whiteSpace: 'pre-wrap' }}>{analysis.result_json.selfIntroScript}</p>
                       </div>
                     )}
                   </div>
@@ -547,6 +582,82 @@ export default function MyPage() {
                 <p key={i} style={{ fontSize: 13, color: '#92400e', margin: '0 0 8px', lineHeight: 1.7 }}>{i + 1}. {step}</p>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 인쇄용 — 잡통 플러스(정합성 검증) 히스토리 전용 템플릿 */}
+      {selected && selected.result_json && selected.doc_type === 'consistency' && (
+        <div id="mypage-consistency-pdf-content" style={{ display: 'none' }}>
+          <div style={{ fontFamily: "'Pretendard', sans-serif", padding: 20 }}>
+            <div style={{ background: '#0f2244', color: '#fff', borderRadius: 12, padding: '24px 28px', marginBottom: 20 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#e6a800', marginBottom: 8 }}>
+                잡통 플러스 · {new Date(selected.created_at).toLocaleDateString('ko-KR')}
+              </div>
+              <h1 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 4px' }}>잡통 플러스 · 정합성 검증 리포트</h1>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', margin: 0 }}>
+                {selected.company && selected.position ? `${selected.company} · ${selected.position}` : selected.company || selected.position || '지원 직무 전반'}
+              </p>
+              <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
+                <span style={{ fontSize: 40, fontWeight: 900, color: '#fff' }}>{selected.result_json.matchScore}</span>
+                <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>/ 100점 · {getScoreLabel(selected.result_json.matchScore)}</span>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 20, padding: '20px 24px', background: '#f7f6f3', borderRadius: 12 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0f2244', marginBottom: 10 }}>📋 종합 총평</h2>
+              <p style={{ fontSize: 13, color: '#333', lineHeight: 1.8, margin: 0 }}>{selected.result_json.summary}</p>
+            </div>
+
+            {selected.result_json.strongAlignments?.length > 0 && (
+              <div style={{ marginBottom: 20, padding: '20px 24px', background: '#ecfdf5', borderRadius: 12, border: '1px solid #bbf7d0' }}>
+                <h2 style={{ fontSize: 15, fontWeight: 800, color: '#065f46', marginBottom: 12 }}>⭐ 일관되게 잘 연결된 부분</h2>
+                {selected.result_json.strongAlignments.map((p: string, i: number) => (
+                  <p key={i} style={{ fontSize: 13, color: '#065f46', margin: '0 0 8px', lineHeight: 1.7 }}>✓ {p}</p>
+                ))}
+              </div>
+            )}
+
+            {selected.result_json.gaps?.length > 0 && (
+              <div style={{ marginBottom: 20 }}>
+                <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0f2244', marginBottom: 16 }}>⚠️ 보완이 필요한 부분</h2>
+                {selected.result_json.gaps.map((gap: any, i: number) => (
+                  <div key={i} style={{ padding: '18px 20px', background: '#fff', borderRadius: 12, marginBottom: 12, border: '1px solid #ece9e1' }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#0f2244', marginBottom: 8 }}>#{i + 1} {gap.category} ({gap.missingIn} 보완 필요)</div>
+                    <p style={{ fontSize: 12, color: '#555', marginBottom: 10, lineHeight: 1.7 }}>{gap.issue}</p>
+                    <div style={{ background: '#ecfdf5', borderRadius: 8, padding: '8px 12px', fontSize: 12, color: '#064e3b' }}>{gap.suggestion}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {selected.result_json.finalAdvice && (
+              <div style={{ padding: '20px 24px', background: '#0f2244', borderRadius: 12 }}>
+                <h2 style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 10 }}>🎯 최종 조언</h2>
+                <p style={{ fontSize: 13, color: '#b8d9ee', lineHeight: 1.8, margin: 0 }}>{selected.result_json.finalAdvice}</p>
+              </div>
+            )}
+
+            {selected.result_json.interviewQuestions?.length > 0 && (
+              <div style={{ marginTop: 20 }}>
+                <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0f2244', marginBottom: 16 }}>🎤 예상 면접 질문 (잡통 플러스)</h2>
+                {selected.result_json.interviewQuestions.map((q: any, i: number) => (
+                  <div key={i} style={{ padding: '14px 18px', background: '#fff', borderRadius: 10, marginBottom: 10, border: '1px solid #ece9e1' }}>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: '#0f2244', margin: '0 0 6px' }}>{i + 1}. {q.question}</p>
+                    <p style={{ fontSize: 12, color: '#888', margin: '0 0 4px' }}>근거: {q.basis}</p>
+                    <p style={{ fontSize: 12, color: '#065f46', margin: 0 }}>답변 팁: {q.tip}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {selected.result_json.selfIntroScript && (
+              <div style={{ marginTop: 20, padding: '20px 24px', background: '#f7f6f3', borderRadius: 12 }}>
+                <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0f2244', marginBottom: 10 }}>🗣️ 1분 자기소개 스크립트 (잡통 플러스)</h2>
+                {selected.result_json.selfIntroBasis && <p style={{ fontSize: 12, color: '#4338ca', margin: '0 0 10px' }}>{selected.result_json.selfIntroBasis}</p>}
+                <p style={{ fontSize: 13, color: '#333', lineHeight: 1.8, margin: 0, whiteSpace: 'pre-wrap' }}>{selected.result_json.selfIntroScript}</p>
+              </div>
+            )}
           </div>
         </div>
       )}
