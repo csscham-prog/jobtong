@@ -1042,7 +1042,11 @@ export default function Home() {
                     <li key={item} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: 'rgba(255,255,255,0.85)' }}><span style={{ fontWeight: 800, color: '#f0c040', fontSize: 16, flexShrink: 0 }}>✓</span>{item}</li>
                   ))}
                 </ul>
-                <button onClick={() => window.location.href = '/payment?plan=plan_5'} style={{ marginTop: 28, width: '100%', background: '#e6a800', color: '#fff', border: 'none', borderRadius: 12, padding: '14px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}>5회권 구매하기</button>
+                <div style={{ marginTop: 20, background: 'rgba(230,168,0,0.12)', border: '1px solid rgba(230,168,0,0.4)', borderRadius: 12, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 18, flexShrink: 0 }}>✨</span>
+                  <span style={{ fontSize: 13, color: '#f0c040', fontWeight: 700, lineHeight: 1.5 }}>잡통 플러스 1회 무료 지급</span>
+                </div>
+                <button onClick={() => window.location.href = '/payment?plan=plan_5'} style={{ marginTop: 20, width: '100%', background: '#e6a800', color: '#fff', border: 'none', borderRadius: 12, padding: '14px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}>5회권 구매하기</button>
               </div>
             </div>
           </div>
