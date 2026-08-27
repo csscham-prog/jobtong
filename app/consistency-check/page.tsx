@@ -395,12 +395,12 @@ export default function ConsistencyCheckPage() {
         <div style={{ background: credits > 0 ? '#eef2ff' : '#fffbeb', border: `1px solid ${credits > 0 ? '#c7d2fe' : '#fde68a'}`, borderRadius: 14, padding: '14px 18px', marginBottom: 24, fontSize: 13, color: credits > 0 ? '#4338ca' : '#92400e', fontWeight: 600 }}>
           {credits > 0
             ? `🎁 사용 가능한 무료 정합성 검증: ${credits}회`
-            : '이력서·경력기술서와 자기소개서를 각각 1회 이상 정밀 분석(유료)하시면 정합성 검증이 무료로 열립니다.'}
+            : '5회권을 결제하시면 정합성 검증이 무료로 1회 지급됩니다.'}
         </div>
 
         {credits <= 0 ? (
-          <button onClick={() => window.location.href = '/'} style={{ width: '100%', background: '#0f2244', color: '#fff', border: 'none', borderRadius: 14, padding: '16px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}>
-            잡통에서 정밀 분석 시작하기 →
+          <button onClick={() => window.location.href = '/payment?plan=plan_5'} style={{ width: '100%', background: '#0f2244', color: '#fff', border: 'none', borderRadius: 14, padding: '16px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}>
+            5회권 구매하러 가기 →
           </button>
         ) : (
           <>
