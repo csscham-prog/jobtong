@@ -14,6 +14,8 @@ const RESUME_FILE_MAX_COUNT = 3 // 최대 3개 파일
 const RESUME_TOTAL_TEXT_MAX_LENGTH = 12000
 
 const COVERLETTER_MAX_LENGTH = 5000
+const JOB_POSTING_MAX_SIZE = 5 * 1024 * 1024 // 5MB
+const JOB_POSTING_MAX_TEXT_LENGTH = 4000
 
 interface UploadedFile {
   base64: string
@@ -104,7 +106,7 @@ export async function POST(req: NextRequest) {
     const company = body.company || ''
     const position = body.position || ''
     const companyVision = (body.companyVision || '').trim().slice(0, 1000)
-    const jobPostingText = (body.jobPostingText || '').trim().slice(0, 4000)
+    const jobPostingFile = body.jobPostingFile || null
     const coverLetterContent = (body.coverLetterContent || '').trim()
     const resumeFiles: UploadedFile[] = Array.isArray(body.resumeFiles) ? body.resumeFiles.slice(0, RESUME_FILE_MAX_COUNT) : []
 
@@ -136,6 +138,30 @@ export async function POST(req: NextRequest) {
     const resumeText = extractedParts.join('\n\n').slice(0, RESUME_TOTAL_TEXT_MAX_LENGTH)
     const safeResume = safeText(resumeText)
     const safeCoverLetter = safeText(coverLetterContent)
+
+    // 채용공고 PDF 처리 (선택 사항)
+    let jobPostingText = ''
+    let jobPostingError = ''
+    if (jobPostingFile && jobPostingFile.base64) {
+      try {
+        const buffer = Buffer.from(jobPostingFile.base64, 'base64')
+        if (buffer.length > JOB_POSTING_MAX_SIZE) {
+          jobPostingError = '채용공고 파일이 5MB를 초과하여 분석에 반영되지 않았습니다.'
+        } else {
+          const parsed = await pdfParse(buffer)
+          const extracted = (parsed.text || '').trim()
+          if (extracted.length < 30) {
+            jobPostingError = '채용공고 PDF에서 텍스트를 추출하지 못해 분석에 반영되지 않았습니다. (이미지로 저장된 PDF는 지원하지 않습니다)'
+          } else {
+            jobPostingText = extracted.slice(0, JOB_POSTING_MAX_TEXT_LENGTH)
+          }
+        }
+      } catch (e) {
+        console.error('채용공고 PDF 파싱 실패:', e)
+        jobPostingError = '채용공고 PDF를 읽는 중 오류가 발생하여 분석에 반영되지 않았습니다.'
+      }
+    }
+
     const safeJobPosting = jobPostingText ? safeText(jobPostingText) : ''
     const safeCompanyVision = companyVision ? safeText(companyVision) : ''
 
@@ -257,6 +283,10 @@ export async function POST(req: NextRequest) {
 
     if (resumeFileErrors.length > 0) {
       analysisResult.resumeFileWarning = resumeFileErrors.join(' ')
+    }
+
+    if (jobPostingError) {
+      analysisResult.jobPostingWarning = jobPostingError
     }
 
     return NextResponse.json(analysisResult)
