@@ -103,6 +103,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const company = body.company || ''
     const position = body.position || ''
+    const companyVision = (body.companyVision || '').trim().slice(0, 1000)
     const jobPostingText = (body.jobPostingText || '').trim().slice(0, 4000)
     const coverLetterContent = (body.coverLetterContent || '').trim()
     const resumeFiles: UploadedFile[] = Array.isArray(body.resumeFiles) ? body.resumeFiles.slice(0, RESUME_FILE_MAX_COUNT) : []
@@ -136,11 +137,15 @@ export async function POST(req: NextRequest) {
     const safeResume = safeText(resumeText)
     const safeCoverLetter = safeText(coverLetterContent)
     const safeJobPosting = jobPostingText ? safeText(jobPostingText) : ''
+    const safeCompanyVision = companyVision ? safeText(companyVision) : ''
 
     const companyLine = company ? '지원 회사: ' + company : '지원 회사: 명시되지 않음'
     const positionLine = position ? '지원 직무: ' + position : '지원 직무: 명시되지 않음'
     const jobPostingSection = safeJobPosting
       ? '\n채용공고 원문:\n' + safeJobPosting + '\n'
+      : ''
+    const visionSection = safeCompanyVision
+      ? '\n회사의 비전·인재상:\n' + safeCompanyVision + '\n'
       : ''
 
     // 6. 프롬프트 구성
@@ -150,7 +155,7 @@ export async function POST(req: NextRequest) {
       '당신의 목표는 이 지원자의 이력서(경력기술서)와 자기소개서가 하나의 일관된 지원자 스토리로 읽히는지 정밀하게 대조 진단하는 것입니다.\n\n' +
       '[분석 대상]\n' + companyLine + '\n' + positionLine + '\n\n' +
       '이력서/경력기술서 원문:\n' + safeResume + '\n\n' +
-      '자기소개서 원문:\n' + safeCoverLetter + '\n' + jobPostingSection + '\n' +
+      '자기소개서 원문:\n' + safeCoverLetter + '\n' + jobPostingSection + visionSection + '\n' +
       '[분석 순서 - 반드시 이 순서로 사고하세요]\n' +
       '1단계: 자기소개서에서 지원자가 강조하는 핵심 경험·강점·역량을 모두 추출하세요\n' +
       '2단계: 이력서/경력기술서에서 실제 경력·성과 항목을 모두 추출하세요\n' +
@@ -182,6 +187,7 @@ export async function POST(req: NextRequest) {
       '- 이력서·자기소개서에 실제로 있는 경험·성과·수치만 사용하세요. 지어내지 마세요\n' +
       '- 이 지원자만의 가장 강력한 차별화 포인트(다른 지원자와 겹치지 않는, 서류에 드러난 구체적 강점) 하나를 중심으로 구성하세요. 여러 강점을 나열하지 말고 하나에 집중하세요\n' +
       '- 채용공고가 제공된 경우, 그 회사·직무가 요구하는 역량과 이 강점을 명시적으로 연결하세요\n' +
+      '- 회사의 비전·인재상이 제공된 경우, 그 가치와 이 지원자의 강점이 어떻게 맞닿는지 자연스럽게 녹여내세요\n' +
       '- 구어체로, 실제로 말하듯 자연스럽게 작성하세요. 문어체·격식체(~하였습니다 남발) 금지\n' +
       '- selfIntroBasis 필드에 왜 이 강점을 중심으로 구성했는지 1-2문장으로 설명하세요 (예: "이력서의 A 경력과 자소서의 B 서술이 겹치는 지점이라 가장 설득력이 높습니다")\n\n' +
       '[톤 가이드 - 반드시 지키세요]\n' +
