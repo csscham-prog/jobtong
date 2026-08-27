@@ -250,6 +250,16 @@ export async function POST(req: NextRequest) {
         '- 발견되면: patternType에 위 패턴명을 그대로, original에 자소서 원문에서 실제로 발췌(40자 이내, 절대 지어내지 말 것), suggestion에 더 자연스럽고 개인화된 표현으로 고치는 구체적 방법을 2문장 이내로 제시\n' +
         '- 발견되지 않으면: original과 suggestion 모두 정확히 "해당 없음"으로 표기\n' +
         '- 6개 항목 모두, 위 순서 그대로 빠짐없이 출력하세요\n\n' +
+        '[오탈자·맞춤법 정밀 체크]\n' +
+        '자소서 전체를 문장 단위로 꼼꼼히 훑어 아래 유형의 오류를 모두 찾아내세요.\n' +
+        '- 오탈자(예: "됬습니다" → "됐습니다")\n' +
+        '- 맞춤법 오류(예: "역활" → "역할", "웹사이트를 개발하였습니다" 같은 문어체는 오류 아님)\n' +
+        '- 띄어쓰기 오류(예: "할수있습니다" → "할 수 있습니다")\n' +
+        '- 문장부호 오류(마침표 누락, 쉼표 중복 등)\n' +
+        '규칙:\n' +
+        '- 발견한 오류마다 original(오류가 포함된 원문 그대로, 20자 이내 발췌), corrected(올바르게 고친 문장)를 배열에 추가하세요\n' +
+        '- 절대 오류를 지어내지 마세요. 실제로 자소서에 있는 오류만 정확히 찾아내세요\n' +
+        '- 오류가 하나도 없으면 빈 배열 []로 출력하세요\n\n' +
         '[톤 가이드 - 반드시 지키세요]\n' +
         '- 비판의 대상은 언제나 "자소서의 문장과 구성"이지, "지원자라는 사람"이 아닙니다\n' +
         '- "무능해 보인다", "자격이 없다", "~라고 자백하는 것과 같다" 처럼 지원자의 인격·능력을 규정하거나\n' +
@@ -263,10 +273,12 @@ export async function POST(req: NextRequest) {
         '- original 필드에 자소서에 없는 문장을 지어내지 마세요\n' +
         '- "구체적으로 쓰세요", "노력을 어필하세요" 같은 뻔하고 일반적인 조언 금지\n' +
         '- 근거 없이 좋게 포장하지 말고, 실제 서류 탈락 가능성은 냉정하게 전달하되, 지원자 개인을 비하하거나 인격을 평가하는 표현은 금지\n' +
+        '- improvements 섹션에서는 오탈자·맞춤법·띄어쓰기 오류를 지적하지 마세요. 이것은 typoCheck 섹션에서만 다룹니다\n' +
+        '- improvements 섹션에서는 클리셰 표현, AI 서식 남용 등 AI 작성 흔적 패턴을 이유로 지적하지 마세요. 이것은 aiPatternCheck 섹션에서만 다룹니다. improvements는 내용·논리·구체성·직무 연관성 등 그 외의 개선점만 다루세요\n' +
         '- 문자열 내 큰따옴표는 작은따옴표로 바꾸세요\n' +
         '- JSON 외 텍스트 절대 출력 금지\n\n' +
         '반드시 아래 JSON 형식으로만 응답하세요.\n' +
-        '{"totalScore":숫자,"summary":"...","mainIssue":"...","scores":{"logic":숫자,"specific":숫자,"fit":숫자,"expression":숫자},"improvements":[{"category":"...","issue":"...","original":"...","suggestion":"...","addContent":"..."}],"strongPoints":["...","...","..."],"finalAdvice":"...","aiPatternCheck":[{"patternType":"클리셰 표현","original":"...","suggestion":"..."},{"patternType":"AI 서식 남용","original":"...","suggestion":"..."},{"patternType":"정형화된 문단 구조","original":"...","suggestion":"..."},{"patternType":"균일한 문장 리듬","original":"...","suggestion":"..."},{"patternType":"추상적 서술","original":"...","suggestion":"..."},{"patternType":"부자연스러운 어휘 선택","original":"...","suggestion":"..."}]}'
+        '{"totalScore":숫자,"summary":"...","mainIssue":"...","scores":{"logic":숫자,"specific":숫자,"fit":숫자,"expression":숫자},"improvements":[{"category":"...","issue":"...","original":"...","suggestion":"...","addContent":"..."}],"strongPoints":["...","...","..."],"finalAdvice":"...","aiPatternCheck":[{"patternType":"클리셰 표현","original":"...","suggestion":"..."},{"patternType":"AI 서식 남용","original":"...","suggestion":"..."},{"patternType":"정형화된 문단 구조","original":"...","suggestion":"..."},{"patternType":"균일한 문장 리듬","original":"...","suggestion":"..."},{"patternType":"추상적 서술","original":"...","suggestion":"..."},{"patternType":"부자연스러운 어휘 선택","original":"...","suggestion":"..."}],"typoCheck":[{"original":"...","corrected":"..."}]}'
 
     } else {
       fullPrompt = '당신은 삼성전자, LG, 현대자동차, SK 등 국내 주요 대기업과 다수의 스타트업에서 10년 이상 채용 실무를 담당해온 인사 전문가이자 헤드헌터입니다. 매년 수천 건의 이력서를 검토하며, 서류 통과 여부를 결정하는 첫 6초의 스캔에서 무엇이 당락을 가르는지 정확히 알고 있습니다.\n\n' +
@@ -320,6 +332,17 @@ export async function POST(req: NextRequest) {
         '- 발견되면: patternType에 위 패턴명을 그대로, original에 문서 원문에서 실제로 발췌(40자 이내, 절대 지어내지 말 것), suggestion에 더 자연스럽고 개인화된 표현으로 고치는 구체적 방법을 2문장 이내로 제시\n' +
         '- 발견되지 않으면: original과 suggestion 모두 정확히 "해당 없음"으로 표기\n' +
         '- 6개 항목 모두, 위 순서 그대로 빠짐없이 출력하세요\n\n' +
+        '[오탈자·맞춤법 정밀 체크]\n' +
+        '문서 전체를 문장 단위로 꼼꼼히 훑어 아래 유형의 오류를 모두 찾아내세요.\n' +
+        '- 오탈자(예: "됬습니다" → "됐습니다")\n' +
+        '- 맞춤법 오류(예: "역활" → "역할")\n' +
+        '- 띄어쓰기 오류(예: "할수있습니다" → "할 수 있습니다")\n' +
+        '- 문장부호 오류(마침표 누락, 쉼표 중복 등)\n' +
+        '규칙:\n' +
+        '- 발견한 오류마다 original(오류가 포함된 원문 그대로, 20자 이내 발췌), corrected(올바르게 고친 문장)를 배열에 추가하세요\n' +
+        '- 절대 오류를 지어내지 마세요. 실제로 문서에 있는 오류만 정확히 찾아내세요\n' +
+        '- 이력서 특성상 회사명·직함·전문용어 등 고유명사는 오류로 판단하지 마세요\n' +
+        '- 오류가 하나도 없으면 빈 배열 []로 출력하세요\n\n' +
         '[톤 가이드 - 반드시 지키세요]\n' +
         '- 비판의 대상은 언제나 문서의 구성과 서술 방식이지, 지원자라는 사람이 아닙니다\n' +
         '- "역량이 부족해 보인다", "이 정도로는 안 된다", "경쟁력이 없다" 처럼 지원자의 능력이나 자격을 규정하거나 판정하는 표현은 사용하지 마세요. 대신 "이 서술은 채용담당자에게 ~라는 인상을 줄 수 있습니다", "~로 읽혀 성과의 크기를 가늠하기 어렵게 만듭니다"처럼 문서가 만드는 인상을 지적하세요\n' +
@@ -330,10 +353,12 @@ export async function POST(req: NextRequest) {
         '- "경력을 더 어필하세요", "성과를 강조하세요", "구체적으로 쓰세요" 같은 뻔하고 일반적인 조언 금지\n' +
         '- 근거 없이 좋게 포장하지 말고, 실제 서류 탈락 가능성은 냉정하게 전달하되, 지원자 개인을 비하하거나 인격을 평가하는 표현은 금지\n' +
         '- 문서 형식(표, 글머리기호 사용 여부 등) 자체에 대한 일반론적 비판 금지. 실제 텍스트 내용에 근거한 지적만 할 것\n' +
+        '- improvements 섹션에서는 오탈자·맞춤법·띄어쓰기 오류를 지적하지 마세요. 이것은 typoCheck 섹션에서만 다룹니다\n' +
+        '- improvements 섹션에서는 클리셰 표현, AI 서식 남용 등 AI 작성 흔적 패턴을 이유로 지적하지 마세요. 이것은 aiPatternCheck 섹션에서만 다룹니다. improvements는 내용·논리·구체성·직무 연관성 등 그 외의 개선점만 다루세요\n' +
         '- 문자열 내 큰따옴표는 작은따옴표로 바꾸세요\n' +
         '- JSON 외 텍스트 절대 출력 금지\n\n' +
         '반드시 아래 JSON 형식으로만 응답하세요.\n' +
-        '{"totalScore":숫자,"summary":"...","mainIssue":"...","scores":{"structure":숫자,"achievement":숫자,"relevance":숫자,"completeness":숫자},"improvements":[{"category":"...","issue":"...","original":"...","suggestion":"...","addContent":"..."}],"strongPoints":["...","...","..."],"finalAdvice":"...","hasCoverLetterContent":true또는false,"coverLetterHint":"...","aiPatternCheck":[{"patternType":"클리셰 표현","original":"...","suggestion":"..."},{"patternType":"AI 서식 남용","original":"...","suggestion":"..."},{"patternType":"정형화된 문단 구조","original":"...","suggestion":"..."},{"patternType":"균일한 문장 리듬","original":"...","suggestion":"..."},{"patternType":"추상적 서술","original":"...","suggestion":"..."},{"patternType":"부자연스러운 어휘 선택","original":"...","suggestion":"..."}]}'
+        '{"totalScore":숫자,"summary":"...","mainIssue":"...","scores":{"structure":숫자,"achievement":숫자,"relevance":숫자,"completeness":숫자},"improvements":[{"category":"...","issue":"...","original":"...","suggestion":"...","addContent":"..."}],"strongPoints":["...","...","..."],"finalAdvice":"...","hasCoverLetterContent":true또는false,"coverLetterHint":"...","aiPatternCheck":[{"patternType":"클리셰 표현","original":"...","suggestion":"..."},{"patternType":"AI 서식 남용","original":"...","suggestion":"..."},{"patternType":"정형화된 문단 구조","original":"...","suggestion":"..."},{"patternType":"균일한 문장 리듬","original":"...","suggestion":"..."},{"patternType":"추상적 서술","original":"...","suggestion":"..."},{"patternType":"부자연스러운 어휘 선택","original":"...","suggestion":"..."}],"typoCheck":[{"original":"...","corrected":"..."}]}'
     }
 
     // 8. AI 분석 — 무료/유료 모두 동일한 전체 분석 프롬프트 사용 (퀄리티 동일)
