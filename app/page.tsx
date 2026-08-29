@@ -476,6 +476,15 @@ export default function Home() {
       setUser(session?.user ?? null)
       if (session?.user) fetchProfile(session.user.id)
       setAuthLoading(false)
+
+      // 외부(자가진단 결과 등)에서 ?start=analyze로 들어온 경우 분석 화면으로 바로 진입
+      if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('start') === 'analyze') {
+        if (session?.user) {
+          setStep('analyze')
+        } else {
+          window.location.href = '/login'
+        }
+      }
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
