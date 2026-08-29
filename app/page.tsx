@@ -813,14 +813,6 @@ export default function Home() {
                 {(userProfile?.paid_credits || 0) > 0 ? `잔여 ${userProfile.paid_credits}회` : !userProfile?.free_trial_used ? '무료 1회 남음' : ''}
               </span>
               <button onClick={() => handleStartAnalyze()} style={{ background: '#0f2244', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 18px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>분석 시작</button>
-              <button onClick={() => window.location.href = '/schedule'} style={{ position: 'relative', background: 'none', color: '#0f2244', border: '1px solid #0f2244', borderRadius: 10, padding: '10px 14px', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
-                📅 일정 관리
-                {todayScheduleCount > 0 && (
-                  <span style={{ position: 'absolute', top: -6, right: -6, background: '#ef4444', color: '#fff', fontSize: 10, fontWeight: 700, borderRadius: 20, padding: '2px 6px', lineHeight: 1 }}>
-                    오늘 {todayScheduleCount}
-                  </span>
-                )}
-              </button>
               <button onClick={() => window.location.href = '/mypage'} style={{ background: 'none', color: '#0f2244', border: '1px solid #0f2244', borderRadius: 10, padding: '10px 14px', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>내 기록</button>
               <button onClick={handleLogout} className="mobile-hide" style={{ background: 'none', color: '#aaa', border: '1px solid #ddd', borderRadius: 10, padding: '10px 14px', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>로그아웃</button>
             </>
@@ -1420,8 +1412,34 @@ export default function Home() {
           </div>
         )}
 
-        <div style={{ maxWidth: 680, margin: '0 auto', padding: '48px 24px' }}>
-          <div style={{ background: '#fff', borderRadius: 20, padding: '40px 36px', border: '1px solid #ece9e1' }}>
+        <div style={{ maxWidth: 940, margin: '0 auto', padding: '48px 24px', display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+
+          {/* ── 왼쪽 로컬 메뉴 ── */}
+          <div style={{ width: 200, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8, position: 'sticky', top: 88 }} className="mobile-hide">
+            <div style={{ background: '#0f2244', color: '#fff', borderRadius: 12, padding: '13px 16px', fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+              📝 취업서류 분석
+            </div>
+            <button
+              onClick={() => window.location.href = '/mock-interview'}
+              style={{ background: '#fff', color: '#333', border: '1px solid #ece9e1', borderRadius: 12, padding: '13px 16px', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}
+            >
+              🎤 모의 면접
+            </button>
+            <button
+              onClick={() => window.location.href = '/schedule'}
+              style={{ position: 'relative', background: '#fff', color: '#333', border: '1px solid #ece9e1', borderRadius: 12, padding: '13px 16px', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}
+            >
+              📅 일정 관리
+              <span style={{ marginLeft: 'auto', background: '#f0fdf4', color: '#059669', fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20 }}>FREE</span>
+              {todayScheduleCount > 0 && (
+                <span style={{ position: 'absolute', top: -6, right: -6, background: '#ef4444', color: '#fff', fontSize: 10, fontWeight: 700, borderRadius: 20, padding: '2px 6px', lineHeight: 1 }}>
+                  오늘 {todayScheduleCount}
+                </span>
+              )}
+            </button>
+          </div>
+
+          <div style={{ flex: 1, background: '#fff', borderRadius: 20, padding: '40px 36px', border: '1px solid #ece9e1' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
               <span style={{ fontSize: 24 }}>✏️</span>
               <h2 style={{ fontSize: 24, fontWeight: 800, color: '#0f2244', letterSpacing: '-0.5px' }}>취업 서류 분석 시작</h2>
@@ -1457,18 +1475,6 @@ export default function Home() {
                     }}
                   >
                     ✏️ 자기소개서
-                  </button>
-                  <button
-                    onClick={() => window.location.href = '/mock-interview'}
-                    style={{
-                      flex: 1, padding: '14px 12px', borderRadius: 12,
-                      border: '2px solid #e6a800',
-                      background: '#fffbeb',
-                      color: '#92400e',
-                      fontWeight: 800, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
-                    }}
-                  >
-                    🎤 모의 면접
                   </button>
                 </div>
               </div>
