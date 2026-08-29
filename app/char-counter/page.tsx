@@ -61,7 +61,7 @@ export default function CharCounterPage() {
 
             return (
               <div key={item.id} style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', padding: '18px 20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
                   <input
                     value={item.label}
                     onChange={e => updateItem(item.id, { label: e.target.value })}
@@ -71,13 +71,16 @@ export default function CharCounterPage() {
                     <input type="checkbox" checked={item.countSpaces} onChange={e => updateItem(item.id, { countSpaces: e.target.checked })} />
                     공백 포함
                   </label>
-                  <input
-                    type="number"
-                    value={item.limit}
-                    onChange={e => updateItem(item.id, { limit: Math.max(0, parseInt(e.target.value) || 0) })}
-                    style={{ width: 64, padding: '5px 8px', borderRadius: 8, border: '1.5px solid #ddd', fontSize: 12, fontFamily: 'inherit', color: '#333', textAlign: 'right' }}
-                  />
-                  <span style={{ fontSize: 12, color: '#999' }}>자</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#f7f6f3', borderRadius: 8, padding: '4px 8px' }}>
+                    <span style={{ fontSize: 11, color: '#888', whiteSpace: 'nowrap' }}>제한 글자수</span>
+                    <input
+                      type="number"
+                      value={item.limit}
+                      onChange={e => updateItem(item.id, { limit: Math.max(0, parseInt(e.target.value) || 0) })}
+                      style={{ width: 56, padding: '3px 4px', borderRadius: 6, border: '1.5px solid #ddd', fontSize: 12, fontFamily: 'inherit', color: '#333', textAlign: 'right', background: '#fff' }}
+                    />
+                    <span style={{ fontSize: 12, color: '#999' }}>자</span>
+                  </div>
                   {items.length > 1 && (
                     <button onClick={() => removeItem(item.id)} style={{ background: 'none', border: 'none', color: '#bbb', cursor: 'pointer', fontSize: 14, padding: 4 }}>✕</button>
                   )}
