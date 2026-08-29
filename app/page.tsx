@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import PaidResult from '@/components/PaidResult'
+import DdayPopup, { useTodayScheduleCount } from '@/components/DdayPopup'
 
 
 // ── 샘플 분석 결과 컴포넌트 ──────────────────────────────────
@@ -393,6 +394,7 @@ function SampleResult() {
 }
 
 export default function Home() {
+  const todayScheduleCount = useTodayScheduleCount()
   const [step, setStep] = useState<'landing' | 'analyze' | 'result'>('landing')
   const [analyzeType, setAnalyzeType] = useState<'free' | 'paid'>('free')
   const [company, setCompany] = useState('')
@@ -811,6 +813,14 @@ export default function Home() {
                 {(userProfile?.paid_credits || 0) > 0 ? `잔여 ${userProfile.paid_credits}회` : !userProfile?.free_trial_used ? '무료 1회 남음' : ''}
               </span>
               <button onClick={() => handleStartAnalyze()} style={{ background: '#0f2244', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 18px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>분석 시작</button>
+              <button onClick={() => window.location.href = '/schedule'} style={{ position: 'relative', background: 'none', color: '#0f2244', border: '1px solid #0f2244', borderRadius: 10, padding: '10px 14px', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+                📅 일정 관리
+                {todayScheduleCount > 0 && (
+                  <span style={{ position: 'absolute', top: -6, right: -6, background: '#ef4444', color: '#fff', fontSize: 10, fontWeight: 700, borderRadius: 20, padding: '2px 6px', lineHeight: 1 }}>
+                    오늘 {todayScheduleCount}
+                  </span>
+                )}
+              </button>
               <button onClick={() => window.location.href = '/mypage'} style={{ background: 'none', color: '#0f2244', border: '1px solid #0f2244', borderRadius: 10, padding: '10px 14px', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>내 기록</button>
               <button onClick={handleLogout} className="mobile-hide" style={{ background: 'none', color: '#aaa', border: '1px solid #ddd', borderRadius: 10, padding: '10px 14px', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>로그아웃</button>
             </>
@@ -830,6 +840,7 @@ export default function Home() {
     return (
       <main style={base}>
         <Header />
+        {user && <DdayPopup />}
         <section style={{ background: 'linear-gradient(160deg, #0a1628 0%, #1a3a6b 60%, #152f58 100%)', color: '#fff', padding: '80px 24px 90px', position: 'relative' }}>
 
           {/* 장식 레이어 — div 기반 눈금자 + 돋보기 */}
@@ -1303,6 +1314,7 @@ export default function Home() {
     return (
       <main style={base}>
         <Header />
+        {user && <DdayPopup />}
 
         {/* 전체화면 로딩 오버레이 — 분석 중 화면이 멈춘 것처럼 보이지 않도록 */}
         {loading && (
@@ -1673,6 +1685,7 @@ export default function Home() {
     return (
       <main style={base}>
         <Header />
+        {user && <DdayPopup />}
         <div style={{ maxWidth: 680, margin: '0 auto', padding: '48px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
           {/* 분석 타입 표시 */}
