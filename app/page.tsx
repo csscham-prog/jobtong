@@ -992,10 +992,15 @@ export default function Home() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 32, marginBottom: 16 }}>
               <span style={{ fontSize: 15 }}>🧰</span>
               <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>무료 도구</span>
-              <span style={{ background: '#f0fdf4', color: '#059669', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20 }}>로그인 불필요</span>
+              <span style={{ background: '#f0fdf4', color: '#059669', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20 }}>크레딧 소모 없음</span>
               <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.12)' }} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
+              <div onClick={() => window.location.href = '/schedule'} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: 22, cursor: 'pointer' }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 10 }}>📅 일정 관리</div>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.62)', lineHeight: 1.75, marginBottom: 12 }}>지원 마감, 면접, 서류 제출 일정을 캘린더로 한눈에 관리해요. 오늘 마감·면접 일정이 있으면 로그인 시 자동으로 알림 팝업이 떠서 놓치지 않게 해드려요.</div>
+                <div style={{ fontSize: 11.5, color: 'rgba(240,192,64,0.85)' }}>✓ D-day 자동 알림 &nbsp;·&nbsp; ✓ 완전 무료</div>
+              </div>
               <div onClick={() => window.location.href = '/char-counter'} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: 22, cursor: 'pointer' }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 10 }}>✏️ 자소서 글자수 카운터</div>
                 <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.62)', lineHeight: 1.75, marginBottom: 12 }}>문항별로 나눠서 글자수를 실시간으로 확인해요. 공백 포함/제외, 기업마다 다른 글자수 규정에 맞춰 조절할 수 있어요.</div>
