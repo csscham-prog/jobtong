@@ -71,7 +71,7 @@ const CATEGORIES: Category[] = [
 ]
 
 const FEATURE_CARDS: Record<string, { icon: string; title: string; desc: string; link: string }> = {
-  analyze: { icon: '📝', title: '취업 서류 정밀 분석', desc: '자소서·이력서를 논리성·구체성·직무적합성까지 냉정하게 진단해드려요.', link: '/' },
+  analyze: { icon: '📝', title: '취업 서류 정밀 분석', desc: '자소서·이력서를 논리성·구체성·직무적합성까지 냉정하게 진단해드려요.', link: '/?start=analyze' },
   'mock-interview': { icon: '🎤', title: '모의 면접', desc: '서류 기반 맞춤 질문에 직접 답하고 AI 피드백을 받아보세요.', link: '/mock-interview' },
   schedule: { icon: '📅', title: '일정 관리', desc: '지원 마감·면접 일정을 한곳에서 관리하고 D-day 알림을 받아보세요.', link: '/schedule' },
   salary: { icon: '💰', title: '실수령액 계산기', desc: '지원 전에 예상 실수령액을 미리 확인해보세요.', link: '/salary-calculator' },
@@ -319,18 +319,19 @@ export default function ReadinessCheckPage() {
 
         {recommendedFeatures.length > 0 && (
           <>
-            <p style={{ fontSize: 15, fontWeight: 800, color: '#0f2244', margin: '0 0 14px' }}>💡 지금 도움이 될 수 있어요</p>
+            <p style={{ fontSize: 15, fontWeight: 800, color: '#0f2244', margin: '0 0 6px' }}>💡 지금 도움이 될 수 있어요</p>
+            <p style={{ fontSize: 12, color: '#999', margin: '0 0 14px' }}>새 탭에서 열려요. 여기 결과 화면은 그대로 남아있어요.</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
               {recommendedFeatures.map(fid => {
                 const f = FEATURE_CARDS[fid]
                 return (
-                  <div key={fid} onClick={() => window.location.href = f.link} style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 14, padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer' }}>
+                  <div key={fid} onClick={() => window.open(f.link, '_blank')} style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 14, padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer' }}>
                     <span style={{ fontSize: 24 }}>{f.icon}</span>
                     <div style={{ flex: 1 }}>
                       <p style={{ fontSize: 14, fontWeight: 700, color: '#92400e', margin: '0 0 3px' }}>{f.title}</p>
                       <p style={{ fontSize: 12, color: '#78350f', margin: 0, lineHeight: 1.6 }}>{f.desc}</p>
                     </div>
-                    <span style={{ fontSize: 16, color: '#e6a800' }}>→</span>
+                    <span style={{ fontSize: 15, color: '#e6a800' }}>↗</span>
                   </div>
                 )
               })}
