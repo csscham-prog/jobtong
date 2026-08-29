@@ -94,17 +94,29 @@ function calcNetSalary(annualSalary: number, nonTaxable: number, dependents: num
 }
 
 export default function SalaryCalculatorPage() {
-  const [salaryInput, setSalaryInput] = useState('40000000')
-  const [nonTaxable, setNonTaxable] = useState('200000')
-  const [dependents, setDependents] = useState('1')
-  const [children, setChildren] = useState('0')
+  const [salaryInput, setSalaryInput] = useState('')
+  const [nonTaxable, setNonTaxable] = useState('')
+  const [dependents, setDependents] = useState('')
+  const [children, setChildren] = useState('')
+  const [hasCalculated, setHasCalculated] = useState(false)
+  const [formError, setFormError] = useState('')
 
   const annualSalary = parseInt(salaryInput.replace(/[^0-9]/g, '')) || 0
   const nonTaxableNum = parseInt(nonTaxable.replace(/[^0-9]/g, '')) || 0
   const dependentsNum = Math.max(parseInt(dependents) || 1, 1)
   const childrenNum = Math.max(parseInt(children) || 0, 0)
 
-  const result = annualSalary > 0 ? calcNetSalary(annualSalary, nonTaxableNum, dependentsNum, childrenNum) : null
+  const result = hasCalculated && annualSalary > 0 ? calcNetSalary(annualSalary, nonTaxableNum, dependentsNum, childrenNum) : null
+
+  const handleCalculate = () => {
+    if (annualSalary <= 0) {
+      setFormError('연봉을 입력해주세요.')
+      setHasCalculated(false)
+      return
+    }
+    setFormError('')
+    setHasCalculated(true)
+  }
 
   return (
     <main style={base}>
@@ -129,8 +141,9 @@ export default function SalaryCalculatorPage() {
             <label style={{ fontSize: 13, fontWeight: 700, color: '#333', display: 'block', marginBottom: 6 }}>연봉 (세전, 필수)</label>
             <div style={{ position: 'relative' }}>
               <input
-                value={Number(salaryInput.replace(/[^0-9]/g, '') || 0).toLocaleString()}
-                onChange={e => setSalaryInput(e.target.value)}
+                value={salaryInput ? Number(salaryInput.replace(/[^0-9]/g, '') || 0).toLocaleString() : ''}
+                onChange={e => { setSalaryInput(e.target.value); setHasCalculated(false) }}
+                placeholder="예: 40,000,000"
                 style={{ width: '100%', padding: '14px 44px 14px 14px', borderRadius: 12, border: '1.5px solid #ccc', fontSize: 16, fontWeight: 700, fontFamily: 'inherit', color: '#222', boxSizing: 'border-box' }}
               />
               <span style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 14, color: '#888' }}>원</span>
@@ -140,11 +153,12 @@ export default function SalaryCalculatorPage() {
           <div style={{ marginBottom: 16 }}>
             <label style={{ fontSize: 13, fontWeight: 700, color: '#333', display: 'block', marginBottom: 6 }}>비과세액 (월, 식대 등)</label>
             <input
-              value={Number(nonTaxable.replace(/[^0-9]/g, '') || 0).toLocaleString()}
-              onChange={e => setNonTaxable(e.target.value)}
+              value={nonTaxable ? Number(nonTaxable.replace(/[^0-9]/g, '') || 0).toLocaleString() : ''}
+              onChange={e => { setNonTaxable(e.target.value); setHasCalculated(false) }}
+              placeholder="예: 200,000 (모르면 비워두세요)"
               style={{ width: '100%', padding: '13px 14px', borderRadius: 12, border: '1.5px solid #ccc', fontSize: 14, fontFamily: 'inherit', color: '#222', boxSizing: 'border-box' }}
             />
-            <p style={{ fontSize: 11, color: '#999', margin: '6px 0 0' }}>보통 식대(월 20만원)가 비과세로 처리돼요. 모르면 기본값 그대로 두세요.</p>
+            <p style={{ fontSize: 11, color: '#999', margin: '6px 0 0' }}>보통 식대(월 20만원)가 비과세로 처리돼요. 비워두면 0원으로 계산돼요.</p>
           </div>
 
           <div style={{ display: 'flex', gap: 10 }}>
@@ -154,7 +168,8 @@ export default function SalaryCalculatorPage() {
                 type="number"
                 min={1}
                 value={dependents}
-                onChange={e => setDependents(e.target.value)}
+                onChange={e => { setDependents(e.target.value); setHasCalculated(false) }}
+                placeholder="예: 1"
                 style={{ width: '100%', padding: '13px 14px', borderRadius: 12, border: '1.5px solid #ccc', fontSize: 14, fontFamily: 'inherit', color: '#222', boxSizing: 'border-box' }}
               />
             </div>
@@ -164,11 +179,21 @@ export default function SalaryCalculatorPage() {
                 type="number"
                 min={0}
                 value={children}
-                onChange={e => setChildren(e.target.value)}
+                onChange={e => { setChildren(e.target.value); setHasCalculated(false) }}
+                placeholder="예: 0"
                 style={{ width: '100%', padding: '13px 14px', borderRadius: 12, border: '1.5px solid #ccc', fontSize: 14, fontFamily: 'inherit', color: '#222', boxSizing: 'border-box' }}
               />
             </div>
           </div>
+
+          {formError && <p style={{ fontSize: 13, color: '#ef4444', margin: '14px 0 0' }}>{formError}</p>}
+
+          <button
+            onClick={handleCalculate}
+            style={{ width: '100%', marginTop: 16, background: '#0f2244', color: '#fff', border: 'none', borderRadius: 12, padding: '15px', fontWeight: 800, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}
+          >
+            계산하기
+          </button>
         </div>
 
         {result && (
