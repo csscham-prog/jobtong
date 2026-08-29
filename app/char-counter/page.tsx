@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
 
 const base: React.CSSProperties = { fontFamily: "'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", background: '#f7f6f3', minHeight: '100vh' }
 const headerStyle: React.CSSProperties = { background: '#fff', borderBottom: '1px solid #ece9e1', position: 'sticky', top: 0, zIndex: 50 }
@@ -19,9 +20,19 @@ function countChars(text: string, countSpaces: boolean) {
 }
 
 export default function CharCounterPage() {
+  const [authLoading, setAuthLoading] = useState(true)
   const [items, setItems] = useState<Item[]>([
     { id: '1', label: '문항 1', content: '', limit: 500, countSpaces: true },
   ])
+
+  useEffect(() => {
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { window.location.href = '/login'; return }
+      setAuthLoading(false)
+    }
+    init()
+  }, [])
 
   const addItem = () => {
     setItems(prev => [...prev, { id: Date.now().toString(), label: `문항 ${prev.length + 1}`, content: '', limit: 500, countSpaces: true }])
@@ -33,6 +44,14 @@ export default function CharCounterPage() {
 
   const updateItem = (id: string, patch: Partial<Item>) => {
     setItems(prev => prev.map(it => it.id === id ? { ...it, ...patch } : it))
+  }
+
+  if (authLoading) {
+    return (
+      <main style={{ ...base, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: '#888', fontSize: 14 }}>불러오는 중...</p>
+      </main>
+    )
   }
 
   return (
