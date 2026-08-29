@@ -988,6 +988,25 @@ export default function Home() {
                 <div style={{ fontSize: 11.5, color: 'rgba(240,192,64,0.85)' }}>✓ 서류 기반 맞춤 질문 5개 &nbsp;·&nbsp; ✓ 질문별 정밀 피드백</div>
               </div>
             </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 32, marginBottom: 16 }}>
+              <span style={{ fontSize: 15 }}>🧰</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>무료 도구</span>
+              <span style={{ background: '#f0fdf4', color: '#059669', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20 }}>로그인 불필요</span>
+              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.12)' }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
+              <div onClick={() => window.location.href = '/char-counter'} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: 22, cursor: 'pointer' }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 10 }}>✏️ 자소서 글자수 카운터</div>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.62)', lineHeight: 1.75, marginBottom: 12 }}>문항별로 나눠서 글자수를 실시간으로 확인해요. 공백 포함/제외, 기업마다 다른 글자수 규정에 맞춰 조절할 수 있어요.</div>
+                <div style={{ fontSize: 11.5, color: 'rgba(240,192,64,0.85)' }}>✓ 문항 무제한 추가 &nbsp;·&nbsp; ✓ 완전 무료</div>
+              </div>
+              <div onClick={() => window.location.href = '/salary-calculator'} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: 22, cursor: 'pointer' }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 10 }}>💰 실수령액 계산기</div>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.62)', lineHeight: 1.75, marginBottom: 12 }}>2026년 기준 4대보험 요율과 소득세를 반영해 세전 연봉으로 월 실수령액을 계산해드려요. 연봉 협상, 오퍼 비교할 때 바로 확인하세요.</div>
+                <div style={{ fontSize: 11.5, color: 'rgba(240,192,64,0.85)' }}>✓ 2026년 최신 요율 &nbsp;·&nbsp; ✓ 완전 무료</div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -1436,6 +1455,18 @@ export default function Home() {
                 </span>
               )}
             </button>
+            <button
+              onClick={() => window.location.href = '/char-counter'}
+              style={{ flexShrink: 0, background: '#fff', color: '#333', border: '1px solid #ece9e1', borderRadius: 20, padding: '9px 16px', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
+            >
+              ✏️ 글자수 카운터 <span style={{ background: '#f0fdf4', color: '#059669', fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 20, marginLeft: 4 }}>FREE</span>
+            </button>
+            <button
+              onClick={() => window.location.href = '/salary-calculator'}
+              style={{ flexShrink: 0, background: '#fff', color: '#333', border: '1px solid #ece9e1', borderRadius: 20, padding: '9px 16px', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
+            >
+              💰 실수령액 계산기 <span style={{ background: '#f0fdf4', color: '#059669', fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 20, marginLeft: 4 }}>FREE</span>
+            </button>
           </div>
 
           <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', width: '100%' }}>
@@ -1462,6 +1493,20 @@ export default function Home() {
                   오늘 {todayScheduleCount}
                 </span>
               )}
+            </button>
+            <button
+              onClick={() => window.location.href = '/char-counter'}
+              style={{ background: '#fff', color: '#333', border: '1px solid #ece9e1', borderRadius: 12, padding: '13px 16px', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}
+            >
+              ✏️ 글자수 카운터
+              <span style={{ marginLeft: 'auto', background: '#f0fdf4', color: '#059669', fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20 }}>FREE</span>
+            </button>
+            <button
+              onClick={() => window.location.href = '/salary-calculator'}
+              style={{ background: '#fff', color: '#333', border: '1px solid #ece9e1', borderRadius: 12, padding: '13px 16px', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}
+            >
+              💰 실수령액 계산기
+              <span style={{ marginLeft: 'auto', background: '#f0fdf4', color: '#059669', fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20 }}>FREE</span>
             </button>
           </div>
 
