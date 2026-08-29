@@ -1011,6 +1011,11 @@ export default function Home() {
                 <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.62)', lineHeight: 1.75, marginBottom: 12 }}>2026년 기준 4대보험 요율과 소득세를 반영해 세전 연봉으로 월 실수령액을 계산해드려요. 연봉 협상, 오퍼 비교할 때 바로 확인하세요.</div>
                 <div style={{ fontSize: 11.5, color: 'rgba(240,192,64,0.85)' }}>✓ 2026년 최신 요율 &nbsp;·&nbsp; ✓ 완전 무료</div>
               </div>
+              <div onClick={() => window.location.href = '/readiness-check'} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: 22, cursor: 'pointer' }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 10 }}>🧭 취업 준비도 자가진단</div>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.62)', lineHeight: 1.75, marginBottom: 12 }}>15개 문항으로 방향성·서류·면접·실행력·정보력 5가지 영역을 진단해드려요. 부족한 부분에 맞는 다음 단계도 바로 안내해드려요.</div>
+                <div style={{ fontSize: 11.5, color: 'rgba(240,192,64,0.85)' }}>✓ 소요시간 약 2분 &nbsp;·&nbsp; ✓ 완전 무료</div>
+              </div>
             </div>
           </div>
         </section>
@@ -1472,6 +1477,12 @@ export default function Home() {
             >
               💰 실수령액 계산기 <span style={{ background: '#f0fdf4', color: '#059669', fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 20, marginLeft: 4 }}>FREE</span>
             </button>
+            <button
+              onClick={() => window.location.href = '/readiness-check'}
+              style={{ flexShrink: 0, background: '#fff', color: '#333', border: '1px solid #ece9e1', borderRadius: 20, padding: '9px 16px', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
+            >
+              🧭 준비도 자가진단 <span style={{ background: '#f0fdf4', color: '#059669', fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 20, marginLeft: 4 }}>FREE</span>
+            </button>
           </div>
 
           <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', width: '100%' }}>
@@ -1511,6 +1522,13 @@ export default function Home() {
               style={{ background: '#fff', color: '#333', border: '1px solid #ece9e1', borderRadius: 12, padding: '13px 16px', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}
             >
               💰 실수령액 계산기
+              <span style={{ marginLeft: 'auto', background: '#f0fdf4', color: '#059669', fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20 }}>FREE</span>
+            </button>
+            <button
+              onClick={() => window.location.href = '/readiness-check'}
+              style={{ background: '#fff', color: '#333', border: '1px solid #ece9e1', borderRadius: 12, padding: '13px 16px', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}
+            >
+              🧭 준비도 자가진단
               <span style={{ marginLeft: 'auto', background: '#f0fdf4', color: '#059669', fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20 }}>FREE</span>
             </button>
           </div>
