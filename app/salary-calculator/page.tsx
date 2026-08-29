@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
 
 const base: React.CSSProperties = { fontFamily: "'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", background: '#f7f6f3', minHeight: '100vh' }
 const headerStyle: React.CSSProperties = { background: '#fff', borderBottom: '1px solid #ece9e1', position: 'sticky', top: 0, zIndex: 50 }
@@ -96,12 +97,22 @@ function calcNetSalary(annualSalary: number, nonTaxable: number, dependents: num
 }
 
 export default function SalaryCalculatorPage() {
+  const [authLoading, setAuthLoading] = useState(true)
   const [salaryInput, setSalaryInput] = useState('')
   const [nonTaxable, setNonTaxable] = useState('')
   const [dependents, setDependents] = useState('')
   const [children, setChildren] = useState('')
   const [hasCalculated, setHasCalculated] = useState(false)
   const [formError, setFormError] = useState('')
+
+  useEffect(() => {
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { window.location.href = '/login'; return }
+      setAuthLoading(false)
+    }
+    init()
+  }, [])
 
   const annualSalary = parseInt(salaryInput.replace(/[^0-9]/g, '')) || 0
   const nonTaxableNum = parseInt(nonTaxable.replace(/[^0-9]/g, '')) || 0
@@ -118,6 +129,14 @@ export default function SalaryCalculatorPage() {
     }
     setFormError('')
     setHasCalculated(true)
+  }
+
+  if (authLoading) {
+    return (
+      <main style={{ ...base, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: '#888', fontSize: 14 }}>불러오는 중...</p>
+      </main>
+    )
   }
 
   return (
