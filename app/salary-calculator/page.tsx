@@ -83,11 +83,13 @@ function calcNetSalary(annualSalary: number, nonTaxable: number, dependents: num
   const taxTotal = monthlyIncomeTax + monthlyLocalTax
 
   const monthlyNet = Math.round(monthlyGross - insuranceTotal - taxTotal)
+  const effectiveTaxRate = taxableMonthly > 0 ? (monthlyIncomeTax / taxableMonthly) * 100 : 0
 
   return {
     monthlyGross: Math.round(monthlyGross),
     pension, health, longtermCare, employment, insuranceTotal,
     monthlyIncomeTax, monthlyLocalTax, taxTotal,
+    effectiveTaxRate,
     monthlyNet,
     annualNet: monthlyNet * 12,
   }
@@ -214,13 +216,13 @@ export default function SalaryCalculatorPage() {
 
               <p style={{ fontSize: 12, fontWeight: 700, color: '#999', margin: '14px 0 6px' }}>4대보험</p>
               {[
-                ['국민연금', result.pension],
-                ['건강보험', result.health],
-                ['장기요양보험', result.longtermCare],
-                ['고용보험', result.employment],
-              ].map(([label, val]) => (
+                ['국민연금', result.pension, '4.75%'],
+                ['건강보험', result.health, '3.595%'],
+                ['장기요양보험', result.longtermCare, '건보료의 13.14%'],
+                ['고용보험', result.employment, '0.9%'],
+              ].map(([label, val, rate]) => (
                 <div key={label as string} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: 13 }}>
-                  <span style={{ color: '#888' }}>{label}</span>
+                  <span style={{ color: '#888' }}>{label} <span style={{ fontSize: 11, color: '#bbb' }}>({rate})</span></span>
                   <span style={{ color: '#ef4444' }}>-{(val as number).toLocaleString()}원</span>
                 </div>
               ))}
@@ -231,11 +233,11 @@ export default function SalaryCalculatorPage() {
 
               <p style={{ fontSize: 12, fontWeight: 700, color: '#999', margin: '14px 0 6px' }}>세금</p>
               {[
-                ['소득세', result.monthlyIncomeTax],
-                ['지방소득세', result.monthlyLocalTax],
-              ].map(([label, val]) => (
+                ['소득세', result.monthlyIncomeTax, `실효세율 약 ${result.effectiveTaxRate.toFixed(1)}%`],
+                ['지방소득세', result.monthlyLocalTax, '소득세의 10%'],
+              ].map(([label, val, rate]) => (
                 <div key={label as string} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: 13 }}>
-                  <span style={{ color: '#888' }}>{label}</span>
+                  <span style={{ color: '#888' }}>{label} <span style={{ fontSize: 11, color: '#bbb' }}>({rate})</span></span>
                   <span style={{ color: '#ef4444' }}>-{(val as number).toLocaleString()}원</span>
                 </div>
               ))}
