@@ -15,6 +15,8 @@ html {
 body {
   background-color: #f8fafc;
   color: #1e293b;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 @layer components {
