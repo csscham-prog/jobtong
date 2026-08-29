@@ -1412,9 +1412,35 @@ export default function Home() {
           </div>
         )}
 
-        <div style={{ maxWidth: 940, margin: '0 auto', padding: '48px 24px', display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+        <div style={{ maxWidth: 940, margin: '0 auto', padding: '48px 24px', display: 'flex', gap: 24, alignItems: 'flex-start', flexDirection: 'column' as any }}>
 
-          {/* ── 왼쪽 로컬 메뉴 ── */}
+          {/* ── 모바일 전용 가로 메뉴 ── */}
+          <div className="mobile-only" style={{ display: 'none', gap: 8, width: '100%', overflowX: 'auto', paddingBottom: 4 }}>
+            <div style={{ flexShrink: 0, background: '#0f2244', color: '#fff', borderRadius: 20, padding: '9px 16px', fontWeight: 700, fontSize: 13, whiteSpace: 'nowrap' }}>
+              📝 취업서류 분석
+            </div>
+            <button
+              onClick={() => window.location.href = '/mock-interview'}
+              style={{ flexShrink: 0, background: '#fff', color: '#333', border: '1px solid #ece9e1', borderRadius: 20, padding: '9px 16px', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
+            >
+              🎤 모의 면접
+            </button>
+            <button
+              onClick={() => window.location.href = '/schedule'}
+              style={{ flexShrink: 0, position: 'relative', background: '#fff', color: '#333', border: '1px solid #ece9e1', borderRadius: 20, padding: '9px 16px', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
+            >
+              📅 일정 관리 <span style={{ background: '#f0fdf4', color: '#059669', fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 20, marginLeft: 4 }}>FREE</span>
+              {todayScheduleCount > 0 && (
+                <span style={{ position: 'absolute', top: -6, right: -6, background: '#ef4444', color: '#fff', fontSize: 10, fontWeight: 700, borderRadius: 20, padding: '2px 6px', lineHeight: 1 }}>
+                  {todayScheduleCount}
+                </span>
+              )}
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', width: '100%' }}>
+
+          {/* ── 왼쪽 로컬 메뉴 (데스크톱) ── */}
           <div style={{ width: 200, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8, position: 'sticky', top: 88 }} className="mobile-hide">
             <div style={{ background: '#0f2244', color: '#fff', borderRadius: 12, padding: '13px 16px', fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
               📝 취업서류 분석
@@ -1679,8 +1705,9 @@ export default function Home() {
               )}
             </div>
           </div>
+          </div>
         </div>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } } .jobtong-slogan { font-size: 28px; white-space: nowrap; } @media (max-width: 768px) { .jobtong-slogan { display: none; } }`}</style>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } } .jobtong-slogan { font-size: 28px; white-space: nowrap; } @media (max-width: 768px) { .jobtong-slogan { display: none; } .mobile-hide { display: none !important; } .mobile-only { display: flex !important; } }`}</style>
       </main>
     )
   }
