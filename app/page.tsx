@@ -1707,7 +1707,7 @@ export default function Home() {
           </div>
           </div>
         </div>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } } .jobtong-slogan { font-size: 28px; white-space: nowrap; } @media (max-width: 768px) { .jobtong-slogan { display: none; } .mobile-hide { display: none !important; } .mobile-only { display: flex !important; } }`}</style>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } } .jobtong-slogan { font-size: 28px; white-space: nowrap; } @media (max-width: 768px) { .jobtong-slogan { display: none; } }`}</style>
       </main>
     )
   }
