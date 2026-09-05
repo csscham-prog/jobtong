@@ -33,6 +33,7 @@ export default function JobNoticesAdminPage() {
   const [applicationStart, setApplicationStart] = useState('')
   const [applicationEnd, setApplicationEnd] = useState('')
   const [employmentType, setEmploymentType] = useState('')
+  const [employmentTypeCustom, setEmploymentTypeCustom] = useState('')
   const [link, setLink] = useState('')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -75,8 +76,13 @@ export default function JobNoticesAdminPage() {
       setError('공고 제목과 접수 종료일은 필수예요.')
       return
     }
+    if (employmentType === '기타' && !employmentTypeCustom.trim()) {
+      setError('고용 형태를 직접 입력해주세요.')
+      return
+    }
     setError('')
     setSaving(true)
+    const finalEmploymentType = employmentType === '기타' ? employmentTypeCustom.trim() : employmentType
     const res = await fetch('/api/admin/job-notices', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
@@ -84,7 +90,7 @@ export default function JobNoticesAdminPage() {
         title: title.trim(),
         applicationStart: applicationStart || null,
         applicationEnd,
-        employmentType: employmentType || null,
+        employmentType: finalEmploymentType || null,
         link: link.trim() || null,
       }),
     })
@@ -94,7 +100,7 @@ export default function JobNoticesAdminPage() {
       setError(data.error || '등록 중 오류가 발생했습니다.')
       return
     }
-    setTitle(''); setApplicationStart(''); setApplicationEnd(''); setEmploymentType(''); setLink('')
+    setTitle(''); setApplicationStart(''); setApplicationEnd(''); setEmploymentType(''); setEmploymentTypeCustom(''); setLink('')
     loadNotices(accessToken)
   }
 
@@ -175,14 +181,24 @@ export default function JobNoticesAdminPage() {
             <label style={{ fontSize: 13, fontWeight: 700, color: '#333', display: 'block', marginBottom: 6 }}>고용 형태</label>
             <select
               value={employmentType}
-              onChange={e => setEmploymentType(e.target.value)}
+              onChange={e => { setEmploymentType(e.target.value); if (e.target.value !== '기타') setEmploymentTypeCustom('') }}
               style={{ width: '100%', padding: '13px 14px', borderRadius: 12, border: '1.5px solid #ccc', fontSize: 14, fontFamily: 'inherit', color: '#222', background: '#fff', boxSizing: 'border-box' }}
             >
               <option value="">선택 안 함</option>
               <option value="신입">신입</option>
               <option value="경력">경력</option>
               <option value="인턴">인턴</option>
+              <option value="신입·경력">신입·경력</option>
+              <option value="기타">기타 (직접 입력)</option>
             </select>
+            {employmentType === '기타' && (
+              <input
+                value={employmentTypeCustom}
+                onChange={e => setEmploymentTypeCustom(e.target.value)}
+                placeholder="고용 형태를 직접 입력해주세요"
+                style={{ width: '100%', marginTop: 8, padding: '13px 14px', borderRadius: 12, border: '1.5px solid #ccc', fontSize: 14, fontFamily: 'inherit', color: '#222', boxSizing: 'border-box' }}
+              />
+            )}
           </div>
 
           <div style={{ marginBottom: 14 }}>
