@@ -34,7 +34,7 @@ export default function JobNoticeBar() {
         .from('job_notices')
         .select('*')
         .gte('application_end', todayStr)
-        .order('created_at', { ascending: false })
+        .order('application_end', { ascending: true })
       if (data) setNotices(data)
     }
     load()
