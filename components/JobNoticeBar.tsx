@@ -25,7 +25,7 @@ function getDday(endDate: string) {
 export default function JobNoticeBar() {
   const [notices, setNotices] = useState<JobNotice[]>([])
   const [selected, setSelected] = useState<JobNotice | null>(null)
-  const [showAll, setShowAll] = useState(false)
+  const [showListModal, setShowListModal] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -42,53 +42,70 @@ export default function JobNoticeBar() {
 
   if (notices.length === 0) return null
 
-  const visibleNotices = showAll ? notices : notices.slice(0, 4)
+  const visibleNotices = notices.slice(0, 5)
+
+  const renderRow = (n: JobNotice, big?: boolean) => {
+    const isNew = (Date.now() - new Date(n.created_at).getTime()) < 48 * 60 * 60 * 1000
+    const dday = getDday(n.application_end)
+    return (
+      <button
+        key={n.id}
+        onClick={() => { setSelected(n); setShowListModal(false) }}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 12, background: '#fff', border: '1px solid #ece9e1',
+          padding: big ? '16px 18px' : '14px 16px', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', width: '100%',
+          borderRadius: 12, transition: 'border-color 0.15s, background 0.15s',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.background = '#f7f6f3'; e.currentTarget.style.borderColor = '#d5d2c8' }}
+        onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#ece9e1' }}
+      >
+        {isNew && (
+          <span style={{ background: '#e6a800', color: '#fff', fontSize: 11, fontWeight: 800, padding: '4px 9px', borderRadius: 20, flexShrink: 0 }}>NEW</span>
+        )}
+        <span style={{ fontSize: big ? 16 : 15, color: '#1a1a1a', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{n.title}</span>
+        {n.employment_type && (
+          <span style={{ fontSize: 12, color: '#777', flexShrink: 0, background: '#f7f6f3', padding: '4px 10px', borderRadius: 20, fontWeight: 600 }}>{n.employment_type}</span>
+        )}
+        {dday && <span style={{ fontSize: 13, fontWeight: 800, color: '#e6a800', flexShrink: 0, minWidth: 48, textAlign: 'right' }}>{dday}</span>}
+      </button>
+    )
+  }
 
   return (
     <>
-      <div style={{ background: '#fff', borderBottom: '1px solid #ece9e1' }}>
-        <div style={{ maxWidth: 900, margin: '0 auto', padding: '20px 24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <span style={{ fontSize: 15 }}>📢</span>
-            <span style={{ fontSize: 14, fontWeight: 800, color: '#0f2244', letterSpacing: '-0.2px' }}>채용 소식</span>
+      <div style={{ background: '#f7f6f3', padding: '40px 24px' }}>
+        <div style={{ maxWidth: 900, margin: '0 auto', background: '#fff', borderRadius: 20, border: '1px solid #ece9e1', boxShadow: '0 4px 20px rgba(15,34,68,0.05)', padding: '26px 28px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 16 }}>
+            <span style={{ fontSize: 19 }}>📢</span>
+            <span style={{ fontSize: 17, fontWeight: 900, color: '#0f2244', letterSpacing: '-0.3px' }}>채용 소식</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {visibleNotices.map(n => {
-              const isNew = (Date.now() - new Date(n.created_at).getTime()) < 48 * 60 * 60 * 1000
-              const dday = getDday(n.application_end)
-              return (
-                <button
-                  key={n.id}
-                  onClick={() => setSelected(n)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none',
-                    padding: '10px 8px', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', width: '100%',
-                    borderRadius: 10, transition: 'background 0.15s',
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.background = '#f7f6f3')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                >
-                  {isNew ? (
-                    <span style={{ background: '#e6a800', color: '#fff', fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 20, flexShrink: 0 }}>NEW</span>
-                  ) : (
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#d5d2c8', flexShrink: 0, marginLeft: 4, marginRight: 2 }} />
-                  )}
-                  <span style={{ fontSize: 14, color: '#222', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{n.title}</span>
-                  {n.employment_type && (
-                    <span style={{ fontSize: 11, color: '#888', flexShrink: 0, background: '#f7f6f3', padding: '3px 9px', borderRadius: 20 }}>{n.employment_type}</span>
-                  )}
-                  {dday && <span style={{ fontSize: 12, fontWeight: 800, color: '#e6a800', flexShrink: 0, minWidth: 44, textAlign: 'right' }}>{dday}</span>}
-                </button>
-              )
-            })}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {visibleNotices.map(n => renderRow(n))}
           </div>
-          {notices.length > 4 && !showAll && (
-            <button onClick={() => setShowAll(true)} style={{ marginTop: 8, background: 'none', border: 'none', color: '#0f2244', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', padding: '4px 8px' }}>
-              공고 {notices.length - 4}개 더보기 ▾
+          {notices.length > 5 && (
+            <button onClick={() => setShowListModal(true)} style={{ marginTop: 14, width: '100%', background: '#f7f6f3', border: 'none', borderRadius: 12, color: '#0f2244', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', padding: '12px' }}>
+              모집중인 공고 전체 보기 ({notices.length}건) ▾
             </button>
           )}
         </div>
       </div>
+
+      {showListModal && (
+        <div onClick={() => setShowListModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(15,34,68,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: 20 }}>
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: '#fff', borderRadius: 24, maxWidth: 520, width: '100%', maxHeight: '80vh', display: 'flex', flexDirection: 'column', fontFamily: "'Pretendard', -apple-system, sans-serif", boxShadow: '0 24px 60px rgba(0,0,0,0.25)' }}
+          >
+            <div style={{ padding: '22px 26px', borderBottom: '1px solid #ece9e1', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 900, color: '#0f2244', margin: 0 }}>📢 모집중인 공고 ({notices.length}건)</h3>
+              <button onClick={() => setShowListModal(false)} style={{ background: 'none', border: 'none', color: '#999', fontSize: 18, cursor: 'pointer' }}>✕</button>
+            </div>
+            <div style={{ padding: '18px 20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {notices.map(n => renderRow(n, true))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {selected && (
         <div onClick={() => setSelected(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(15,34,68,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: 20 }}>
