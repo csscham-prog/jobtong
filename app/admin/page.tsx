@@ -298,13 +298,17 @@ export default function AdminPage() {
         </div>
 
         {/* 탭 */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 28 }}>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 28, flexWrap: 'wrap' }}>
           {[{ key: 'stats', label: '📊 통계' }, { key: 'features', label: '🧩 기능별 사용량' }, { key: 'users', label: '👥 회원 관리' }, { key: 'payments', label: '💳 결제 내역' }].map(tab => (
             <button key={tab.key} onClick={() => { setActiveTab(tab.key as any); if (tab.key === 'payments') loadPayments(); if (tab.key === 'features') loadFeatureStats() }}
               style={{ background: activeTab === tab.key ? '#0f2244' : '#fff', color: activeTab === tab.key ? '#fff' : '#555', border: '1px solid #e8e5dc', borderRadius: 10, padding: '10px 20px', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
               {tab.label}
             </button>
           ))}
+          <button onClick={() => window.location.href = '/admin/job-notices'}
+            style={{ background: '#fffbeb', color: '#92400e', border: '1px solid #fde68a', borderRadius: 10, padding: '10px 20px', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
+            📢 채용공고
+          </button>
         </div>
 
         {/* 통계 탭 */}
