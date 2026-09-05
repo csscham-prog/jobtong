@@ -14,29 +14,6 @@ interface JobNotice {
   created_at: string
 }
 
-interface AdBlock {
-  lines: string[]
-  urls: string[]
-}
-
-// 광고 영역 텍스트를 빈 줄 기준으로 블록화하고, 각 블록에서 URL을 따로 추출해서
-// 카드형 UI로 깔끔하게 표시하기 위한 파서 (raw text + 밑줄 링크 나열 방식을 피하기 위함)
-function parseAdContent(raw: string): AdBlock[] {
-  const urlRegex = /(https?:\/\/[^\s]+)/g
-  return raw
-    .split(/\n\s*\n/)
-    .map(block => {
-      const urls = block.match(urlRegex) || []
-      const lines = block
-        .replace(urlRegex, '')
-        .split('\n')
-        .map(l => l.trim())
-        .filter(Boolean)
-      return { lines, urls }
-    })
-    .filter(b => b.lines.length > 0 || b.urls.length > 0)
-}
-
 function getDday(endDate: string) {
   const end = new Date(endDate + 'T23:59:59')
   const diff = Math.ceil((end.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
@@ -163,41 +140,33 @@ export default function JobNoticeBar() {
                 </a>
               )}
 
-              {/* 광고 영역 — 블록별 카드 UI */}
-              {selected.ad_content && (
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '4px 0 12px' }}>
-                    <div style={{ flex: 1, height: 1, background: '#ece9e1' }} />
-                    <span style={{ fontSize: 11, color: '#aaa', fontWeight: 700 }}>함께 보면 좋은 정보</span>
-                    <div style={{ flex: 1, height: 1, background: '#ece9e1' }} />
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    {parseAdContent(selected.ad_content).map((block, i) => (
-                      <div key={i} style={{ background: '#fdf9f0', border: '1px solid #f5e6bf', borderRadius: 14, padding: '14px 16px' }}>
-                        {block.lines.map((line, li) => (
-                          <p key={li} style={{
-                            fontSize: li === 0 ? 13.5 : 12.5,
-                            fontWeight: li === 0 ? 700 : 500,
-                            color: li === 0 ? '#8a6a12' : '#a5854a',
-                            margin: li === 0 ? '0 0 4px' : '0 0 2px',
-                            lineHeight: 1.6,
-                          }}>
-                            {line}
-                          </p>
-                        ))}
-                        {block.urls.map((url, ui) => (
-                          <a
-                            key={ui} href={url} target="_blank" rel="noopener noreferrer"
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 8, background: '#fff', border: '1px solid #f0dca0', color: '#8a6a12', fontSize: 12, fontWeight: 700, padding: '6px 12px', borderRadius: 20, textDecoration: 'none' }}
-                          >
-                            바로가기 ↗
-                          </a>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
+              {/* 광고 영역 — 잡통 기능 소개 (모든 공고 공통 고정) */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '4px 0 12px' }}>
+                  <div style={{ flex: 1, height: 1, background: '#ece9e1' }} />
+                  <span style={{ fontSize: 11, color: '#aaa', fontWeight: 700 }}>이 공고, 잡통과 함께 준비하세요</span>
+                  <div style={{ flex: 1, height: 1, background: '#ece9e1' }} />
                 </div>
-              )}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {[
+                    { icon: '📝', title: '취업 서류 정밀 분석', desc: '자소서·이력서를 논리성·구체성까지 냉정하게 진단', link: '/?start=analyze' },
+                    { icon: '🎤', title: '모의 면접', desc: '서류 기반 맞춤 질문에 답하고 AI 피드백 받기', link: '/mock-interview' },
+                    { icon: '🧭', title: '취업 준비도 자가진단', desc: '2분이면 끝, 지금 내 준비 상태 점검하기', link: '/readiness-check' },
+                  ].map((f, i) => (
+                    <a
+                      key={i} href={f.link}
+                      style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#fdf9f0', border: '1px solid #f5e6bf', borderRadius: 14, padding: '13px 15px', textDecoration: 'none' }}
+                    >
+                      <span style={{ fontSize: 20, flexShrink: 0 }}>{f.icon}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: 13, fontWeight: 700, color: '#8a6a12', margin: '0 0 2px' }}>{f.title}</p>
+                        <p style={{ fontSize: 11.5, color: '#a5854a', margin: 0, lineHeight: 1.5 }}>{f.desc}</p>
+                      </div>
+                      <span style={{ fontSize: 14, color: '#c9a227', flexShrink: 0 }}>→</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
 
               <button onClick={() => setSelected(null)} style={{ width: '100%', marginTop: 20, background: '#f7f6f3', color: '#666', border: 'none', borderRadius: 14, padding: '13px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
                 닫기
