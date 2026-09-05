@@ -34,7 +34,6 @@ export default function JobNoticesAdminPage() {
   const [applicationEnd, setApplicationEnd] = useState('')
   const [employmentType, setEmploymentType] = useState('')
   const [link, setLink] = useState('')
-  const [adContent, setAdContent] = useState('')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -87,7 +86,6 @@ export default function JobNoticesAdminPage() {
         applicationEnd,
         employmentType: employmentType || null,
         link: link.trim() || null,
-        adContent: adContent.trim() || null,
       }),
     })
     setSaving(false)
@@ -96,7 +94,7 @@ export default function JobNoticesAdminPage() {
       setError(data.error || '등록 중 오류가 발생했습니다.')
       return
     }
-    setTitle(''); setApplicationStart(''); setApplicationEnd(''); setEmploymentType(''); setLink(''); setAdContent('')
+    setTitle(''); setApplicationStart(''); setApplicationEnd(''); setEmploymentType(''); setLink('')
     loadNotices(accessToken)
   }
 
@@ -181,11 +179,9 @@ export default function JobNoticesAdminPage() {
               style={{ width: '100%', padding: '13px 14px', borderRadius: 12, border: '1.5px solid #ccc', fontSize: 14, fontFamily: 'inherit', color: '#222', background: '#fff', boxSizing: 'border-box' }}
             >
               <option value="">선택 안 함</option>
-              <option value="정규직">정규직</option>
-              <option value="계약직">계약직</option>
+              <option value="신입">신입</option>
+              <option value="경력">경력</option>
               <option value="인턴">인턴</option>
-              <option value="수시채용">수시채용</option>
-              <option value="기타">기타</option>
             </select>
           </div>
 
@@ -197,16 +193,7 @@ export default function JobNoticesAdminPage() {
               placeholder="https://..."
               style={{ width: '100%', padding: '13px 14px', borderRadius: 12, border: '1.5px solid #ccc', fontSize: 14, fontFamily: 'inherit', color: '#222', boxSizing: 'border-box' }}
             />
-          </div>
-
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 13, fontWeight: 700, color: '#333', display: 'block', marginBottom: 6 }}>광고 영역 (자유 입력, 줄바꿈 그대로 표시되고 URL은 자동으로 링크 처리돼요)</label>
-            <textarea
-              value={adContent}
-              onChange={e => setAdContent(e.target.value)}
-              placeholder={'예)\n🔥이 공고랑 같이 보면 딱 좋은 정보🔥\n\n📣9월 1주 인기 공고 리스트\nhttps://...'}
-              style={{ width: '100%', minHeight: 140, padding: '13px 14px', borderRadius: 12, border: '1.5px solid #ccc', fontSize: 13, fontFamily: 'inherit', color: '#222', resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.7 }}
-            />
+            <p style={{ fontSize: 11, color: '#999', margin: '6px 0 0' }}>💡 하단 광고 영역(잡통 기능 소개)은 모든 공고에 공통으로 고정 표시돼요. 별도 입력 없어요.</p>
           </div>
 
           {error && <p style={{ fontSize: 13, color: '#ef4444', marginBottom: 12 }}>{error}</p>}
