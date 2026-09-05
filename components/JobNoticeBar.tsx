@@ -52,21 +52,26 @@ export default function JobNoticeBar() {
         key={n.id}
         onClick={() => { setSelected(n); setShowListModal(false) }}
         style={{
-          display: 'flex', alignItems: 'center', gap: 12, background: '#fff', border: '1px solid #ece9e1',
-          padding: big ? '16px 18px' : '14px 16px', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', width: '100%',
-          borderRadius: 12, transition: 'border-color 0.15s, background 0.15s',
+          display: 'flex', flexDirection: 'column', gap: 6, background: '#fff', border: '1px solid #ece9e1',
+          padding: big ? '14px 16px' : '12px 14px', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', width: '100%',
+          borderRadius: 12, transition: 'border-color 0.15s, background 0.15s', boxSizing: 'border-box',
         }}
         onMouseEnter={e => { e.currentTarget.style.background = '#f7f6f3'; e.currentTarget.style.borderColor = '#d5d2c8' }}
         onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#ece9e1' }}
       >
-        {isNew && (
-          <span style={{ background: '#e6a800', color: '#fff', fontSize: 11, fontWeight: 800, padding: '4px 9px', borderRadius: 20, flexShrink: 0 }}>NEW</span>
-        )}
-        <span style={{ fontSize: big ? 16 : 15, color: '#1a1a1a', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{n.title}</span>
-        {n.employment_type && (
-          <span style={{ fontSize: 12, color: '#777', flexShrink: 0, background: '#f7f6f3', padding: '4px 10px', borderRadius: 20, fontWeight: 600 }}>{n.employment_type}</span>
-        )}
-        {dday && <span style={{ fontSize: 13, fontWeight: 800, color: '#e6a800', flexShrink: 0, minWidth: 48, textAlign: 'right' }}>{dday}</span>}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {isNew && (
+            <span style={{ background: '#e6a800', color: '#fff', fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, flexShrink: 0 }}>NEW</span>
+          )}
+          {n.employment_type && (
+            <span style={{ fontSize: 11.5, color: '#777', flexShrink: 0, background: '#f7f6f3', padding: '3px 9px', borderRadius: 20, fontWeight: 600 }}>{n.employment_type}</span>
+          )}
+          {dday && <span style={{ fontSize: 12, fontWeight: 800, color: '#e6a800', flexShrink: 0, marginLeft: 'auto' }}>{dday}</span>}
+        </div>
+        <span style={{
+          fontSize: big ? 16 : 15, color: '#1a1a1a', fontWeight: 700, lineHeight: 1.4,
+          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any, overflow: 'hidden',
+        }}>{n.title}</span>
       </button>
     )
   }
