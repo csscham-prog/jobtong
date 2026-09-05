@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import PaidResult from '@/components/PaidResult'
 import DdayPopup, { useTodayScheduleCount } from '@/components/DdayPopup'
+import JobNoticeBar from '@/components/JobNoticeBar'
 
 
 // ── 샘플 분석 결과 컴포넌트 ──────────────────────────────────
@@ -918,6 +919,8 @@ export default function Home() {
             </button>
           </div>
         </section>
+
+        <JobNoticeBar />
 
         <section style={{ background: '#fff', padding: '72px 24px' }}>
           <div style={{ maxWidth: 960, margin: '0 auto' }}>
