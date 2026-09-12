@@ -309,6 +309,10 @@ export default function AdminPage() {
             style={{ background: '#fffbeb', color: '#92400e', border: '1px solid #fde68a', borderRadius: 10, padding: '10px 20px', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
             📢 채용공고
           </button>
+          <button onClick={() => window.location.href = '/admin/support'}
+            style={{ background: '#eef2ff', color: '#3730a3', border: '1px solid #c7d2fe', borderRadius: 10, padding: '10px 20px', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
+            💬 문의 관리
+          </button>
         </div>
 
         {/* 통계 탭 */}
