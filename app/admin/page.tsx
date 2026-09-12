@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import AdminMessageAlert from '@/components/AdminMessageAlert'
 
 export default function AdminPage() {
   const [profile, setProfile] = useState<any>(null)
@@ -258,6 +259,7 @@ export default function AdminPage() {
 
   return (
     <main style={{ fontFamily: "'Pretendard', -apple-system, sans-serif", background: '#f7f6f3', minHeight: '100vh' }}>
+      <AdminMessageAlert />
 
       {/* 헤더 */}
       <header style={{ background: '#0f2244', color: '#fff', padding: '0 24px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
