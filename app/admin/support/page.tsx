@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 
 const ADMIN_EMAIL = 'csscham@naver.com'
@@ -8,6 +8,10 @@ const ADMIN_EMAIL = 'csscham@naver.com'
 const base: React.CSSProperties = { fontFamily: "'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", background: '#f7f6f3', minHeight: '100vh' }
 const headerStyle: React.CSSProperties = { background: '#fff', borderBottom: '1px solid #ece9e1', position: 'sticky', top: 0, zIndex: 50 }
 const headerInner: React.CSSProperties = { maxWidth: 1100, margin: '0 auto', padding: '0 24px', height: 64, display: 'flex', alignItems: 'center', gap: 12 }
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleString('ko-KR', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
 
 interface Thread {
   userId: string
@@ -32,11 +36,13 @@ export default function AdminSupportPage() {
   const [threads, setThreads] = useState<Thread[]>([])
   const [threadsLoading, setThreadsLoading] = useState(true)
   const [selectedUserId, setSelectedUserId] = useState('')
+  const [selectedEmail, setSelectedEmail] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
   const [messagesLoading, setMessagesLoading] = useState(false)
+  const [tab, setTab] = useState<'received' | 'sent'>('received')
+  const [showReplyBox, setShowReplyBox] = useState(false)
   const [reply, setReply] = useState('')
   const [sending, setSending] = useState(false)
-  const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const init = async () => {
@@ -55,10 +61,6 @@ export default function AdminSupportPage() {
     init()
   }, [])
 
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight })
-  }, [messages])
-
   const loadThreads = async (token: string) => {
     setThreadsLoading(true)
     const res = await fetch('/api/admin/support', {
@@ -71,8 +73,11 @@ export default function AdminSupportPage() {
     setThreadsLoading(false)
   }
 
-  const openThread = async (userId: string) => {
+  const openThread = async (userId: string, email: string) => {
     setSelectedUserId(userId)
+    setSelectedEmail(email)
+    setShowReplyBox(false)
+    setTab('received')
     setMessagesLoading(true)
     const res = await fetch(`/api/admin/support/${userId}`, {
       headers: { 'Authorization': `Bearer ${accessToken}` },
@@ -82,7 +87,6 @@ export default function AdminSupportPage() {
       setMessages(data)
     }
     setMessagesLoading(false)
-    // 읽음 처리됐으니 목록의 안 읽음 배지도 갱신
     setThreads(prev => prev.map(t => t.userId === userId ? { ...t, unreadCount: 0 } : t))
   }
 
@@ -99,6 +103,8 @@ export default function AdminSupportPage() {
       const data = await res.json()
       setMessages(prev => [...prev, data])
       setReply('')
+      setShowReplyBox(false)
+      setTab('sent')
       loadThreads(accessToken)
     }
   }
@@ -118,6 +124,10 @@ export default function AdminSupportPage() {
       </main>
     )
   }
+
+  const receivedMessages = messages.filter(m => m.sender === 'user')
+  const sentMessages = messages.filter(m => m.sender === 'admin')
+  const list = tab === 'received' ? receivedMessages : sentMessages
 
   return (
     <main style={base}>
@@ -146,7 +156,7 @@ export default function AdminSupportPage() {
               {threads.map(t => (
                 <button
                   key={t.userId}
-                  onClick={() => openThread(t.userId)}
+                  onClick={() => openThread(t.userId, t.email)}
                   style={{
                     display: 'block', width: '100%', textAlign: 'left', padding: '14px 18px', border: 'none',
                     borderBottom: '1px solid #f3f1eb', background: selectedUserId === t.userId ? '#eef2ff' : '#fff',
@@ -164,53 +174,72 @@ export default function AdminSupportPage() {
           )}
         </div>
 
-        {/* 스레드 */}
-        <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', display: 'flex', flexDirection: 'column', height: 680 }}>
+        {/* 선택된 유저의 쪽지함 */}
+        <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #ece9e1', display: 'flex', flexDirection: 'column' }}>
           {!selectedUserId ? (
-            <div style={{ margin: 'auto', textAlign: 'center' }}>
+            <div style={{ padding: '80px 20px', textAlign: 'center' }}>
               <p style={{ fontSize: 14, color: '#999' }}>왼쪽에서 유저를 선택해주세요.</p>
             </div>
           ) : (
             <>
-              <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 12, background: '#f7f6f3' }}>
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid #ece9e1', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 14, fontWeight: 800, color: '#0f2244' }}>{selectedEmail}</span>
+                <button
+                  onClick={() => setShowReplyBox(v => !v)}
+                  style={{ background: showReplyBox ? '#f7f6f3' : '#0f2244', color: showReplyBox ? '#666' : '#fff', border: 'none', borderRadius: 10, padding: '8px 16px', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  {showReplyBox ? '취소' : '✉️ 답장하기'}
+                </button>
+              </div>
+
+              {showReplyBox && (
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid #ece9e1', background: '#f7f6f3' }}>
+                  <textarea
+                    value={reply}
+                    onChange={e => setReply(e.target.value)}
+                    placeholder="답장을 입력해주세요"
+                    style={{ width: '100%', minHeight: 90, padding: '12px 14px', borderRadius: 12, border: '1.5px solid #e5e3dc', fontSize: 14, fontFamily: 'inherit', color: '#222', resize: 'vertical', boxSizing: 'border-box', marginBottom: 10 }}
+                  />
+                  <button
+                    onClick={handleReply}
+                    disabled={sending || !reply.trim()}
+                    style={{ width: '100%', background: '#0f2244', color: '#fff', border: 'none', borderRadius: 10, padding: '11px', fontWeight: 700, fontSize: 14, cursor: sending ? 'default' : 'pointer', opacity: (sending || !reply.trim()) ? 0.5 : 1, fontFamily: 'inherit' }}
+                  >
+                    {sending ? '보내는 중...' : '답장 보내기'}
+                  </button>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', borderBottom: '1px solid #ece9e1' }}>
+                <button
+                  onClick={() => setTab('received')}
+                  style={{ flex: 1, padding: '11px', background: 'none', border: 'none', borderBottom: tab === 'received' ? '2px solid #0f2244' : '2px solid transparent', color: tab === 'received' ? '#0f2244' : '#999', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  받은 쪽지 {receivedMessages.length > 0 && `(${receivedMessages.length})`}
+                </button>
+                <button
+                  onClick={() => setTab('sent')}
+                  style={{ flex: 1, padding: '11px', background: 'none', border: 'none', borderBottom: tab === 'sent' ? '2px solid #0f2244' : '2px solid transparent', color: tab === 'sent' ? '#0f2244' : '#999', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  보낸 쪽지 {sentMessages.length > 0 && `(${sentMessages.length})`}
+                </button>
+              </div>
+
+              <div style={{ maxHeight: 480, overflowY: 'auto' }}>
                 {messagesLoading ? (
-                  <p style={{ fontSize: 13, color: '#999', margin: 'auto' }}>불러오는 중...</p>
+                  <p style={{ fontSize: 13, color: '#999', padding: '20px' }}>불러오는 중...</p>
+                ) : list.length === 0 ? (
+                  <p style={{ fontSize: 13, color: '#999', padding: '32px 20px', textAlign: 'center' }}>
+                    {tab === 'received' ? '받은 쪽지가 없어요.' : '보낸 쪽지가 없어요.'}
+                  </p>
                 ) : (
-                  messages.map(m => (
-                    <div key={m.id} style={{ display: 'flex', justifyContent: m.sender === 'admin' ? 'flex-end' : 'flex-start' }}>
-                      <div style={{ maxWidth: '65%' }}>
-                        <div style={{
-                          background: m.sender === 'admin' ? '#0f2244' : '#fff',
-                          color: m.sender === 'admin' ? '#fff' : '#222',
-                          border: m.sender === 'user' ? '1px solid #ece9e1' : 'none',
-                          borderRadius: m.sender === 'admin' ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
-                          padding: '11px 15px', fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-                        }}>
-                          {m.content}
-                        </div>
-                        <p style={{ fontSize: 10, color: '#bbb', margin: '4px 4px 0', textAlign: m.sender === 'admin' ? 'right' : 'left' }}>
-                          {new Date(m.created_at).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                      </div>
+                  list.map(m => (
+                    <div key={m.id} style={{ padding: '14px 20px', borderBottom: '1px solid #f3f1eb' }}>
+                      <p style={{ fontSize: 11, color: '#aaa', margin: '0 0 6px' }}>{formatDate(m.created_at)}</p>
+                      <p style={{ fontSize: 14, color: '#222', margin: 0, lineHeight: 1.7, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.content}</p>
                     </div>
                   ))
                 )}
-              </div>
-              <div style={{ display: 'flex', gap: 8, padding: '16px 20px', borderTop: '1px solid #ece9e1' }}>
-                <input
-                  value={reply}
-                  onChange={e => setReply(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') handleReply() }}
-                  placeholder="답장을 입력해주세요"
-                  style={{ flex: 1, padding: '12px 16px', borderRadius: 20, border: '1.5px solid #e5e3dc', fontSize: 14, fontFamily: 'inherit', color: '#222' }}
-                />
-                <button
-                  onClick={handleReply}
-                  disabled={sending || !reply.trim()}
-                  style={{ background: '#0f2244', color: '#fff', border: 'none', borderRadius: 20, padding: '0 22px', fontWeight: 700, fontSize: 14, cursor: sending ? 'default' : 'pointer', opacity: (sending || !reply.trim()) ? 0.5 : 1, fontFamily: 'inherit' }}
-                >
-                  전송
-                </button>
               </div>
             </>
           )}
