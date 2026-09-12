@@ -29,6 +29,15 @@ export async function GET(req: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
+    // 양쪽 모두 읽음 처리된 지 7일 지난 쪽지는 목록 조회 시점에 정리 (별도 크론 없이)
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    await supabaseAdmin
+      .from('support_messages')
+      .delete()
+      .eq('is_read_by_user', true)
+      .eq('is_read_by_admin', true)
+      .lt('created_at', sevenDaysAgo)
+
     // 전체 메시지를 가져와서 유저별로 묶기 (건수가 아주 많아지면 추후 페이지네이션 고려)
     const { data: messages, error } = await supabaseAdmin
       .from('support_messages')
