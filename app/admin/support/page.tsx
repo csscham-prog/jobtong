@@ -109,6 +109,22 @@ export default function AdminSupportPage() {
     }
   }
 
+  const handleDeleteThread = async () => {
+    if (!selectedUserId) return
+    if (!confirm('이 유저와의 대화를 전부 삭제할까요? 복구할 수 없어요.')) return
+    const res = await fetch(`/api/admin/support/${selectedUserId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${accessToken}` },
+    })
+    if (res.ok) {
+      setThreads(prev => prev.filter(t => t.userId !== selectedUserId))
+      setSelectedUserId('')
+      setSelectedEmail('')
+      setMessages([])
+      setShowReplyBox(false)
+    }
+  }
+
   if (authLoading) {
     return (
       <main style={{ ...base, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -184,12 +200,20 @@ export default function AdminSupportPage() {
             <>
               <div style={{ padding: '16px 20px', borderBottom: '1px solid #ece9e1', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 14, fontWeight: 800, color: '#0f2244' }}>{selectedEmail}</span>
-                <button
-                  onClick={() => setShowReplyBox(v => !v)}
-                  style={{ background: showReplyBox ? '#f7f6f3' : '#0f2244', color: showReplyBox ? '#666' : '#fff', border: 'none', borderRadius: 10, padding: '8px 16px', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
-                >
-                  {showReplyBox ? '취소' : '✉️ 답장하기'}
-                </button>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={() => setShowReplyBox(v => !v)}
+                    style={{ background: showReplyBox ? '#f7f6f3' : '#0f2244', color: showReplyBox ? '#666' : '#fff', border: 'none', borderRadius: 10, padding: '8px 16px', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+                  >
+                    {showReplyBox ? '취소' : '✉️ 답장하기'}
+                  </button>
+                  <button
+                    onClick={handleDeleteThread}
+                    style={{ background: '#fef2f2', color: '#991b1b', border: 'none', borderRadius: 10, padding: '8px 14px', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+                  >
+                    🗑️ 대화 삭제
+                  </button>
+                </div>
               </div>
 
               {showReplyBox && (
