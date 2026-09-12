@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import PaidResult from '@/components/PaidResult'
 import DdayPopup, { useTodayScheduleCount } from '@/components/DdayPopup'
 import NewMessageAlert from '@/components/NewMessageAlert'
+import AdminMessageAlert from '@/components/AdminMessageAlert'
 import JobNoticeBar from '@/components/JobNoticeBar'
 
 
@@ -848,6 +849,7 @@ export default function Home() {
         <Header />
         {user && <DdayPopup />}
         {user && <NewMessageAlert />}
+        {userProfile?.role === 'admin' && <AdminMessageAlert />}
         <section style={{ background: 'linear-gradient(160deg, #0a1628 0%, #1a3a6b 60%, #152f58 100%)', color: '#fff', padding: '80px 24px 90px', position: 'relative' }}>
 
           {/* 장식 레이어 — div 기반 눈금자 + 돋보기 */}
@@ -1360,6 +1362,7 @@ export default function Home() {
         <Header />
         {user && <DdayPopup />}
         {user && <NewMessageAlert />}
+        {userProfile?.role === 'admin' && <AdminMessageAlert />}
 
         {/* 전체화면 로딩 오버레이 — 분석 중 화면이 멈춘 것처럼 보이지 않도록 */}
         {loading && (
@@ -1812,6 +1815,7 @@ export default function Home() {
         <Header />
         {user && <DdayPopup />}
         {user && <NewMessageAlert />}
+        {userProfile?.role === 'admin' && <AdminMessageAlert />}
         <div style={{ maxWidth: 680, margin: '0 auto', padding: '48px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
           {/* 분석 타입 표시 */}
