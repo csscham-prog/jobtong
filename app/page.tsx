@@ -1326,6 +1326,12 @@ export default function Home() {
             <Emblem size={28} /><span style={{ fontWeight: 800, fontSize: 18, color: '#fff' }}>잡통</span>
           </div>
           <p>서류 전형 정밀 검토 서비스 · 문의: barunapplication@gmail.com</p>
+          <button
+            onClick={() => window.location.href = user ? '/mypage#support' : '/login'}
+            style={{ marginTop: 12, background: 'rgba(230,168,0,0.12)', border: '1px solid rgba(230,168,0,0.35)', color: '#e6a800', borderRadius: 20, padding: '9px 20px', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+          >
+            💬 운영자에게 메시지 보내기
+          </button>
           <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center', gap: 24 }}>
             <button onClick={() => window.location.href = '/privacy'} style={{ background: 'none', border: 'none', color: 'rgba(184,217,238,0.5)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>개인정보처리방침</button>
             <button onClick={() => window.location.href = '/terms'} style={{ background: 'none', border: 'none', color: 'rgba(184,217,238,0.5)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>이용약관</button>
