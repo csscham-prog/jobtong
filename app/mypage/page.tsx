@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { downloadElementAsPdf } from '@/lib/downloadPdf'
+import SupportChat from '@/components/SupportChat'
 
 export default function MyPage() {
   const [user, setUser] = useState<any>(null)
@@ -215,6 +216,11 @@ export default function MyPage() {
             </button>
           </div>
         )}
+
+        <div style={{ marginBottom: 28 }}>
+          <SupportChat />
+        </div>
+
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0f2244', margin: 0 }}>📋 분석 히스토리</h2>
           <button onClick={() => window.location.href = '/'}
