@@ -217,7 +217,7 @@ export default function MyPage() {
           </div>
         )}
 
-        <div style={{ marginBottom: 28 }}>
+        <div id="support" style={{ marginBottom: 28 }}>
           <SupportChat />
         </div>
 
