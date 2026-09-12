@@ -90,3 +90,30 @@ export async function POST(req: NextRequest, { params }: { params: { userId: str
     return NextResponse.json({ error: e.message || '서버 오류' }, { status: 500 })
   }
 }
+
+export async function DELETE(req: NextRequest, { params }: { params: { userId: string } }) {
+  try {
+    const admin = await verifyAdmin(req)
+    if (!admin) {
+      return NextResponse.json({ error: '관리자만 접근할 수 있습니다.' }, { status: 403 })
+    }
+
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const { error } = await supabaseAdmin
+      .from('support_messages')
+      .delete()
+      .eq('user_id', params.userId)
+
+    if (error) {
+      return NextResponse.json({ error: '삭제 중 오류가 발생했습니다.' }, { status: 500 })
+    }
+    return NextResponse.json({ success: true })
+  } catch (e: any) {
+    console.error('support thread DELETE 오류:', e)
+    return NextResponse.json({ error: e.message || '서버 오류' }, { status: 500 })
+  }
+}
