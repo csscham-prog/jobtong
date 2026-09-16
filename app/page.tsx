@@ -857,7 +857,7 @@ export default function Home() {
       <main style={base}>
         <Header />
         {user && <DdayPopup />}
-        <IntroModal autoShow={step === 'landing'} />
+        <IntroModal autoShow={true} />
         {user && <NewMessageAlert />}
         {userProfile?.role === 'admin' && <AdminMessageAlert />}
         <section style={{ background: 'linear-gradient(160deg, #0a1628 0%, #1a3a6b 60%, #152f58 100%)', color: '#fff', padding: '80px 24px 90px', position: 'relative' }}>
@@ -1371,7 +1371,7 @@ export default function Home() {
       <main style={base}>
         <Header />
         {user && <DdayPopup />}
-        <IntroModal autoShow={step === 'landing'} />
+        <IntroModal autoShow={false} />
         {user && <NewMessageAlert />}
         {userProfile?.role === 'admin' && <AdminMessageAlert />}
 
@@ -1825,7 +1825,7 @@ export default function Home() {
       <main style={base}>
         <Header />
         {user && <DdayPopup />}
-        <IntroModal autoShow={step === 'landing'} />
+        <IntroModal autoShow={false} />
         {user && <NewMessageAlert />}
         {userProfile?.role === 'admin' && <AdminMessageAlert />}
         <div style={{ maxWidth: 680, margin: '0 auto', padding: '48px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
