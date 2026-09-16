@@ -7,6 +7,7 @@ import DdayPopup, { useTodayScheduleCount } from '@/components/DdayPopup'
 import NewMessageAlert from '@/components/NewMessageAlert'
 import AdminMessageAlert from '@/components/AdminMessageAlert'
 import JobNoticeBar from '@/components/JobNoticeBar'
+import IntroModal, { openIntroModal } from '@/components/IntroModal'
 
 
 // ── 샘플 분석 결과 컴포넌트 ──────────────────────────────────
@@ -765,6 +766,14 @@ export default function Home() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, position: 'relative' }}>
           <button onClick={() => setStep('landing')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}><Logo /></button>
 
+          <button
+            onClick={openIntroModal}
+            className="mobile-hide"
+            style={{ background: 'none', border: 'none', color: '#999', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', textDecoration: 'underline', textUnderlineOffset: 3 }}
+          >
+            잡통이 뭐예요?
+          </button>
+
           {/* 앱 스위처 버튼 */}
           <button
             onClick={() => setAppSwitcherOpen(prev => !prev)}
@@ -848,6 +857,7 @@ export default function Home() {
       <main style={base}>
         <Header />
         {user && <DdayPopup />}
+        <IntroModal autoShow={step === 'landing'} />
         {user && <NewMessageAlert />}
         {userProfile?.role === 'admin' && <AdminMessageAlert />}
         <section style={{ background: 'linear-gradient(160deg, #0a1628 0%, #1a3a6b 60%, #152f58 100%)', color: '#fff', padding: '80px 24px 90px', position: 'relative' }}>
@@ -1361,6 +1371,7 @@ export default function Home() {
       <main style={base}>
         <Header />
         {user && <DdayPopup />}
+        <IntroModal autoShow={step === 'landing'} />
         {user && <NewMessageAlert />}
         {userProfile?.role === 'admin' && <AdminMessageAlert />}
 
@@ -1814,6 +1825,7 @@ export default function Home() {
       <main style={base}>
         <Header />
         {user && <DdayPopup />}
+        <IntroModal autoShow={step === 'landing'} />
         {user && <NewMessageAlert />}
         {userProfile?.role === 'admin' && <AdminMessageAlert />}
         <div style={{ maxWidth: 680, margin: '0 auto', padding: '48px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
