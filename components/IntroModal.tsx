@@ -132,7 +132,7 @@ export default function IntroModal({ autoShow = false }: IntroModalProps) {
             <span style={{ fontSize: 13, fontWeight: 700, color: '#0f2244' }}>잡통</span>
           </div>
           <h2 style={{ fontSize: 24, fontWeight: 900, color: '#0f2244', margin: '0 0 14px' }}>잡통이 뭐예요?</h2>
-          <div style={{ fontSize: 13.5, color: '#555', lineHeight: 1.85 }}>
+          <div style={{ fontSize: 14.5, color: '#1a1a1a', fontWeight: 500, lineHeight: 1.85 }}>
             <p style={{ margin: '0 0 3px' }}>☕ 컨설팅 몇십만 원 대신, 커피 한 잔 값이면 자소서부터 면접까지 정직한 피드백을 받아보세요</p>
             <p style={{ margin: '0 0 3px' }}>🔁 몇 번을 고쳐도 확신이 안 서던 서류, 어디가 문제인지 콕 짚어서 잡통이 대신 끝내드려요</p>
             <p style={{ margin: 0 }}>🎯 취업 서류와 면접만 파고들어 수백 번 다듬은 AI가, 채용담당자 시선으로 냉정하게 진단해드려요</p>
@@ -163,7 +163,7 @@ export default function IntroModal({ autoShow = false }: IntroModalProps) {
                     </span>
                   )}
                 </div>
-                <div style={{ fontSize: 13, color: '#666', lineHeight: 1.7 }}>
+                <div style={{ fontSize: 13.5, color: '#1a1a1a', fontWeight: 500, lineHeight: 1.75 }}>
                   {tool.lines.map((line, li) => (
                     <span key={li}>
                       {line}
