@@ -425,45 +425,10 @@ export default function Home() {
   const [userProfile, setUserProfile] = useState<any>(null)
   const [authLoading, setAuthLoading] = useState(true)
   const [maintenance, setMaintenance] = useState(false)
-  const [appSwitcherOpen, setAppSwitcherOpen] = useState(false)
   const [showPromoSlide, setShowPromoSlide] = useState(false)
   const [promoClosed, setPromoClosed] = useState(false)
   const [newsItems, setNewsItems] = useState<any[]>([])
   const [newsLoading, setNewsLoading] = useState(true)
-
-  // 앱 목록 — 새 앱 추가 시 여기에만 추가하면 됩니다
-  const APP_LIST = [
-    {
-      id: 'jobtong',
-      name: '잡통',
-      emoji: '💼',
-      tag: '자소서 검토',
-      desc: '취업을 위한 정직한 조언',
-      url: 'https://jobtong.vercel.app',
-      color: '#e6a800',
-      current: true,
-    },
-    {
-      id: 'geultong',
-      name: '글통',
-      emoji: '✍️',
-      tag: 'SNS 변환',
-      desc: 'SNS 콘텐츠 자동 변환 서비스',
-      url: 'https://geultong.vercel.app',
-      color: '#8b9fff',
-      current: false,
-    },
-    {
-      id: 'jiptong',
-      name: '집통',
-      emoji: '🏠',
-      tag: '부동산 전략',
-      desc: '부동산 전략 서비스',
-      url: 'https://jiptong.vercel.app',
-      color: '#3b82f6',
-      current: false,
-    },
-  ]
 
   useEffect(() => {
     // 점검 모드 체크 (어드민은 제외)
@@ -769,53 +734,10 @@ export default function Home() {
           <button
             onClick={openIntroModal}
             className="mobile-hide"
-            style={{ background: 'none', border: 'none', color: '#999', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', textDecoration: 'underline', textUnderlineOffset: 3 }}
+            style={{ background: '#fffbeb', border: '1px solid #fde68a', color: '#92400e', borderRadius: 20, padding: '6px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
           >
             잡통이 뭐예요?
           </button>
-
-          {/* 앱 스위처 버튼 */}
-          <button
-            onClick={() => setAppSwitcherOpen(prev => !prev)}
-            style={{ background: 'none', border: '1px solid #e5e3dc', borderRadius: 7, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#999', fontSize: 15, flexShrink: 0 }}
-            title="다른 서비스 보기"
-          >
-            ⊞
-          </button>
-
-          {/* 드롭다운 바깥 클릭 닫기 레이어 */}
-          {appSwitcherOpen && (
-            <div
-              onClick={() => setAppSwitcherOpen(false)}
-              style={{ position: 'fixed', inset: 0, zIndex: 150 }}
-            />
-          )}
-
-          {/* 앱 스위처 드롭다운 */}
-          {appSwitcherOpen && (
-            <div style={{ position: 'absolute', top: 44, left: 0, zIndex: 151, background: '#fff', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.12)', border: '1px solid #ece9e1', padding: '10px', minWidth: 260 }}>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#bbb', letterSpacing: '0.08em', padding: '4px 8px 8px', margin: 0 }}>BARUN APPLICATION</p>
-              {APP_LIST.map(app => (
-                <button
-                  key={app.id}
-                  onClick={() => { if (!app.current) window.open(app.url, '_blank'); setAppSwitcherOpen(false) }}
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '10px 10px', borderRadius: 10, border: app.current ? `1.5px solid ${app.color}` : '1.5px solid transparent', background: app.current ? `${app.color}12` : 'transparent', cursor: app.current ? 'default' : 'pointer', fontFamily: 'inherit', textAlign: 'left', marginBottom: 4 }}
-                >
-                  <span style={{ fontSize: 22 }}>{app.emoji}</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ fontSize: 14, fontWeight: 800, color: '#0f2244' }}>{app.name}</span>
-                      {app.current && (
-                        <span style={{ background: app.color, color: '#fff', fontSize: 10, padding: '1px 7px', borderRadius: 20, fontWeight: 700 }}>현재</span>
-                      )}
-                      <span style={{ background: '#f0ede6', color: '#888', fontSize: 10, padding: '1px 7px', borderRadius: 20, fontWeight: 600 }}>{app.tag}</span>
-                    </div>
-                    <p style={{ fontSize: 12, color: '#888', margin: '2px 0 0' }}>{app.desc}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
         </div>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <p
