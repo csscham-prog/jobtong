@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '유효하지 않은 세션입니다. 다시 로그인해주세요.' }, { status: 401 })
     }
 
-    // 3. 정합성 검증 크레딧 확인
+    // 3. 정합성 검증 분석권 확인
     const { data: profile } = await supabase
       .from('profiles')
       .select('consistency_credits, role')
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
 
     const isAdmin = profile.role === 'admin'
     if (!isAdmin && (profile.consistency_credits || 0) <= 0) {
-      return NextResponse.json({ error: '잡통 플러스 크레딧이 없습니다. 5회권을 결제하시면 무료로 1회 지급됩니다.' }, { status: 403 })
+      return NextResponse.json({ error: '잡통 플러스 분석권이 없습니다. 5회권을 결제하시면 무료로 1회 지급됩니다.' }, { status: 403 })
     }
 
     // 4. 요청 데이터
@@ -253,7 +253,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'AI 응답 오류가 발생했습니다. 다시 시도해주세요.' }, { status: 500 })
     }
 
-    // 8. 크레딧 차감 + DB 저장 (관리자는 차감하지 않음)
+    // 8. 분석권 차감 + DB 저장 (관리자는 차감하지 않음)
     const adminSupabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
