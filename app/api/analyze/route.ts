@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
     const companyInfo = (body.companyInfo || '').slice(0, 1000) // 기업 문화/인재상 정보 (무료/유료 공통, 선택)
     const resumeFiles: UploadedFile[] = Array.isArray(body.resumeFiles) ? body.resumeFiles.slice(0, RESUME_FILE_MAX_COUNT) : [] // 이력서+경력기술서용 파일들
 
-    // 4. 크레딧 확인
+    // 4. 분석권 확인
     const { data: profile } = await supabase
       .from('profiles')
       .select('free_trial_used, paid_credits, role')
@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: '무료 체험을 이미 사용하셨습니다.' }, { status: 403 })
       }
       if (type === 'paid' && (profile.paid_credits || 0) <= 0) {
-        return NextResponse.json({ error: '분석 크레딧이 없습니다.' }, { status: 403 })
+        return NextResponse.json({ error: '분석권이 없습니다.' }, { status: 403 })
       }
     }
 
