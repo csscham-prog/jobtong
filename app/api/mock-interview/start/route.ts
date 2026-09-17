@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
 
     const isAdmin = profile.role === 'admin'
     if (!isAdmin && (profile.paid_credits || 0) <= 0) {
-      return NextResponse.json({ error: '분석권이 없습니다. 크레딧을 충전해주세요.' }, { status: 403 })
+      return NextResponse.json({ error: '분석권이 없습니다. 분석권을 충전해주세요.' }, { status: 403 })
     }
 
     const body = await req.json()
