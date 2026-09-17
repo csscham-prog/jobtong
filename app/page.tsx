@@ -654,7 +654,7 @@ export default function Home() {
         setTimeout(() => setShowPromoSlide(true), 3000)
       }
 
-      // 크레딧 차감
+      // 이용권 차감
       if (type === 'paid' && userProfile) {
         await supabase.from('profiles').update({
           paid_credits: (userProfile.paid_credits || 0) - 1,
@@ -943,7 +943,7 @@ export default function Home() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 32, marginBottom: 16 }}>
               <span style={{ fontSize: 15 }}>🧰</span>
               <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>무료 도구</span>
-              <span style={{ background: '#f0fdf4', color: '#059669', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20 }}>크레딧 소모 없음</span>
+              <span style={{ background: '#f0fdf4', color: '#059669', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20 }}>이용권 소모 없음</span>
               <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.12)' }} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
@@ -1213,7 +1213,7 @@ export default function Home() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 24px' }} className="promo-grid">
                   {[
                     '본인이 직접 작성한 게시글만 인정됩니다',
-                    '게시글 삭제 시 크레딧이 회수될 수 있습니다',
+                    '게시글 삭제 시 이용권이 회수될 수 있습니다',
                     '동일 채널 중복 신청은 불가합니다',
                     '검토 후 3영업일 이내 지급됩니다',
                   ].map((item, i) => (
@@ -1377,7 +1377,7 @@ export default function Home() {
               <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: '10px 14px', marginBottom: 16, flexShrink: 0 }}>
                 <p style={{ fontSize: 12, color: '#92400e', margin: 0, fontWeight: 600 }}>
                   {confirmType === 'paid'
-                    ? `💳 분석 시작 시 크레딧 1회가 차감됩니다. (잔여 ${userProfile?.paid_credits || 0}회)`
+                    ? `💳 분석 시작 시 이용권 1회가 차감됩니다. (잔여 ${userProfile?.paid_credits || 0}회)`
                     : '🎁 분석 시작 시 무료 체험이 소진됩니다.'}
                 </p>
               </div>
