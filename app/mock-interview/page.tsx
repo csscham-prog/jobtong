@@ -28,7 +28,7 @@ interface AnalysisResult {
 }
 
 const GUIDELINES = [
-  '크레딧은 시작하는 순간 차감돼요. 중간에 그만두셔도 복구되지 않아요.',
+  '분석권은 시작하는 순간 차감돼요. 중간에 그만두셔도 복구되지 않아요.',
   '각 질문마다 녹음 후 "끝내기"를 누르면 다음 질문으로 넘어가고, 이전 질문으로 돌아갈 수 없어요.',
   '실전처럼 즉흥으로 답변해주세요. 미리 적어두고 읽거나 오래 생각한 뒤 정리된 문장으로 말하면 연습 효과가 크게 떨어져요.',
   '브라우저에서 마이크 권한 요청 팝업이 뜨면 반드시 "허용"을 눌러주세요. 허용하지 않으면 녹음 자체가 되지 않아 이 기능을 이용할 수 없어요.',
@@ -435,7 +435,7 @@ export default function MockInterviewPage() {
             <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
               {[
                 { icon: '📄', title: '서류 입력', desc: '이력서·자소서\n+선택 정보' },
-                { icon: '🎬', title: '시작하기', desc: '이 시점에\n크레딧 차감', accent: true },
+                { icon: '🎬', title: '시작하기', desc: '이 시점에\n분석권 차감', accent: true },
                 { icon: '🤖', title: '질문 5개 생성', desc: '서류 기반\n맞춤 질문' },
               ].map((s, i) => (
                 <div key={i} style={{ flex: 1, background: s.accent ? 'rgba(230,168,0,0.1)' : 'rgba(255,255,255,0.06)', border: s.accent ? '1px solid rgba(230,168,0,0.3)' : '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: '16px 10px', textAlign: 'center' }}>
@@ -500,7 +500,7 @@ export default function MockInterviewPage() {
           <h1 style={{ fontSize: 20, fontWeight: 900, color: '#0f2244', margin: '0 0 20px' }}>서류 입력</h1>
 
           <div style={{ background: (credits > 0 || isAdmin) ? '#eef2ff' : '#fffbeb', border: `1px solid ${(credits > 0 || isAdmin) ? '#c7d2fe' : '#fde68a'}`, borderRadius: 14, padding: '14px 18px', marginBottom: 24, fontSize: 13, color: (credits > 0 || isAdmin) ? '#3730a3' : '#78350f', fontWeight: 700 }}>
-            {isAdmin ? `관리자 계정 — 크레딧 소모 없이 테스트 가능 (잔여 분석권 ${credits}회)` : credits > 0 ? `잔여 분석권: ${credits}회` : '보유한 분석권이 없습니다.'}
+            {isAdmin ? `관리자 계정 — 분석권 소모 없이 테스트 가능 (잔여 분석권 ${credits}회)` : credits > 0 ? `잔여 분석권: ${credits}회` : '보유한 분석권이 없습니다.'}
           </div>
 
           {(credits <= 0 && !isAdmin) ? (
@@ -611,7 +611,7 @@ export default function MockInterviewPage() {
                 {jobPostingFile && <p style={{ margin: 0 }}>📋 채용공고 첨부됨</p>}
               </div>
               <p style={{ fontSize: 13, color: '#991b1b', fontWeight: 700, margin: '0 0 20px' }}>
-                {isAdmin ? '관리자 계정은 크레딧이 차감되지 않아요.' : `진행 시 분석권 1회가 즉시 차감돼요. (잔여 ${credits}회)`}
+                {isAdmin ? '관리자 계정은 분석권이 차감되지 않아요.' : `진행 시 분석권 1회가 즉시 차감돼요. (잔여 ${credits}회)`}
               </p>
               <div style={{ display: 'flex', gap: 10 }}>
                 <button onClick={() => setShowConfirmModal(false)} style={{ flex: 1, background: '#f7f6f3', color: '#444', border: 'none', borderRadius: 12, padding: '13px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>다시 확인</button>
