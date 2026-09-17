@@ -67,13 +67,13 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 5. 크레딧 충전 (service role로 RLS 우회)
+    // 5. 분석권 충전 (service role로 RLS 우회)
     const adminSupabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    // 현재 크레딧 조회
+    // 현재 분석권 조회
     const { data: profile } = await adminSupabase
       .from('profiles')
       .select('paid_credits, consistency_credits')
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     const currentCredits = profile?.paid_credits || 0
     const newCredits = currentCredits + plan.credits
 
-    // 크레딧 업데이트 (5회권 결제 시 정합성 검증 크레딧도 함께 지급)
+    // 분석권 업데이트 (5회권 결제 시 정합성 검증 분석권도 함께 지급)
     const updatePayload: Record<string, number> = { paid_credits: newCredits }
     if (planType === 'plan_5') {
       const currentConsistencyCredits = (profile as any)?.consistency_credits || 0
