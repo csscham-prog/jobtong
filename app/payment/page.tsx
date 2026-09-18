@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 
 // ──────────────────────────────────────────
-// 테스트 클라이언트 키 (사업자 등록 후 실제 키로 교체)
-const TOSS_CLIENT_KEY = 'test_ck_DpexMgkW36PnG4JJ4kZNrGbR5ozO'
+// 라이브 클라이언트 키 (토스페이먼츠 계약 완료 후 적용)
+const TOSS_CLIENT_KEY = 'live_ck_Z1aOwX7K8m1DxgQxBmBj8yQxzvNP'
 // ──────────────────────────────────────────
 
 const PLANS = [
