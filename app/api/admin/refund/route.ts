@@ -52,8 +52,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '결제 정보를 찾을 수 없습니다.' }, { status: 404 })
     }
 
-    if (payment.status === 'refunded') {
-      return NextResponse.json({ error: '이미 환불된 건입니다.' }, { status: 400 })
+    // 이미 (전액/부분) 환불 처리된 건은 중복 처리 방지 — 오직 'success' 상태에서만 환불 가능
+    if (payment.status !== 'success') {
+      return NextResponse.json({ error: '이미 환불 처리된 건입니다.' }, { status: 400 })
     }
 
     if (refundAmount > payment.amount) {
@@ -76,11 +77,47 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '환불 처리 중 오류가 발생했습니다.' }, { status: 500 })
     }
 
+    // 6. 지급됐던 분석권을 환불 비율만큼 실제로 회수 (전액 환불이면 지급분 전부 회수)
+    const grantedCredits = payment.credits || 0
+    const creditsToRevoke = isFullRefund
+      ? grantedCredits
+      : Math.round(grantedCredits * (refundAmount / payment.amount))
+
+    const { data: userProfile } = await adminSupabase
+      .from('profiles')
+      .select('paid_credits, consistency_credits')
+      .eq('id', payment.user_id)
+      .single()
+
+    const currentPaidCredits = userProfile?.paid_credits || 0
+    const updatedPaidCredits = Math.max(currentPaidCredits - creditsToRevoke, 0)
+
+    const profileUpdatePayload: Record<string, number> = { paid_credits: updatedPaidCredits }
+
+    // 5회권 결제는 잡통 플러스 보너스 분석권도 함께 지급됐으므로, 환불 시(전액/부분 무관) 함께 회수
+    // 이미 사용해서 잔여가 0이면 Math.max로 자연스럽게 더 깎이지 않음
+    if (payment.plan_type === 'plan_5') {
+      const currentConsistencyCredits = (userProfile as any)?.consistency_credits || 0
+      profileUpdatePayload.consistency_credits = Math.max(currentConsistencyCredits - 1, 0)
+    }
+
+    const { error: profileUpdateError } = await adminSupabase
+      .from('profiles')
+      .update(profileUpdatePayload)
+      .eq('id', payment.user_id)
+
+    if (profileUpdateError) {
+      console.error('분석권 회수 오류:', profileUpdateError)
+      // payments 테이블은 이미 환불 처리됐으므로, 분석권 회수 실패는 로그만 남기고 계속 진행
+      // (재시도 로직이나 알림이 필요하면 여기에 추가)
+    }
+
     return NextResponse.json({
       success: true,
       refundAmount,
       status: isFullRefund ? 'refunded' : 'partial_refunded',
-      message: `₩${refundAmount.toLocaleString()} 환불 처리가 완료되었습니다.`,
+      creditsRevoked: creditsToRevoke,
+      message: `₩${refundAmount.toLocaleString()} 환불 처리가 완료되었습니다. (분석권 ${creditsToRevoke}회 회수)`,
     })
 
   } catch (error: any) {
