@@ -107,16 +107,23 @@ export default function IntroModal({ autoShow = false }: IntroModalProps) {
         zIndex: 1000, padding: 24,
       }}
     >
+      <style>{`
+        .jt-intro-modal { max-height: 85vh; }
+        @media (max-width: 640px) {
+          .jt-intro-modal { display: block !important; max-height: 88vh; overflow-y: auto; }
+        }
+      `}</style>
       <div
         onClick={e => e.stopPropagation()}
+        className="jt-intro-modal"
         style={{
           background: '#fff', borderRadius: 24, width: '100%', maxWidth: 860,
-          maxHeight: '85vh', display: 'flex', flexDirection: 'column',
+          display: 'flex', flexDirection: 'column',
           boxShadow: '0 24px 60px rgba(0,0,0,0.3)',
           fontFamily: "'Pretendard', -apple-system, sans-serif", wordBreak: 'keep-all',
         }}
       >
-        {/* 헤더 (고정) */}
+        {/* 헤더 — 데스크톱은 고정, 모바일은 본문과 함께 스크롤 */}
         <div style={{ padding: '30px 36px 22px', position: 'relative', borderBottom: '1px solid #f0ede6', flexShrink: 0 }}>
           <button
             onClick={handleClose}
@@ -139,8 +146,8 @@ export default function IntroModal({ autoShow = false }: IntroModalProps) {
           </div>
         </div>
 
-        {/* 도구 리스트 (스크롤) */}
-        <div style={{ overflowY: 'auto', padding: '6px 36px', flex: 1 }}>
+        {/* 도구 리스트 — 데스크톱은 이 영역만 스크롤, 모바일은 전체와 함께 스크롤 */}
+        <div style={{ padding: '6px 36px', flex: 1, overflowY: 'auto' }}>
           {TOOLS.map((tool, i) => (
             <div
               key={i}
@@ -179,7 +186,7 @@ export default function IntroModal({ autoShow = false }: IntroModalProps) {
           ))}
         </div>
 
-        {/* 하단 (고정) */}
+        {/* 하단 — 데스크톱은 고정, 모바일은 본문과 함께 스크롤 */}
         <div style={{ padding: '18px 36px 28px', borderTop: '1px solid #f0ede6', flexShrink: 0 }}>
           <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 14, padding: '14px 18px', marginBottom: 14 }}>
             <p style={{ fontSize: 12.5, color: '#92400e', margin: 0, lineHeight: 1.75 }}>
