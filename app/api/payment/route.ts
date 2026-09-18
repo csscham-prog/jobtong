@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js'
 // 시크릿 키는 Vercel 환경변수(TOSS_SECRET_KEY)에서 읽습니다.
 // 실제 키로 교체 시 Vercel Environment Variables에서 값만 바꾸면 됩니다.
 const TOSS_SECRET_KEY = process.env.TOSS_SECRET_KEY!
-const IS_TEST_MODE = true // 실서비스 시 false로 변경
+const IS_TEST_MODE = false // 실서비스 시 false로 변경
 // ──────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
