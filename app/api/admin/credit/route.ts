@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. 크레딧 조정 (service role로 RLS 우회)
-    const { userId, credits, resetTrial } = await req.json()
+    const { userId, credits, resetTrial, consistencyCredits } = await req.json()
 
     if (!userId || credits === undefined) {
       return NextResponse.json({ error: '필수 파라미터가 누락되었습니다.' }, { status: 400 })
@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
       .from('profiles')
       .update({
         paid_credits: credits,
+        ...(consistencyCredits !== undefined ? { consistency_credits: consistencyCredits } : {}),
         ...(resetTrial ? { free_trial_used: false } : {}),
       })
       .eq('id', userId)
