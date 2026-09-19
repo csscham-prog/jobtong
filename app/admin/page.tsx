@@ -512,8 +512,10 @@ export default function AdminPage() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 20 }}>
                 {[
                   { label: '총 결제 건수', value: `${fp.length}건`, color: '#0f2244' },
+                  { label: '총 환불 건수', value: `${fp.filter((p: any) => (p.refund_amount || 0) > 0).length}건`, color: '#f97316' },
                   { label: '총 결제 금액', value: `₩${fp.reduce((s: number, p: any) => s + (p.amount || 0), 0).toLocaleString()}`, color: '#10b981' },
                   { label: '총 환불 금액', value: `₩${fp.reduce((s: number, p: any) => s + (p.refund_amount || 0), 0).toLocaleString()}`, color: '#ef4444' },
+                  { label: '순 매출액', value: `₩${fp.reduce((s: number, p: any) => s + (p.amount || 0) - (p.refund_amount || 0), 0).toLocaleString()}`, color: '#0f2244' },
                   { label: '1회권 결제', value: `${fp.filter((p: any) => p.plan_type === 'plan_1').length}건`, color: '#6366f1' },
                   { label: '5회권 결제', value: `${fp.filter((p: any) => p.plan_type === 'plan_5').length}건`, color: '#e6a800' },
                 ].map(item => (
