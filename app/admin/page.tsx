@@ -22,6 +22,7 @@ export default function AdminPage() {
   const [paymentCustomEnd, setPaymentCustomEnd] = useState('')
   const [editingUser, setEditingUser] = useState<any>(null)
   const [creditAmount, setCreditAmount] = useState(0)
+  const [consistencyAmount, setConsistencyAmount] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
   const [periodFilter, setPeriodFilter] = useState<'today' | 'week' | 'month' | 'custom'>('month')
   const [customStart, setCustomStart] = useState('')
@@ -221,7 +222,7 @@ export default function AdminPage() {
     setMaintenanceLoading(false)
   }
 
-  const handleUpdateCredits = async (userId: string, credits: number, resetTrial: boolean) => {
+  const handleUpdateCredits = async (userId: string, credits: number, resetTrial: boolean, consistencyCredits?: number) => {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) return
     await fetch('/api/admin/credit', {
@@ -230,7 +231,7 @@ export default function AdminPage() {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${session.access_token}`,
       },
-      body: JSON.stringify({ userId, credits, resetTrial }),
+      body: JSON.stringify({ userId, credits, resetTrial, consistencyCredits }),
     })
     await loadData()
     setEditingUser(null)
@@ -662,7 +663,7 @@ export default function AdminPage() {
                           </span>
                         </td>
                         <td style={{ padding: '12px 16px' }}>
-                          <button onClick={() => { setEditingUser(u); setCreditAmount(u.paid_credits || 0) }}
+                          <button onClick={() => { setEditingUser(u); setCreditAmount(u.paid_credits || 0); setConsistencyAmount(u.consistency_credits || 0) }}
                             style={{ background: '#0f2244', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
                             횟수 조정
                           </button>
@@ -747,6 +748,7 @@ export default function AdminPage() {
 
             <div style={{ background: '#f7f6f3', borderRadius: 10, padding: '12px 16px', marginBottom: 16, fontSize: 13, color: '#555' }}>
               현재 잔여: <strong style={{ color: '#0f2244' }}>{editingUser.paid_credits || 0}회</strong>
+              {' '}/ 잡통+: <strong style={{ color: '#8b5cf6' }}>{editingUser.consistency_credits || 0}회</strong>
               {' '}/ 무료체험: <strong style={{ color: editingUser.free_trial_used ? '#ef4444' : '#10b981' }}>{editingUser.free_trial_used ? '사용함' : '미사용'}</strong>
             </div>
 
@@ -764,8 +766,22 @@ export default function AdminPage() {
                 style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 10, padding: '12px 14px', fontSize: 15, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', marginTop: 8 }} />
             </div>
 
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#333', marginBottom: 8 }}>잡통 플러스 잔여 횟수 설정</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {[0, 1, 2, 3].map(n => (
+                  <button key={n} onClick={() => setConsistencyAmount(n)}
+                    style={{ flex: 1, background: consistencyAmount === n ? '#8b5cf6' : '#f7f6f3', color: consistencyAmount === n ? '#fff' : '#555', border: '1px solid #ddd', borderRadius: 8, padding: '8px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
+                    {n}회
+                  </button>
+                ))}
+              </div>
+              <input type="number" min="0" value={consistencyAmount} onChange={e => setConsistencyAmount(parseInt(e.target.value) || 0)}
+                style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 10, padding: '12px 14px', fontSize: 15, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', marginTop: 8 }} />
+            </div>
+
             <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-              <button onClick={() => handleUpdateCredits(editingUser.id, creditAmount, false)}
+              <button onClick={() => handleUpdateCredits(editingUser.id, creditAmount, false, consistencyAmount)}
                 style={{ flex: 1, background: '#0f2244', color: '#fff', border: 'none', borderRadius: 10, padding: '12px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
                 저장
               </button>
@@ -776,7 +792,7 @@ export default function AdminPage() {
             </div>
 
             {editingUser.free_trial_used && (
-              <button onClick={() => handleUpdateCredits(editingUser.id, creditAmount, true)}
+              <button onClick={() => handleUpdateCredits(editingUser.id, creditAmount, true, consistencyAmount)}
                 style={{ width: '100%', background: '#fffbeb', color: '#92400e', border: '1px solid #fde68a', borderRadius: 10, padding: '10px', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
                 + 무료체험도 함께 초기화
               </button>
