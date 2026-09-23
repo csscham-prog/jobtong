@@ -153,34 +153,37 @@ export default function IntroModal({ autoShow = false }: IntroModalProps) {
               key={i}
               onClick={() => { window.location.href = tool.link }}
               style={{
-                display: 'flex', gap: 18, alignItems: 'center', padding: '18px 4px',
+                display: 'flex', flexDirection: 'column', gap: 10, padding: '18px 4px',
                 borderBottom: i < TOOLS.length - 1 ? '1px solid #f0ede6' : 'none',
                 cursor: 'pointer',
               }}
             >
-              <div style={{ width: 46, height: 46, borderRadius: 12, background: tool.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 21 }}>
-                {tool.icon}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
-                  <span style={{ fontSize: 15, fontWeight: 800, color: '#0f2244' }}>{tool.name}</span>
+              {/* 1줄 — 아이콘 + 제목(+배지) + 바로가기 */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 40, height: 40, borderRadius: 11, background: tool.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 19 }}>
+                  {tool.icon}
+                </div>
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 15.5, fontWeight: 800, color: '#0f2244' }}>{tool.name}</span>
                   {tool.badge && (
                     <span style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: tool.badge.color, padding: '2px 7px', borderRadius: 20 }}>
                       {tool.badge.text}
                     </span>
                   )}
                 </div>
-                <div style={{ fontSize: 13.5, color: '#1a1a1a', fontWeight: 500, lineHeight: 1.75 }}>
-                  {tool.lines.map((line, li) => (
-                    <span key={li}>
-                      {line}
-                      {li < tool.lines.length - 1 && <br />}
-                    </span>
-                  ))}
+                <div style={{ fontSize: 13, fontWeight: 800, color: '#e6a800', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                  바로가기 →
                 </div>
               </div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#e6a800', flexShrink: 0, whiteSpace: 'nowrap', alignSelf: 'flex-start', paddingTop: 2 }}>
-                바로가기 →
+
+              {/* 2줄 — 설명 (카드 전체 폭 사용, 아이콘에 안 눌림) */}
+              <div style={{ fontSize: 13.5, color: '#1a1a1a', fontWeight: 500, lineHeight: 1.8 }}>
+                {tool.lines.map((line, li) => (
+                  <span key={li}>
+                    {line}
+                    {li < tool.lines.length - 1 && <br />}
+                  </span>
+                ))}
               </div>
             </div>
           ))}
