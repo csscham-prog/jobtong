@@ -424,6 +424,7 @@ export default function Home() {
   const [user, setUser] = useState<any>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
   const [noticesMenuOpen, setNoticesMenuOpen] = useState(false)
+  const [showAddHomeGuide, setShowAddHomeGuide] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
   const [maintenance, setMaintenance] = useState(false)
   const [showPromoSlide, setShowPromoSlide] = useState(false)
@@ -746,29 +747,15 @@ export default function Home() {
             📢 공지사항
           </button>
 
-          {/* 모바일 전용 최소 햄버거 메뉴 (현재는 공지사항 1개, 추후 항목 추가 가능) */}
-          <div className="mobile-only" style={{ position: 'relative', display: 'none' }}>
-            <button
-              onClick={() => setNoticesMenuOpen(v => !v)}
-              style={{ background: 'none', border: '1px solid #e5e3dc', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#555', fontSize: 16 }}
-              aria-label="메뉴"
-            >
-              ☰
-            </button>
-            {noticesMenuOpen && (
-              <>
-                <div onClick={() => setNoticesMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 150 }} />
-                <div style={{ position: 'absolute', top: 40, left: 0, zIndex: 151, background: '#fff', borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.12)', border: '1px solid #ece9e1', padding: 8, minWidth: 160 }}>
-                  <button
-                    onClick={() => { setNoticesMenuOpen(false); window.location.href = '/notices' }}
-                    style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', borderRadius: 8, padding: '10px 12px', fontSize: 14, fontWeight: 600, color: '#333', cursor: 'pointer', fontFamily: 'inherit' }}
-                  >
-                    📢 공지사항
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+          {/* 모바일 전용 — "잡통이 뭐예요?"의 아이콘 버전 */}
+          <button
+            onClick={openIntroModal}
+            className="mobile-only"
+            style={{ display: 'none', background: 'none', border: '1.5px solid #ccc', borderRadius: '50%', width: 28, height: 28, alignItems: 'center', justifyContent: 'center', color: '#888', fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}
+            aria-label="잡통이 뭐예요?"
+          >
+            ?
+          </button>
         </div>
         <p
           className="jobtong-slogan"
@@ -785,11 +772,68 @@ export default function Home() {
                 {(userProfile?.paid_credits || 0) > 0 ? `잔여 ${userProfile.paid_credits}회` : !userProfile?.free_trial_used ? '무료 1회 남음' : ''}
               </span>
               <button onClick={() => window.location.href = '/payment'} style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 16px', fontWeight: 800, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>구매</button>
-              <button onClick={() => window.location.href = '/mypage'} style={{ background: 'none', color: '#0f2244', border: '1px solid #0f2244', borderRadius: 10, padding: '10px 14px', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>마이페이지</button>
+              <button onClick={() => window.location.href = '/mypage'} className="mobile-hide" style={{ background: 'none', color: '#0f2244', border: '1px solid #0f2244', borderRadius: 10, padding: '10px 14px', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>마이페이지</button>
               {userProfile?.role === 'admin' && (
                 <button onClick={() => window.location.href = '/admin'} className="mobile-hide" style={{ background: '#fffbeb', color: '#92400e', border: '1px solid #fde68a', borderRadius: 10, padding: '10px 14px', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>⚙️ 관리자페이지</button>
               )}
               <button onClick={handleLogout} className="mobile-hide" style={{ background: 'none', color: '#aaa', border: '1px solid #ddd', borderRadius: 10, padding: '10px 14px', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>로그아웃</button>
+
+              {/* 모바일 전용 햄버거 메뉴 */}
+              <div className="mobile-only" style={{ position: 'relative', display: 'none' }}>
+                <button
+                  onClick={() => setNoticesMenuOpen(v => !v)}
+                  style={{ background: 'none', border: '1px solid #e5e3dc', borderRadius: 8, width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#555', fontSize: 16 }}
+                  aria-label="메뉴"
+                >
+                  {noticesMenuOpen ? '✕' : '☰'}
+                </button>
+                {noticesMenuOpen && (
+                  <>
+                    <div onClick={() => setNoticesMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 150 }} />
+                    <div style={{ position: 'absolute', top: 42, right: 0, zIndex: 151, background: '#0f2244', borderRadius: 14, boxShadow: '0 12px 32px rgba(0,0,0,0.3)', padding: 8, minWidth: 190 }}>
+                      <button
+                        onClick={() => { setNoticesMenuOpen(false); handleStartAnalyze() }}
+                        style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', borderRadius: 10, padding: '12px 14px', fontSize: 14, fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: 'inherit' }}
+                      >
+                        🚀 시작하기
+                      </button>
+                      <button
+                        onClick={() => { setNoticesMenuOpen(false); setShowAddHomeGuide(true) }}
+                        style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', borderRadius: 10, padding: '12px 14px', fontSize: 14, fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: 'inherit' }}
+                      >
+                        ⭐ 홈 화면에 추가
+                      </button>
+                      <button
+                        onClick={() => { setNoticesMenuOpen(false); window.location.href = '/notices' }}
+                        style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', borderRadius: 10, padding: '12px 14px', fontSize: 14, fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: 'inherit' }}
+                      >
+                        📢 공지사항
+                      </button>
+                      <button
+                        onClick={() => { setNoticesMenuOpen(false); window.location.href = '/mypage' }}
+                        style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', borderRadius: 10, padding: '12px 14px', fontSize: 14, fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: 'inherit' }}
+                      >
+                        👤 마이페이지
+                      </button>
+                      {userProfile?.role === 'admin' && (
+                        <button
+                          onClick={() => { setNoticesMenuOpen(false); window.location.href = '/admin' }}
+                          style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', borderRadius: 10, padding: '12px 14px', fontSize: 14, fontWeight: 600, color: '#e6a800', cursor: 'pointer', fontFamily: 'inherit' }}
+                        >
+                          ⚙️ 관리자페이지
+                        </button>
+                      )}
+                      <div style={{ height: 1, background: 'rgba(255,255,255,0.1)', margin: '4px 0' }} />
+                      <button
+                        onClick={() => { setNoticesMenuOpen(false); handleLogout() }}
+                        style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', borderRadius: 10, padding: '12px 14px', fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.6)', cursor: 'pointer', fontFamily: 'inherit' }}
+                      >
+                        🚪 로그아웃
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             </>
           ) : (
             <>
@@ -801,11 +845,39 @@ export default function Home() {
     </header>
   )
 
+  const AddHomeGuideModal = () => (
+    showAddHomeGuide ? (
+      <div
+        onClick={() => setShowAddHomeGuide(false)}
+        style={{ position: 'fixed', inset: 0, background: 'rgba(10,15,30,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 24 }}
+      >
+        <div
+          onClick={e => e.stopPropagation()}
+          style={{ background: '#0f2244', borderRadius: 24, padding: '36px 30px', maxWidth: 340, width: '100%', textAlign: 'center', boxShadow: '0 24px 60px rgba(0,0,0,0.3)', fontFamily: "'Pretendard', -apple-system, sans-serif" }}
+        >
+          <div style={{ fontSize: 40, marginBottom: 16 }}>⭐</div>
+          <h3 style={{ fontSize: 19, fontWeight: 800, color: '#fff', margin: '0 0 18px' }}>홈 화면에 추가하기</h3>
+          <p style={{ fontSize: 14.5, color: 'rgba(255,255,255,0.75)', lineHeight: 1.9, margin: '0 0 26px', wordBreak: 'keep-all' }}>
+            오른쪽 위 메뉴(⋮)를 누른 뒤<br />
+            <strong style={{ color: '#fff' }}>"홈 화면에 추가"</strong>를 선택해주세요
+          </p>
+          <button
+            onClick={() => setShowAddHomeGuide(false)}
+            style={{ width: '100%', background: '#10b981', color: '#fff', border: 'none', borderRadius: 12, padding: '14px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}
+          >
+            확인
+          </button>
+        </div>
+      </div>
+    ) : null
+  )
+
   // ── LANDING ──
   if (step === 'landing') {
     return (
       <main style={base}>
         <Header />
+        <AddHomeGuideModal />
         {user && <DdayPopup />}
         <IntroModal autoShow={true} />
         {user && <NewMessageAlert />}
@@ -1320,6 +1392,7 @@ export default function Home() {
     return (
       <main style={base}>
         <Header />
+        <AddHomeGuideModal />
         {user && <DdayPopup />}
         <IntroModal autoShow={false} />
         {user && <NewMessageAlert />}
@@ -1774,6 +1847,7 @@ export default function Home() {
     return (
       <main style={base}>
         <Header />
+        <AddHomeGuideModal />
         {user && <DdayPopup />}
         <IntroModal autoShow={false} />
         {user && <NewMessageAlert />}
