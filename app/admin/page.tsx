@@ -316,6 +316,10 @@ export default function AdminPage() {
             style={{ background: '#eef2ff', color: '#3730a3', border: '1px solid #c7d2fe', borderRadius: 10, padding: '10px 20px', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
             💬 문의 관리
           </button>
+          <button onClick={() => window.location.href = '/admin/notices'}
+            style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #a7f3d0', borderRadius: 10, padding: '10px 20px', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
+            📢 공지사항
+          </button>
         </div>
 
         {/* 통계 탭 */}
