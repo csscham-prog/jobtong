@@ -722,12 +722,10 @@ export default function Home() {
   )
 
   const base: React.CSSProperties = { fontFamily: "'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", background: '#f7f6f3', minHeight: '100vh' }
-  const headerStyle: React.CSSProperties = { background: '#fff', borderBottom: '1px solid #ece9e1', position: 'sticky', top: 0, zIndex: 50 }
-  const headerInner: React.CSSProperties = { width: '100%', margin: '0 auto', padding: '0 24px', height: 72, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }
+  const headerStyle: React.CSSProperties = { background: '#fff', borderBottom: '1px solid #ece9e1', position: 'sticky', top: 0, zIndex: 50, height: 72, padding: '0 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }
 
   const Header = () => (
     <header style={headerStyle}>
-      <div style={headerInner}>
         {/* 로고 + 앱 스위처 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, position: 'relative' }}>
           <button onClick={() => setStep('landing')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}><Logo /></button>
@@ -772,16 +770,14 @@ export default function Home() {
             )}
           </div>
         </div>
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <p
-            className="jobtong-slogan"
-            onClick={() => window.location.href = '/'}
-            style={{ fontWeight: 800, margin: 0, letterSpacing: '-0.5px', lineHeight: 1.3, textAlign: 'center', cursor: 'pointer' }}
-          >
-            <span style={{ color: '#0f2244' }}>취업을 위한 정직한 조언,&nbsp;</span>
-            <span style={{ color: '#e6a800' }}>잡통의 바른 서류 전형 검토</span>
-          </p>
-        </div>
+        <p
+          className="jobtong-slogan"
+          onClick={() => window.location.href = '/'}
+          style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', fontWeight: 800, margin: 0, letterSpacing: '-0.5px', lineHeight: 1.3, textAlign: 'center', cursor: 'pointer', whiteSpace: 'nowrap' }}
+        >
+          <span style={{ color: '#0f2244' }}>취업을 위한 정직한 조언,&nbsp;</span>
+          <span style={{ color: '#e6a800' }}>잡통의 바른 서류 전형 검토</span>
+        </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           {user ? (
             <>
@@ -802,7 +798,6 @@ export default function Home() {
             </>
           )}
         </div>
-      </div>
     </header>
   )
 
