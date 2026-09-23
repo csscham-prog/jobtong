@@ -423,6 +423,7 @@ export default function Home() {
   const resumeFileInputRef = useRef<HTMLInputElement>(null)
   const [user, setUser] = useState<any>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
+  const [noticesMenuOpen, setNoticesMenuOpen] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
   const [maintenance, setMaintenance] = useState(false)
   const [showPromoSlide, setShowPromoSlide] = useState(false)
@@ -738,6 +739,38 @@ export default function Home() {
           >
             잡통이 뭐예요?
           </button>
+
+          <button
+            onClick={() => window.location.href = '/notices'}
+            className="mobile-hide"
+            style={{ background: 'none', border: 'none', color: '#888', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
+          >
+            📢 공지사항
+          </button>
+
+          {/* 모바일 전용 최소 햄버거 메뉴 (현재는 공지사항 1개, 추후 항목 추가 가능) */}
+          <div className="mobile-only" style={{ position: 'relative', display: 'none' }}>
+            <button
+              onClick={() => setNoticesMenuOpen(v => !v)}
+              style={{ background: 'none', border: '1px solid #e5e3dc', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#555', fontSize: 16 }}
+              aria-label="메뉴"
+            >
+              ☰
+            </button>
+            {noticesMenuOpen && (
+              <>
+                <div onClick={() => setNoticesMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 150 }} />
+                <div style={{ position: 'absolute', top: 40, left: 0, zIndex: 151, background: '#fff', borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.12)', border: '1px solid #ece9e1', padding: 8, minWidth: 160 }}>
+                  <button
+                    onClick={() => { setNoticesMenuOpen(false); window.location.href = '/notices' }}
+                    style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', borderRadius: 8, padding: '10px 12px', fontSize: 14, fontWeight: 600, color: '#333', cursor: 'pointer', fontFamily: 'inherit' }}
+                  >
+                    📢 공지사항
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <p
