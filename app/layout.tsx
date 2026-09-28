@@ -1,9 +1,19 @@
 import type { Metadata } from 'next'
 import './globals.css'
 
+const TITLE = '잡통 - 자소서·이력서 AI 분석, 모의 면접까지'
+const DESCRIPTION = '채용담당자 시선으로 자소서·이력서·경력기술서를 진단하고, 서류 기반 모의 면접까지. 가입하면 무료 체험 1회.'
+
 export const metadata: Metadata = {
-  title: '잡통 - AI 자소서 분석 서비스',
-  description: '취업 컨설턴트 대신 AI가 자소서를 분석해드립니다. 지금 바로 무료로 체험해보세요.',
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    siteName: '잡통',
+    type: 'website',
+    locale: 'ko_KR',
+  },
 }
 
 export default function RootLayout({
