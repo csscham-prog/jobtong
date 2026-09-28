@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
     // 4. 분석권 확인
     const { data: profile } = await supabase
       .from('profiles')
-      .select('free_trial_used, paid_credits, role')
+      .select('free_trial_used, paid_credits, role, total_analyses')
       .eq('id', user.id)
       .single()
 
@@ -414,12 +414,24 @@ export async function POST(req: NextRequest) {
       }]
     }
 
-    // 9. DB 저장 — 내부적으로는 무료 분석도 전체 결과를 저장 (추후 업셀에 활용 가능)
+    // 9. 분석권 차감 (관리자는 차감하지 않음) + DB 저장 — 내부적으로는 무료 분석도 전체 결과를 저장 (추후 업셀에 활용 가능)
+    const adminSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    if (!isAdmin) {
+      const creditUpdate: Record<string, any> = {
+        total_analyses: (profile.total_analyses || 0) + 1,
+        free_trial_used: true,
+      }
+      if (isPaid) {
+        creditUpdate.paid_credits = Math.max((profile.paid_credits || 0) - 1, 0)
+      }
+      await adminSupabase.from('profiles').update(creditUpdate).eq('id', user.id)
+    }
+
     try {
-      const adminSupabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      )
       await adminSupabase.from('analyses').insert({
         user_id: user.id,
         company: company || null,
