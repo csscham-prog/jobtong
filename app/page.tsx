@@ -656,21 +656,8 @@ export default function Home() {
         setTimeout(() => setShowPromoSlide(true), 3000)
       }
 
-      // 분석권 차감
-      if (type === 'paid' && userProfile) {
-        await supabase.from('profiles').update({
-          paid_credits: (userProfile.paid_credits || 0) - 1,
-          total_analyses: (userProfile.total_analyses || 0) + 1,
-          free_trial_used: true,
-        }).eq('id', user.id)
-        fetchProfile(user.id)
-      } else if (type === 'free' && userProfile) {
-        await supabase.from('profiles').update({
-          free_trial_used: true,
-          total_analyses: (userProfile.total_analyses || 0) + 1,
-        }).eq('id', user.id)
-        fetchProfile(user.id)
-      }
+      // 분석권 차감은 서버(app/api/analyze)에서 처리됨 — 최신 값만 다시 불러옴
+      fetchProfile(user.id)
     } catch (e: any) { setError(e.message) }
     finally {
       setLoading(false)
