@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import pdfParse from 'pdf-parse'
 import mammoth from 'mammoth'
 
@@ -25,7 +25,7 @@ interface UploadedFileRef {
 }
 
 // Supabase Storage에서 파일을 내려받아 Buffer로 변환
-async function downloadFromStorage(supabaseAdmin: ReturnType<typeof createClient>, path: string): Promise<Buffer> {
+async function downloadFromStorage(supabaseAdmin: SupabaseClient, path: string): Promise<Buffer> {
   const { data, error } = await supabaseAdmin.storage.from(UPLOAD_BUCKET).download(path)
   if (error || !data) throw new Error('파일을 불러오지 못했습니다.')
   const arrayBuffer = await data.arrayBuffer()
