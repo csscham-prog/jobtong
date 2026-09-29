@@ -8,36 +8,40 @@ const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 })
 
-// 채용공고 PDF 업로드 제한 (유료 분석 전용)
-const JOB_POSTING_MAX_SIZE = 5 * 1024 * 1024 // 5MB
+// 채용공고 파일 업로드 제한 (유료 분석 전용) — Storage를 거치므로 넉넉하게 설정
+const JOB_POSTING_MAX_SIZE = 8 * 1024 * 1024 // 8MB
 const JOB_POSTING_MAX_TEXT_LENGTH = 6000 // 추출 텍스트가 너무 길면 토큰 절약을 위해 자름
 
-// 이력서+경력기술서 파일 업로드 제한
-const RESUME_FILE_MAX_SIZE = 10 * 1024 * 1024 // 파일당 10MB
+// 이력서+경력기술서 파일 업로드 제한 — Storage 경유로 요청 본문 크기 제약이 사라져 개별 파일 기준으로 복원
 const RESUME_FILE_MAX_COUNT = 3 // 최대 3개 파일
+const RESUME_FILE_MAX_SIZE = 15 * 1024 * 1024 // 파일당 15MB
 const RESUME_TOTAL_TEXT_MAX_LENGTH = 12000 // 여러 파일 합산 시 텍스트 상한 (토큰 절약)
 
-interface UploadedFile {
-  base64: string
+const UPLOAD_BUCKET = 'temp-uploads'
+
+interface UploadedFileRef {
+  path: string
   fileName: string
 }
 
+// Supabase Storage에서 파일을 내려받아 Buffer로 변환
+async function downloadFromStorage(supabaseAdmin: ReturnType<typeof createClient>, path: string): Promise<Buffer> {
+  const { data, error } = await supabaseAdmin.storage.from(UPLOAD_BUCKET).download(path)
+  if (error || !data) throw new Error('파일을 불러오지 못했습니다.')
+  const arrayBuffer = await data.arrayBuffer()
+  return Buffer.from(arrayBuffer)
+}
+
 // PDF 또는 DOCX 파일에서 텍스트 추출
-async function extractTextFromFile(file: UploadedFile): Promise<{ text: string; error: string }> {
+async function extractTextFromFile(buffer: Buffer, fileName: string): Promise<{ text: string; error: string }> {
   try {
-    const buffer = Buffer.from(file.base64, 'base64')
-
-    if (buffer.length > RESUME_FILE_MAX_SIZE) {
-      return { text: '', error: file.fileName + ': 파일 용량이 10MB를 초과하여 처리하지 못했습니다.' }
-    }
-
-    const lowerName = file.fileName.toLowerCase()
+    const lowerName = fileName.toLowerCase()
 
     if (lowerName.endsWith('.pdf')) {
       const parsed = await pdfParse(buffer)
       const extracted = (parsed.text || '').trim()
       if (extracted.length < 20) {
-        return { text: '', error: file.fileName + ': 텍스트를 추출하지 못했습니다. (이미지로 저장된 PDF는 지원하지 않습니다)' }
+        return { text: '', error: fileName + ': 텍스트를 추출하지 못했습니다. (이미지로 저장된 PDF는 지원하지 않습니다)' }
       }
       return { text: extracted, error: '' }
     }
@@ -46,16 +50,16 @@ async function extractTextFromFile(file: UploadedFile): Promise<{ text: string; 
       const result = await mammoth.extractRawText({ buffer })
       const extracted = (result.value || '').trim()
       if (extracted.length < 20) {
-        return { text: '', error: file.fileName + ': 텍스트를 추출하지 못했습니다.' }
+        return { text: '', error: fileName + ': 텍스트를 추출하지 못했습니다.' }
       }
       return { text: extracted, error: '' }
     }
 
-    return { text: '', error: file.fileName + ': 지원하지 않는 파일 형식입니다. (PDF, DOCX만 지원)' }
+    return { text: '', error: fileName + ': 지원하지 않는 파일 형식입니다. (PDF, DOCX만 지원)' }
 
   } catch (e) {
-    console.error('파일 파싱 실패 (' + file.fileName + '):', e)
-    return { text: '', error: file.fileName + ': 파일을 읽는 중 오류가 발생했습니다.' }
+    console.error('파일 파싱 실패 (' + fileName + '):', e)
+    return { text: '', error: fileName + ': 파일을 읽는 중 오류가 발생했습니다.' }
   }
 }
 
@@ -86,16 +90,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '유효하지 않은 세션입니다. 다시 로그인해주세요.' }, { status: 401 })
     }
 
-    // 3. 요청 데이터
+    // service role 클라이언트 — 파일 다운로드·삭제, DB 저장, 분석권 차감에 사용
+    const adminSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    // 3. 요청 데이터 — 파일은 base64가 아니라 Storage 업로드 경로로 전달받음
     const body = await req.json()
     const docType: 'coverletter' | 'resume' = body.docType === 'resume' ? 'resume' : 'coverletter'
     const company = body.company || ''
     const position = body.position || ''
     const content = body.content || '' // 자소서용 텍스트
     const type = body.type || 'free'
-    const jobPostingBase64 = body.jobPostingBase64 || '' // 채용공고 PDF (유료 전용, 선택)
+    const jobPostingFile: UploadedFileRef | null = body.jobPostingFile || null // 채용공고 (유료 전용, 선택)
     const companyInfo = (body.companyInfo || '').slice(0, 1000) // 기업 문화/인재상 정보 (무료/유료 공통, 선택)
-    const resumeFiles: UploadedFile[] = Array.isArray(body.resumeFiles) ? body.resumeFiles.slice(0, RESUME_FILE_MAX_COUNT) : [] // 이력서+경력기술서용 파일들
+    const resumeFiles: UploadedFileRef[] = Array.isArray(body.resumeFiles) ? body.resumeFiles.slice(0, RESUME_FILE_MAX_COUNT) : [] // 이력서+경력기술서용 파일들
+
+    // 업로드된 파일이 전부 본인 소유 경로인지 확인 (타인의 파일을 건드리는 것을 원천 차단)
+    const allRefs = [...resumeFiles, ...(jobPostingFile ? [jobPostingFile] : [])]
+    for (const ref of allRefs) {
+      if (!ref.path || !ref.path.startsWith(`${user.id}/`)) {
+        return NextResponse.json({ error: '잘못된 파일 경로입니다.' }, { status: 400 })
+      }
+    }
+
+    // 분석 시도 후에는 성공/실패 관계없이 업로드된 임시 파일을 반드시 삭제 (이력서 등 개인정보 파일이 서버에 남지 않도록)
+    try {
 
     // 4. 분석권 확인
     const { data: profile } = await supabase
@@ -141,9 +162,19 @@ export async function POST(req: NextRequest) {
 
       const extractedParts: string[] = []
       for (const file of resumeFiles) {
-        const { text, error } = await extractTextFromFile(file)
-        if (error) resumeFileErrors.push(error)
-        if (text) extractedParts.push('[파일: ' + file.fileName + ']\n' + text)
+        try {
+          const buffer = await downloadFromStorage(adminSupabase, file.path)
+          if (buffer.length > RESUME_FILE_MAX_SIZE) {
+            resumeFileErrors.push(`${file.fileName}: 파일 용량이 ${(RESUME_FILE_MAX_SIZE / (1024 * 1024)).toFixed(0)}MB를 초과하여 처리하지 못했습니다.`)
+            continue
+          }
+          const { text, error } = await extractTextFromFile(buffer, file.fileName)
+          if (error) resumeFileErrors.push(error)
+          if (text) extractedParts.push('[파일: ' + file.fileName + ']\n' + text)
+        } catch (e) {
+          console.error('이력서 파일 다운로드 실패:', file.path, e)
+          resumeFileErrors.push(`${file.fileName}: 파일을 불러오지 못했습니다.`)
+        }
       }
 
       if (extractedParts.length === 0) {
@@ -160,12 +191,12 @@ export async function POST(req: NextRequest) {
     // 6-1. 채용공고 PDF 처리 (유료 분석 전용, 선택 사항)
     let jobPostingText = ''
     let jobPostingError = ''
-    if (jobPostingBase64 && isPaid) {
+    if (jobPostingFile && isPaid) {
       try {
-        const buffer = Buffer.from(jobPostingBase64, 'base64')
+        const buffer = await downloadFromStorage(adminSupabase, jobPostingFile.path)
 
         if (buffer.length > JOB_POSTING_MAX_SIZE) {
-          jobPostingError = '채용공고 파일이 5MB를 초과하여 분석에 반영되지 않았습니다.'
+          jobPostingError = `채용공고 파일이 ${(JOB_POSTING_MAX_SIZE / (1024 * 1024)).toFixed(0)}MB를 초과하여 분석에 반영되지 않았습니다.`
         } else {
           const parsed = await pdfParse(buffer)
           const extracted = (parsed.text || '').trim()
@@ -415,11 +446,6 @@ export async function POST(req: NextRequest) {
     }
 
     // 9. 분석권 차감 (관리자는 차감하지 않음) + DB 저장 — 내부적으로는 무료 분석도 전체 결과를 저장 (추후 업셀에 활용 가능)
-    const adminSupabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
-
     if (!isAdmin) {
       const creditUpdate: Record<string, any> = {
         total_analyses: (profile.total_analyses || 0) + 1,
@@ -471,6 +497,14 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(analysisResult)
+
+    } finally {
+      // 분석 성공/실패와 무관하게 업로드된 임시 파일은 반드시 삭제 (이력서 등 개인정보 파일이 서버에 남지 않도록)
+      if (allRefs.length > 0) {
+        const { error: removeError } = await adminSupabase.storage.from(UPLOAD_BUCKET).remove(allRefs.map(r => r.path))
+        if (removeError) console.error('[analyze] 임시 파일 삭제 실패:', removeError)
+      }
+    }
 
   } catch (error: any) {
     console.error('분석 오류:', error)
