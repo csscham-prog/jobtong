@@ -406,14 +406,14 @@ export default function Home() {
   const [companyInfo, setCompanyInfo] = useState('')
   const [content, setContent] = useState('')
   const [docType, setDocType] = useState<'coverletter' | 'resume'>('coverletter')
-  const [resumeFiles, setResumeFiles] = useState<{ base64: string; fileName: string; sizeLabel: string }[]>([])
+  const [resumeFiles, setResumeFiles] = useState<{ path: string; fileName: string; sizeLabel: string; size: number }[]>([])
   const [resumeFileError, setResumeFileError] = useState('')
   const [result, setResult] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [loadingStage, setLoadingStage] = useState(0)
   const [error, setError] = useState('')
   const [fileName, setFileName] = useState('')
-  const [jobPostingBase64, setJobPostingBase64] = useState('')
+  const [jobPostingPath, setJobPostingPath] = useState('')
   const [jobPostingFileName, setJobPostingFileName] = useState('')
   const [jobPostingError, setJobPostingError] = useState('')
   const [showConfirmModal, setShowConfirmModal] = useState(false)
@@ -509,48 +509,65 @@ export default function Home() {
     reader.readAsText(file, 'utf-8')
   }
 
-  // 채용공고 PDF 업로드 (유료 분석 전용, 선택)
-  const JOB_POSTING_MAX_SIZE = 5 * 1024 * 1024 // 5MB
-  const handleJobPostingUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Supabase Storage(temp-uploads)에 파일을 올리고 경로를 반환 — 실패 시 null
+  const uploadToStorage = async (file: File): Promise<string | null> => {
+    if (!user) return null
+    const path = `${user.id}/${crypto.randomUUID()}-${file.name}`
+    const { error } = await supabase.storage.from('temp-uploads').upload(path, file)
+    if (error) {
+      console.error('Storage 업로드 실패:', error)
+      return null
+    }
+    return path
+  }
+
+  // 채용공고 PDF 업로드 (유료 분석 전용, 선택) — 넉넉하게 8MB까지, 파일은 Storage로 바로 업로드
+  const JOB_POSTING_MAX_SIZE = 8 * 1024 * 1024 // 8MB
+  const [jobPostingUploading, setJobPostingUploading] = useState(false)
+  const handleJobPostingUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     setJobPostingError('')
 
     if (!file.name.toLowerCase().endsWith('.pdf')) {
       setJobPostingError('PDF 파일만 업로드 가능합니다.')
+      e.target.value = ''
       return
     }
     if (file.size > JOB_POSTING_MAX_SIZE) {
-      setJobPostingError('파일 용량은 5MB 이하만 업로드 가능합니다.')
+      setJobPostingError('파일 용량은 8MB 이하만 업로드 가능합니다.')
+      e.target.value = ''
       return
     }
 
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      const result = ev.target?.result as string
-      // data:application/pdf;base64,xxxxx 형태에서 base64 부분만 추출
-      const base64 = result.split(',')[1] || ''
-      setJobPostingBase64(base64)
-      setJobPostingFileName(file.name)
+    setJobPostingUploading(true)
+    const path = await uploadToStorage(file)
+    setJobPostingUploading(false)
+    e.target.value = ''
+
+    if (!path) {
+      setJobPostingError('업로드 중 오류가 발생했습니다. 다시 시도해주세요.')
+      return
     }
-    reader.onerror = () => setJobPostingError('파일을 읽는 중 오류가 발생했습니다.')
-    reader.readAsDataURL(file)
+    setJobPostingPath(path)
+    setJobPostingFileName(file.name)
   }
 
   const removeJobPosting = () => {
-    setJobPostingBase64('')
+    setJobPostingPath('')
     setJobPostingFileName('')
     setJobPostingError('')
   }
 
-  // 이력서+경력기술서 다중 파일 업로드 (PDF/DOCX, 최대 3개, 파일당 10MB)
-  const RESUME_FILE_MAX_SIZE = 10 * 1024 * 1024 // 10MB
+  // 이력서+경력기술서 다중 파일 업로드 (PDF/DOCX, 최대 3개, 파일당 15MB) — Storage로 바로 업로드하므로 넉넉하게 설정
+  const RESUME_FILE_MAX_SIZE = 15 * 1024 * 1024 // 파일당 15MB
   const RESUME_FILE_MAX_COUNT = 3
+  const [resumeUploadingCount, setResumeUploadingCount] = useState(0)
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)}KB`
     return `${(bytes / (1024 * 1024)).toFixed(1)}MB`
   }
-  const handleResumeFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleResumeFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     if (files.length === 0) return
     setResumeFileError('')
@@ -561,28 +578,31 @@ export default function Home() {
       return
     }
 
-    files.forEach(file => {
+    const validFiles = files.filter(file => {
       const lowerName = file.name.toLowerCase()
       if (!lowerName.endsWith('.pdf') && !lowerName.endsWith('.docx') && !lowerName.endsWith('.doc')) {
         setResumeFileError(`${file.name}: PDF 또는 DOCX 파일만 업로드 가능합니다.`)
-        return
+        return false
       }
       if (file.size > RESUME_FILE_MAX_SIZE) {
-        setResumeFileError(`${file.name}: 파일 용량은 10MB 이하만 업로드 가능합니다.`)
-        return
+        setResumeFileError(`${file.name}: 파일 용량은 ${formatFileSize(RESUME_FILE_MAX_SIZE)} 이하만 업로드 가능합니다.`)
+        return false
       }
-
-      const reader = new FileReader()
-      reader.onload = (ev) => {
-        const result = ev.target?.result as string
-        const base64 = result.split(',')[1] || ''
-        setResumeFiles(prev => [...prev, { base64, fileName: file.name, sizeLabel: formatFileSize(file.size) }])
-      }
-      reader.onerror = () => setResumeFileError(`${file.name}: 파일을 읽는 중 오류가 발생했습니다.`)
-      reader.readAsDataURL(file)
+      return true
     })
 
     e.target.value = ''
+    setResumeUploadingCount(c => c + validFiles.length)
+
+    for (const file of validFiles) {
+      const path = await uploadToStorage(file)
+      setResumeUploadingCount(c => c - 1)
+      if (!path) {
+        setResumeFileError(`${file.name}: 업로드 중 오류가 발생했습니다. 다시 시도해주세요.`)
+        continue
+      }
+      setResumeFiles(prev => [...prev, { path, fileName: file.name, sizeLabel: formatFileSize(file.size), size: file.size }])
+    }
   }
 
   const removeResumeFile = (index: number) => {
@@ -620,6 +640,10 @@ export default function Home() {
     } else {
       if (resumeFiles.length === 0) { setError('이력서 또는 경력기술서 파일을 1개 이상 업로드해주세요.'); return }
     }
+    if (resumeUploadingCount > 0 || jobPostingUploading) {
+      setError('파일 업로드가 끝난 후 다시 시도해주세요.')
+      return
+    }
     setError(''); setLoading(true); setAnalyzeType(type); setLoadingStage(0)
 
     // 대기 중 단계별 안내 문구 전환 (실제 진행률이 아닌 체감 UX용)
@@ -641,9 +665,9 @@ export default function Home() {
         body: JSON.stringify({
           docType,
           company, position, content, type,
-          jobPostingBase64: type === 'paid' ? jobPostingBase64 : '',
+          jobPostingFile: type === 'paid' && jobPostingPath ? { path: jobPostingPath, fileName: jobPostingFileName } : null,
           companyInfo,
-          resumeFiles: docType === 'resume' ? resumeFiles.map(f => ({ base64: f.base64, fileName: f.fileName })) : [],
+          resumeFiles: docType === 'resume' ? resumeFiles.map(f => ({ path: f.path, fileName: f.fileName })) : [],
         }),
       })
       const data = await res.json()
@@ -1705,7 +1729,7 @@ export default function Home() {
                   })}
                 </div>
 
-                <p style={{ fontSize: 11, color: '#aaa', margin: '8px 0 0', textAlign: 'right' }}>{resumeFiles.length}/{RESUME_FILE_MAX_COUNT} · 파일당 최대 10MB</p>
+                <p style={{ fontSize: 11, color: '#aaa', margin: '8px 0 0', textAlign: 'right' }}>{resumeFiles.length}/{RESUME_FILE_MAX_COUNT} · 파일당 최대 {formatFileSize(RESUME_FILE_MAX_SIZE)}{resumeUploadingCount > 0 ? ` · 업로드 중 ${resumeUploadingCount}개` : ''}</p>
 
                 {resumeFileError && (
                   <p style={{ fontSize: 12, color: '#ef4444', margin: '8px 0 0' }}>{resumeFileError}</p>
@@ -1763,7 +1787,7 @@ export default function Home() {
                           <input ref={jobPostingInputRef} type="file" accept=".pdf" onChange={handleJobPostingUpload} style={{ display: 'none' }} />
                           <div style={{ fontSize: 18, marginBottom: 4 }}>📋</div>
                           <p style={{ fontSize: 12, fontWeight: 700, color: '#0f2244', margin: 0 }}>채용공고 PDF 업로드</p>
-                          <p style={{ fontSize: 10, color: '#bbb', margin: '2px 0 0' }}>클릭하여 업로드 (최대 5MB)</p>
+                          <p style={{ fontSize: 10, color: '#bbb', margin: '2px 0 0' }}>클릭하여 업로드 (최대 8MB){jobPostingUploading ? ' · 업로드 중...' : ''}</p>
                         </div>
                       )}
                       {jobPostingError && (
