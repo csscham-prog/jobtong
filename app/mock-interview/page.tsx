@@ -112,7 +112,10 @@ export default function MockInterviewPage() {
   const uploadToStorage = async (file: File): Promise<string | null> => {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) return null
-    const path = `${session.user.id}/${crypto.randomUUID()}-${file.name}`
+    // 저장 경로에는 한글·공백이 들어가면 Supabase Storage가 "Invalid key" 오류를 내므로,
+    // 원본 파일명은 화면 표시용으로만 쓰고 경로는 UUID+확장자로만 구성
+    const ext = (file.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '') || 'bin'
+    const path = `${session.user.id}/${crypto.randomUUID()}.${ext}`
     const { error } = await supabase.storage.from('temp-uploads').upload(path, file)
     if (error) {
       console.error('Storage 업로드 실패:', error)
