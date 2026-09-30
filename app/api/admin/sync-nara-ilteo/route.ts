@@ -8,7 +8,7 @@ const API_BASE = 'https://apis.data.go.kr/1760000/PblJobService/getList'
 const PBLANC_TYPES = ['e01', 'e02', 'e03', 'e04', 'e06'] // 공모직위(e06) 등 5종 — 인턴 코드는 없음
 const INSTT_TYPES = ['g01', 'g02', 'g03', 'g04'] // 국가공무원/지방공무원/공공기관/교육청
 const NUM_OF_ROWS = 100
-const MAX_PAGES_PER_COMBO = 5 // 조합당 최대 500건 — 타임아웃 방지 안전장치
+const MAX_PAGES_PER_COMBO = 3 // 조합당 최대 300건 — 타임아웃 방지 안전장치 (병렬 처리해도 배치 내 가장 느린 조합이 전체를 좌우함)
 const FETCH_WINDOW_DAYS = 60 // 최근 60일 등록분만 수집 (오래된 마감 공고까지 긁어올 필요 없음)
 
 interface NaraItem {
@@ -68,6 +68,74 @@ async function fetchPage(pblancTy: string, insttSe: string, beginDe: string, end
   return res.text()
 }
 
+interface ComboResult {
+  fetched: number
+  upserted: number
+  errors: string[]
+}
+
+// 조합(공고유형×기관구분) 하나를 끝까지 처리 — 여러 조합이 이 함수를 동시에 병렬로 돌림
+async function processCombo(
+  supabaseAdmin: ReturnType<typeof createClient>,
+  pblancTy: string,
+  insttSe: string,
+  beginDe: string,
+  endDe: string
+): Promise<ComboResult> {
+  const result: ComboResult = { fetched: 0, upserted: 0, errors: [] }
+  let pageNo = 1
+  let totalCount = Infinity
+
+  while ((pageNo - 1) * NUM_OF_ROWS < totalCount && pageNo <= MAX_PAGES_PER_COMBO) {
+    try {
+      const xml = await fetchPage(pblancTy, insttSe, beginDe, endDe, pageNo)
+
+      const resultCode = getTag(xml, 'resultCode')
+      if (resultCode && resultCode !== '00') {
+        result.errors.push(`${pblancTy}/${insttSe} p${pageNo}: resultCode=${resultCode} ${getTag(xml, 'resultMsg')}`)
+        break
+      }
+
+      totalCount = parseInt(getTag(xml, 'totalCount') || '0', 10)
+      const items = parseItems(xml)
+      result.fetched += items.length
+      if (items.length === 0) break
+
+      const rows = items
+        .map(item => {
+          const enddateIso = toIsoDate(item.enddate)
+          if (!enddateIso) return null
+          return {
+            idx: item.idx,
+            title: item.title,
+            insttname: item.insttname,
+            pblanc_ty: item.type01 || pblancTy,
+            enddate: enddateIso,
+            regdate: toIsoDate(item.regdate),
+            synced_at: new Date().toISOString(),
+          }
+        })
+        .filter((r): r is NonNullable<typeof r> => r !== null)
+
+      if (rows.length > 0) {
+        const { error } = await supabaseAdmin.from('nara_ilteo_notices').upsert(rows, { onConflict: 'idx' })
+        if (error) {
+          result.errors.push(`upsert ${pblancTy}/${insttSe} p${pageNo}: ${error.message}`)
+        } else {
+          result.upserted += rows.length
+        }
+      }
+
+      pageNo++
+    } catch (e: any) {
+      result.errors.push(`${pblancTy}/${insttSe} p${pageNo}: ${e.message}`)
+      break
+    }
+  }
+
+  return result
+}
+
 export async function GET(req: NextRequest) {
   try {
     const authHeader = req.headers.get('Authorization')
@@ -94,58 +162,24 @@ export async function GET(req: NextRequest) {
     let totalUpserted = 0
     const errors: string[] = []
 
+    // 20개 조합(공고유형×기관구분)을 만들어서, 5개씩 묶어 동시에 처리 (순차 처리 시 Vercel 게이트웨이 타임아웃 발생했음)
+    const combos: { pblancTy: string; insttSe: string }[] = []
     for (const pblancTy of PBLANC_TYPES) {
       for (const insttSe of INSTT_TYPES) {
-        try {
-          let pageNo = 1
-          let totalCount = Infinity
+        combos.push({ pblancTy, insttSe })
+      }
+    }
 
-          while ((pageNo - 1) * NUM_OF_ROWS < totalCount && pageNo <= MAX_PAGES_PER_COMBO) {
-            const xml = await fetchPage(pblancTy, insttSe, beginDe, endDe, pageNo)
-
-            const resultCode = getTag(xml, 'resultCode')
-            if (resultCode && resultCode !== '00') {
-              errors.push(`${pblancTy}/${insttSe} p${pageNo}: resultCode=${resultCode} ${getTag(xml, 'resultMsg')}`)
-              break
-            }
-
-            totalCount = parseInt(getTag(xml, 'totalCount') || '0', 10)
-            const items = parseItems(xml)
-            totalFetched += items.length
-            if (items.length === 0) break
-
-            const rows = items
-              .map(item => {
-                const enddateIso = toIsoDate(item.enddate)
-                if (!enddateIso) return null
-                return {
-                  idx: item.idx,
-                  title: item.title,
-                  insttname: item.insttname,
-                  pblanc_ty: item.type01 || pblancTy,
-                  enddate: enddateIso,
-                  regdate: toIsoDate(item.regdate),
-                  synced_at: new Date().toISOString(),
-                }
-              })
-              .filter((r): r is NonNullable<typeof r> => r !== null)
-
-            if (rows.length > 0) {
-              const { error, count } = await supabaseAdmin
-                .from('nara_ilteo_notices')
-                .upsert(rows, { onConflict: 'idx' })
-              if (error) {
-                errors.push(`upsert ${pblancTy}/${insttSe} p${pageNo}: ${error.message}`)
-              } else {
-                totalUpserted += rows.length
-              }
-            }
-
-            pageNo++
-          }
-        } catch (e: any) {
-          errors.push(`${pblancTy}/${insttSe}: ${e.message}`)
-        }
+    const CONCURRENCY = 5
+    for (let i = 0; i < combos.length; i += CONCURRENCY) {
+      const batch = combos.slice(i, i + CONCURRENCY)
+      const batchResults = await Promise.all(
+        batch.map(({ pblancTy, insttSe }) => processCombo(supabaseAdmin, pblancTy, insttSe, beginDe, endDe))
+      )
+      for (const r of batchResults) {
+        totalFetched += r.fetched
+        totalUpserted += r.upserted
+        errors.push(...r.errors)
       }
     }
 
