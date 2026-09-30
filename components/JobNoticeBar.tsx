@@ -53,7 +53,7 @@ function getDday(endDate: string) {
 }
 
 function naraDetailLink(idx: string) {
-  return `https://gojobs.go.kr/apmView.do?empmmnsn=${idx}&selMenuNo=400&menuNo=401&upperMenuNo=`
+  return `https://www.gojobs.go.kr/apmView.do?empmnsn=${idx}&selMenuNo=400&menuNo=401&upperMenuNo=`
 }
 
 export default function JobNoticeBar() {
