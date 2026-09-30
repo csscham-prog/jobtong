@@ -23,6 +23,11 @@ export default function AdminPage() {
   const [editingUser, setEditingUser] = useState<any>(null)
   const [creditAmount, setCreditAmount] = useState(0)
   const [consistencyAmount, setConsistencyAmount] = useState(0)
+  const [passwordUser, setPasswordUser] = useState<any>(null)
+  const [newPassword, setNewPassword] = useState('')
+  const [passwordSaving, setPasswordSaving] = useState(false)
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSuccess, setPasswordSuccess] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [periodFilter, setPeriodFilter] = useState<'today' | 'week' | 'month' | 'custom'>('month')
   const [customStart, setCustomStart] = useState('')
@@ -235,6 +240,34 @@ export default function AdminPage() {
     })
     await loadData()
     setEditingUser(null)
+  }
+
+  const handleSetPassword = async () => {
+    if (!passwordUser || newPassword.length < 6) {
+      setPasswordError('비밀번호는 6자 이상 입력해주세요.')
+      return
+    }
+    setPasswordSaving(true)
+    setPasswordError('')
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { setPasswordSaving(false); return }
+
+    const res = await fetch('/api/admin/set-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ userId: passwordUser.id, newPassword }),
+    })
+
+    setPasswordSaving(false)
+    if (!res.ok) {
+      const data = await res.json()
+      setPasswordError(data.error || '변경 중 오류가 발생했습니다.')
+      return
+    }
+    setPasswordSuccess(true)
   }
 
   const periodLabel = () => {
@@ -669,10 +702,16 @@ export default function AdminPage() {
                           </span>
                         </td>
                         <td style={{ padding: '12px 16px' }}>
-                          <button onClick={() => { setEditingUser(u); setCreditAmount(u.paid_credits || 0); setConsistencyAmount(u.consistency_credits || 0) }}
-                            style={{ background: '#0f2244', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
-                            횟수 조정
-                          </button>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button onClick={() => { setEditingUser(u); setCreditAmount(u.paid_credits || 0); setConsistencyAmount(u.consistency_credits || 0) }}
+                              style={{ background: '#0f2244', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                              횟수 조정
+                            </button>
+                            <button onClick={() => { setPasswordUser(u); setNewPassword(''); setPasswordError(''); setPasswordSuccess(false) }}
+                              style={{ background: '#fef2f2', color: '#991b1b', border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                              비밀번호 변경
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -802,6 +841,52 @@ export default function AdminPage() {
                 style={{ width: '100%', background: '#fffbeb', color: '#92400e', border: '1px solid #fde68a', borderRadius: 10, padding: '10px', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
                 + 무료체험도 함께 초기화
               </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 비밀번호 강제 변경 모달 */}
+      {passwordUser && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 24 }}>
+          <div style={{ background: '#fff', borderRadius: 20, padding: '32px', width: '100%', maxWidth: 400 }}>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f2244', margin: '0 0 4px' }}>비밀번호 변경</h3>
+            <p style={{ fontSize: 13, color: '#888', margin: '0 0 24px' }}>{passwordUser.email}</p>
+
+            {passwordSuccess ? (
+              <>
+                <div style={{ background: '#ecfdf5', border: '1px solid #6ee7b7', borderRadius: 10, padding: '14px 16px', marginBottom: 20, fontSize: 13, color: '#065f46', fontWeight: 600 }}>
+                  ✓ 비밀번호가 변경됐어요. 회원에게 새 비밀번호를 전달해주세요.
+                </div>
+                <button onClick={() => setPasswordUser(null)}
+                  style={{ width: '100%', background: '#0f2244', color: '#fff', border: 'none', borderRadius: 10, padding: '12px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  닫기
+                </button>
+              </>
+            ) : (
+              <>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#333', marginBottom: 8 }}>새 비밀번호 (6자 이상)</label>
+                  <input type="text" value={newPassword} onChange={e => setNewPassword(e.target.value)}
+                    placeholder="새 비밀번호를 입력하세요"
+                    style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 10, padding: '12px 14px', fontSize: 15, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
+                </div>
+
+                {passwordError && (
+                  <p style={{ fontSize: 12, color: '#ef4444', margin: '-8px 0 16px' }}>{passwordError}</p>
+                )}
+
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button onClick={handleSetPassword} disabled={passwordSaving}
+                    style={{ flex: 1, background: '#0f2244', color: '#fff', border: 'none', borderRadius: 10, padding: '12px', fontWeight: 700, fontSize: 14, cursor: passwordSaving ? 'default' : 'pointer', opacity: passwordSaving ? 0.6 : 1, fontFamily: 'inherit' }}>
+                    {passwordSaving ? '변경 중...' : '변경'}
+                  </button>
+                  <button onClick={() => setPasswordUser(null)}
+                    style={{ flex: 1, background: '#f7f6f3', color: '#555', border: '1px solid #ddd', borderRadius: 10, padding: '12px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
+                    취소
+                  </button>
+                </div>
+              </>
             )}
           </div>
         </div>
