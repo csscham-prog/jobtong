@@ -33,6 +33,7 @@ interface DisplayNotice {
   isNew: boolean
   endDate: string
   kind: Tab
+  institution: string | null // 공공기관 탭에서만 사용 (모집 기관명)
   raw: JobNotice | NaraNotice
 }
 
@@ -99,6 +100,7 @@ export default function JobNoticeBar() {
         isNew: (Date.now() - new Date(c.created_at).getTime()) < 48 * 60 * 60 * 1000,
         endDate: c.application_end,
         kind,
+        institution: null,
         raw: c,
       }
     }
@@ -112,6 +114,7 @@ export default function JobNoticeBar() {
       isNew: regDaysAgo <= 1,
       endDate: p.enddate,
       kind,
+      institution: p.insttname,
       raw: p,
     }
   }
@@ -146,6 +149,12 @@ export default function JobNoticeBar() {
           )}
           {dday && <span style={{ fontSize: 12, fontWeight: 800, color: '#e6a800', flexShrink: 0, marginLeft: 'auto' }}>{dday}</span>}
         </div>
+        {n.institution && (
+          <span style={{
+            fontSize: 12, color: '#5a6b8c', fontWeight: 700, lineHeight: 1.3,
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          }}>🏛️ {n.institution}</span>
+        )}
         <span style={{
           fontSize: big ? 16 : 15, color: '#1a1a1a', fontWeight: n.emphasize ? 800 : 700, lineHeight: 1.4,
           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any, overflow: 'hidden',
