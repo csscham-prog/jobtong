@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60 // 여러 조합을 순회하므로 넉넉하게 (플랜에 따라 상한이 다를 수 있음)
@@ -76,7 +76,7 @@ interface ComboResult {
 
 // 조합(공고유형×기관구분) 하나를 끝까지 처리 — 여러 조합이 이 함수를 동시에 병렬로 돌림
 async function processCombo(
-  supabaseAdmin: ReturnType<typeof createClient>,
+  supabaseAdmin: SupabaseClient,
   pblancTy: string,
   insttSe: string,
   beginDe: string,
