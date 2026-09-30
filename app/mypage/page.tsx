@@ -14,6 +14,12 @@ export default function MyPage() {
   const [selected, setSelected] = useState<any>(null)
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
   const [withdrawLoading, setWithdrawLoading] = useState(false)
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordSaving, setPasswordSaving] = useState(false)
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSuccess, setPasswordSuccess] = useState(false)
   const [withdrawError, setWithdrawError] = useState('')
   const [isDownloading, setIsDownloading] = useState(false)
 
@@ -55,6 +61,28 @@ export default function MyPage() {
       setWithdrawError(data.error || '탈퇴 처리 중 오류가 발생했습니다.')
     }
     setWithdrawLoading(false)
+  }
+
+  const handleChangePassword = async () => {
+    if (newPassword.length < 6) {
+      setPasswordError('비밀번호는 6자 이상 입력해주세요.')
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('새 비밀번호가 서로 일치하지 않습니다.')
+      return
+    }
+    setPasswordSaving(true)
+    setPasswordError('')
+
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+
+    setPasswordSaving(false)
+    if (error) {
+      setPasswordError(error.message || '비밀번호 변경 중 오류가 발생했습니다.')
+      return
+    }
+    setPasswordSuccess(true)
   }
 
   const getScoreColor = (s: number) => s >= 80 ? '#10b981' : s >= 60 ? '#f59e0b' : '#ef4444'
@@ -784,8 +812,14 @@ export default function MyPage() {
         </div>
       )}
 
-      {/* 회원 탈퇴 버튼 */}
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 24px 60px', textAlign: 'center' }}>
+      {/* 비밀번호 변경 / 회원 탈퇴 버튼 */}
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 24px 60px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
+        <button
+          onClick={() => { setShowPasswordModal(true); setNewPassword(''); setConfirmPassword(''); setPasswordError(''); setPasswordSuccess(false) }}
+          style={{ background: 'none', border: 'none', color: '#888', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline' }}
+        >
+          비밀번호 변경
+        </button>
         <button
           onClick={() => { setShowWithdrawModal(true); setWithdrawError('') }}
           style={{ background: 'none', border: 'none', color: '#ccc', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline' }}
@@ -793,6 +827,57 @@ export default function MyPage() {
           회원 탈퇴
         </button>
       </div>
+
+      {/* 비밀번호 변경 모달 */}
+      {showPasswordModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 24 }}>
+          <div style={{ background: '#fff', borderRadius: 20, padding: '32px', width: '100%', maxWidth: 400 }}>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f2244', margin: '0 0 24px' }}>비밀번호 변경</h3>
+
+            {passwordSuccess ? (
+              <>
+                <div style={{ background: '#ecfdf5', border: '1px solid #6ee7b7', borderRadius: 10, padding: '14px 16px', marginBottom: 20, fontSize: 13, color: '#065f46', fontWeight: 600 }}>
+                  ✓ 비밀번호가 변경됐어요. 다음 로그인부터 새 비밀번호를 사용해주세요.
+                </div>
+                <button onClick={() => setShowPasswordModal(false)}
+                  style={{ width: '100%', background: '#0f2244', color: '#fff', border: 'none', borderRadius: 10, padding: '12px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  닫기
+                </button>
+              </>
+            ) : (
+              <>
+                <div style={{ marginBottom: 14 }}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#333', marginBottom: 8 }}>새 비밀번호 (6자 이상)</label>
+                  <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)}
+                    placeholder="새 비밀번호를 입력하세요"
+                    style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 10, padding: '12px 14px', fontSize: 15, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
+                </div>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#333', marginBottom: 8 }}>새 비밀번호 확인</label>
+                  <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
+                    placeholder="새 비밀번호를 한 번 더 입력하세요"
+                    style={{ width: '100%', border: '1.5px solid #e5e3dc', borderRadius: 10, padding: '12px 14px', fontSize: 15, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
+                </div>
+
+                {passwordError && (
+                  <p style={{ fontSize: 12, color: '#ef4444', margin: '-8px 0 16px' }}>{passwordError}</p>
+                )}
+
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button onClick={handleChangePassword} disabled={passwordSaving}
+                    style={{ flex: 1, background: '#0f2244', color: '#fff', border: 'none', borderRadius: 10, padding: '12px', fontWeight: 700, fontSize: 14, cursor: passwordSaving ? 'default' : 'pointer', opacity: passwordSaving ? 0.6 : 1, fontFamily: 'inherit' }}>
+                    {passwordSaving ? '변경 중...' : '변경'}
+                  </button>
+                  <button onClick={() => setShowPasswordModal(false)}
+                    style={{ flex: 1, background: '#f7f6f3', color: '#555', border: '1px solid #ddd', borderRadius: 10, padding: '12px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
+                    취소
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* 탈퇴 확인 모달 */}
       {showWithdrawModal && (
