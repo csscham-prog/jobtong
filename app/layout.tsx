@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import SignupSourceTracker from '@/components/SignupSourceTracker'
 
 const TITLE = '잡통 - 자소서·이력서 AI 분석, 모의 면접까지'
 const DESCRIPTION = '채용담당자 시선으로 자소서·이력서·경력기술서를 진단하고, 서류 기반 모의 면접까지. 가입하면 무료 체험 1회.'
@@ -31,6 +32,7 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-gray-50 text-gray-900 font-sans antialiased">
+        <SignupSourceTracker />
         {children}
       </body>
     </html>
