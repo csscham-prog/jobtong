@@ -39,12 +39,19 @@ export default function AdminPage() {
   const [refundAmount, setRefundAmount] = useState<number>(0)
   const [refundLoading, setRefundLoading] = useState(false)
   const [refundError, setRefundError] = useState('')
+  const [sourceRows, setSourceRows] = useState<any[]>([])
+  const [sourcePeriod, setSourcePeriod] = useState<'7' | '30' | 'all'>('30')
+  const [sourceLoading, setSourceLoading] = useState(false)
 
   useEffect(() => { checkAdmin() }, [])
 
   useEffect(() => {
     if (activeTab === 'features') loadFeatureStats()
   }, [activeTab, featurePeriod, featureCustomStart, featureCustomEnd])
+
+  useEffect(() => {
+    if (activeTab === 'stats') loadSignupSources()
+  }, [activeTab, sourcePeriod])
 
   useEffect(() => {
     const q = searchQuery.toLowerCase()
@@ -129,6 +136,20 @@ export default function AdminPage() {
     const totalAnalyses = users.reduce((s, u) => s + (u.total_analyses || 0), 0)
 
     setStats({ total, periodNew, trialUsed, paidUsers, totalAnalyses })
+  }
+
+  const loadSignupSources = async () => {
+    setSourceLoading(true)
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { setSourceLoading(false); return }
+    const res = await fetch(`/api/admin/signup-sources?period=${sourcePeriod}`, {
+      headers: { 'Authorization': `Bearer ${session.access_token}` },
+    })
+    if (res.ok) {
+      const data = await res.json()
+      setSourceRows(data.rows || [])
+    }
+    setSourceLoading(false)
   }
 
   const loadPayments = async () => {
@@ -420,6 +441,52 @@ export default function AdminPage() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* 가입 경로 */}
+            <div style={{ background: '#fff', borderRadius: 16, padding: '24px', border: '1px solid #ece9e1', marginTop: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f2244', margin: 0 }}>가입 경로</h3>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {[
+                    { key: '7', label: '최근 7일' },
+                    { key: '30', label: '최근 30일' },
+                    { key: 'all', label: '전체' },
+                  ].map(p => (
+                    <button key={p.key} onClick={() => setSourcePeriod(p.key as any)}
+                      style={{ background: sourcePeriod === p.key ? '#0f2244' : '#f7f6f3', color: sourcePeriod === p.key ? '#fff' : '#555', border: `1px solid ${sourcePeriod === p.key ? '#0f2244' : '#e8e5dc'}`, borderRadius: 8, padding: '6px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {sourceLoading ? (
+                <p style={{ fontSize: 13, color: '#888', margin: 0 }}>불러오는 중...</p>
+              ) : sourceRows.length === 0 ? (
+                <p style={{ fontSize: 13, color: '#888', margin: 0 }}>해당 기간 가입자가 없습니다.</p>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+                    <thead>
+                      <tr style={{ borderBottom: '2px solid #ece9e1' }}>
+                        {['가입 경로', '가입자 수', '결제한 회원 수', '결제 전환율'].map((h, i) => (
+                          <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', padding: '10px 8px', color: '#888', fontWeight: 600, fontSize: 12, whiteSpace: 'nowrap' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sourceRows.map(r => (
+                        <tr key={r.label} style={{ borderBottom: '1px solid #f0ede6' }}>
+                          <td style={{ padding: '12px 8px', fontWeight: 600, color: r.label === '기록 이전' ? '#aaa' : '#1a1a1a' }}>{r.label}</td>
+                          <td style={{ padding: '12px 8px', textAlign: 'right' }}>{r.signups}명</td>
+                          <td style={{ padding: '12px 8px', textAlign: 'right' }}>{r.paid}명</td>
+                          <td style={{ padding: '12px 8px', textAlign: 'right', fontWeight: 700, color: '#10b981' }}>{r.signups ? Math.round(r.paid / r.signups * 1000) / 10 : 0}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         )}
