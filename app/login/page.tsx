@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { SIGNUP_SOURCE_KEY } from '@/components/SignupSourceTracker'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -47,13 +48,33 @@ export default function LoginPage() {
         setLoading(false)
         return
       }
-      const { error } = await supabase.auth.signUp({
+      const { data: signUpData, error } = await supabase.auth.signUp({
         email,
         password,
         options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
       })
       if (error) setError(error.message)
-      else window.location.href = '/'  // 이메일 인증 없이 바로 로그인
+      else {
+        // 가입 경로 기록 (실패해도 가입 흐름은 그대로 진행)
+        const accessToken = signUpData.session?.access_token
+        if (accessToken) {
+          try {
+            const raw = localStorage.getItem(SIGNUP_SOURCE_KEY)
+            const saved = raw ? JSON.parse(raw) : {}
+            await fetch('/api/user/signup-source', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+              body: JSON.stringify({
+                source: saved.source ?? null,
+                referrer: saved.referrer ?? null,
+                landingAt: saved.landingAt ?? null,
+              }),
+            })
+          } catch {}
+          try { localStorage.removeItem(SIGNUP_SOURCE_KEY) } catch {}
+        }
+        window.location.href = '/'  // 이메일 인증 없이 바로 로그인
+      }
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) setError('이메일 또는 비밀번호가 올바르지 않습니다.')
