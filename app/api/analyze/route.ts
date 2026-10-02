@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
     try {
 
     // 4. 분석권 확인
-    const { data: profile } = await supabase
+    const { data: profile } = await adminSupabase
       .from('profiles')
       .select('free_trial_used, paid_credits, role, total_analyses')
       .eq('id', user.id)
