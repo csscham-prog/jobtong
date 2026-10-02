@@ -19,7 +19,14 @@ export async function GET(req: NextRequest) {
     if (authError || !user) {
       return NextResponse.json({ error: '유효하지 않은 세션입니다.' }, { status: 401 })
     }
-    const { data: profile } = await supabaseAuth
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: 'no-store' }) } }
+    )
+
+    // 관리자 확인 (service role로 조회)
+    const { data: profile } = await supabaseAdmin
       .from('profiles').select('role').eq('id', user.id).single()
     if (profile?.role !== 'admin') {
       return NextResponse.json({ error: '관리자만 접근할 수 있습니다.' }, { status: 403 })
@@ -28,12 +35,6 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const from = searchParams.get('from')
     const to = searchParams.get('to')
-
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: 'no-store' }) } }
-    )
 
     // 기간 필터를 붙인 count 쿼리 헬퍼
     const countRows = async (table: string, extraFilter?: (q: any) => any) => {
