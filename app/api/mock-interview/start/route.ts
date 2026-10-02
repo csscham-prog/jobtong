@@ -77,7 +77,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '유효하지 않은 세션입니다. 다시 로그인해주세요.' }, { status: 401 })
     }
 
-    const { data: profile } = await supabase
+    // service role 클라이언트 — 파일 다운로드·삭제, DB 저장, 분석권 차감에 사용
+    const adminSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    // 분석권 확인 (service role로 조회)
+    const { data: profile } = await adminSupabase
       .from('profiles')
       .select('paid_credits, role')
       .eq('id', user.id)
@@ -91,12 +98,6 @@ export async function POST(req: NextRequest) {
     if (!isAdmin && (profile.paid_credits || 0) <= 0) {
       return NextResponse.json({ error: '분석권이 없습니다. 분석권을 충전해주세요.' }, { status: 403 })
     }
-
-    // service role 클라이언트 — 파일 다운로드·삭제, DB 저장, 분석권 차감에 사용
-    const adminSupabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
 
     const body = await req.json()
     const company = body.company || ''
