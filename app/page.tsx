@@ -1172,7 +1172,7 @@ export default function Home() {
                 onClick={() => handleStartAnalyze()}
                 style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '18px 52px', fontWeight: 800, fontSize: 18, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 8px 24px rgba(230,168,0,0.4)' }}
               >
-                내 자소서 분석받기 →
+                내 취업 서류 분석받기 →
               </button>
             </div>
           </div>
