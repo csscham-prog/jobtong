@@ -11,13 +11,13 @@ const SITE_ORIGIN = 'https://jobtong.vercel.app'
 export default async function ShortLinkRedirectPage({ params }: { params: { slug: string } }) {
   const url = process.env.JIPTONG_SUPABASE_URL
   const anonKey = process.env.JIPTONG_SUPABASE_ANON_KEY
-  if (!url || !anonKey) redirect('/')
+  if (!url || !anonKey) redirect('/?debug=no-env')
 
   const visitedUrl = `${SITE_ORIGIN}/${params.slug}`
 
   const supabase = createClient(url, anonKey)
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('short_links')
     .select('target_url')
     .eq('short_url', visitedUrl)
@@ -25,6 +25,7 @@ export default async function ShortLinkRedirectPage({ params }: { params: { slug
 
   const target = data?.target_url
   // http/https 주소로만 이동 (잘못 등록된 값 방어)
-  if (!target || !/^https?:\/\//i.test(target)) redirect('/')
+  console.log('[short-link] lookup:', { visitedUrl, data, error })
+  if (!target || !/^https?:\/\//i.test(target)) redirect('/?debug=no-match')
   redirect(target)
 }
