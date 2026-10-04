@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
+// 이 라우트의 모든 DB 조회는 캐시하지 않음 (Next.js가 GET 조회 결과를 저장해 두고 옛 값을 돌려주는 문제 방지)
+export const fetchCache = 'force-no-store'
+export const revalidate = 0
+
+const noStoreFetch = (url: RequestInfo | URL, options: RequestInit = {}) => fetch(url, { ...options, cache: 'no-store' })
 
 // 무료 분석 결과 "바로 열기"
 // - 무료 분석 때 잠금 보관해 둔 전체 결과(analysis_locked_results)를 분석권 1회로 열어줌
@@ -15,7 +20,8 @@ export async function GET(req: NextRequest) {
 
     const admin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { global: { fetch: noStoreFetch } }
     )
 
     const { data: { user } } = await admin.auth.getUser(token)
@@ -49,7 +55,8 @@ export async function POST(req: NextRequest) {
 
     const admin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { global: { fetch: noStoreFetch } }
     )
 
     const { data: { user } } = await admin.auth.getUser(token)
