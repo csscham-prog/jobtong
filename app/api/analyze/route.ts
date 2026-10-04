@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
     const position = body.position || ''
     const content = body.content || '' // 자소서용 텍스트
     const type = body.type || 'free'
-    const jobPostingFile: UploadedFileRef | null = body.jobPostingFile || null // 채용공고 (유료 전용, 선택)
+    const jobPostingFile: UploadedFileRef | null = body.jobPostingFile || null // 채용공고 (무료/유료 공통, 선택)
     const companyInfo = (body.companyInfo || '').slice(0, 1000) // 기업 문화/인재상 정보 (무료/유료 공통, 선택)
     const resumeFiles: UploadedFileRef[] = Array.isArray(body.resumeFiles) ? body.resumeFiles.slice(0, RESUME_FILE_MAX_COUNT) : [] // 이력서+경력기술서용 파일들
 
@@ -191,7 +191,7 @@ export async function POST(req: NextRequest) {
     // 6-1. 채용공고 PDF 처리 (유료 분석 전용, 선택 사항)
     let jobPostingText = ''
     let jobPostingError = ''
-    if (jobPostingFile && isPaid) {
+    if (jobPostingFile) {
       try {
         const buffer = await downloadFromStorage(adminSupabase, jobPostingFile.path)
 
@@ -461,6 +461,12 @@ export async function POST(req: NextRequest) {
     if (resumeFileErrors.length > 0) {
       analysisResult.resumeFileWarning = resumeFileErrors.join(' ')
     }
+    // 채용공고 반영 여부 (무료 분석도 잠금 보관본에 함께 저장 → 결과를 열었을 때 그대로 표시)
+    if (jobPostingError) {
+      analysisResult.jobPostingWarning = jobPostingError
+    } else if (jobPostingText) {
+      analysisResult.jobPostingApplied = true
+    }
 
     // 무료 분석: analyses에는 공개 범위(점수·총평·핵심 문제)만 저장하고,
     // 전체 결과는 브라우저에서 읽을 수 없는 잠금 테이블(analysis_locked_results)에 따로 보관 → 결제 시 그대로 열어줌
@@ -535,13 +541,9 @@ export async function POST(req: NextRequest) {
         aiPatternCount,
         teaser,
         analysisId: unlockableId,
+        jobPostingApplied: !!analysisResult.jobPostingApplied,
+        jobPostingWarning: analysisResult.jobPostingWarning || undefined,
       })
-    }
-
-    if (jobPostingError) {
-      analysisResult.jobPostingWarning = jobPostingError
-    } else if (jobPostingText) {
-      analysisResult.jobPostingApplied = true
     }
 
     return NextResponse.json(analysisResult)
