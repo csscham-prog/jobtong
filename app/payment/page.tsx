@@ -61,7 +61,7 @@ export default function PaymentPage() {
         customerName: user.email,
         customerEmail: user.email,
         successUrl: `${window.location.origin}/payment/success?planType=${plan.id}${unlockId ? `&unlock=${encodeURIComponent(unlockId)}` : ''}`,
-        failUrl: `${window.location.origin}/payment/fail`,
+        failUrl: `${window.location.origin}/payment/fail${unlockId ? `?unlock=${encodeURIComponent(unlockId)}` : ''}`,
       })
     } catch (e: any) {
       if (e.code !== 'USER_CANCEL') {
@@ -154,12 +154,21 @@ export default function PaymentPage() {
           {loading ? '결제창 열는 중...' : `₩${PLANS.find(p => p.id === selectedPlan)?.price.toLocaleString()} 결제하기`}
         </button>
 
-        <button
-          onClick={() => window.history.back()}
-          style={{ width: '100%', marginTop: 12, background: 'none', color: '#aaa', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, padding: '10px' }}
-        >
-          ← 돌아가기
-        </button>
+        {unlockId ? (
+          <button
+            onClick={() => window.location.href = `/mypage?analysis=${encodeURIComponent(unlockId)}`}
+            style={{ width: '100%', marginTop: 12, background: 'none', color: '#888', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, padding: '10px' }}
+          >
+            ← 결제하지 않고 내 결과로 돌아가기
+          </button>
+        ) : (
+          <button
+            onClick={() => window.history.back()}
+            style={{ width: '100%', marginTop: 12, background: 'none', color: '#aaa', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, padding: '10px' }}
+          >
+            ← 돌아가기
+          </button>
+        )}
 
         {/* 사업자 정보 */}
         <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid #e8e5dc', textAlign: 'center', lineHeight: 1.9 }}>
