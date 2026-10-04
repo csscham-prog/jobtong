@@ -659,7 +659,7 @@ export default function AdminPage() {
                             <td style={{ padding: '12px 16px', fontSize: 12, color: '#888', whiteSpace: 'nowrap' }}>
                               {new Date(p.created_at).toLocaleDateString('ko-KR')} {new Date(p.created_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
                             </td>
-                            <td style={{ padding: '12px 16px', fontSize: 13, color: '#333' }}>{p.profiles?.email || '-'}</td>
+                            <td style={{ padding: '12px 16px', fontSize: 13, color: '#333' }}>{p.profiles?.email || (p.payer_email ? `${p.payer_email} (탈퇴)` : '-')}</td>
                             <td style={{ padding: '12px 16px' }}>
                               <span style={{ background: p.plan_type === 'plan_5' ? '#fffbeb' : '#f0f0ff', color: p.plan_type === 'plan_5' ? '#92400e' : '#3C3489', fontSize: 12, padding: '3px 10px', borderRadius: 20, fontWeight: 700 }}>
                                 {p.plan_name || p.plan_type}
@@ -799,7 +799,7 @@ export default function AdminPage() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 24 }}>
           <div style={{ background: '#fff', borderRadius: 20, padding: '32px', width: '100%', maxWidth: 400 }}>
             <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f2244', margin: '0 0 4px' }}>환불 처리</h3>
-            <p style={{ fontSize: 13, color: '#888', margin: '0 0 24px' }}>{refundModal.profiles?.email}</p>
+            <p style={{ fontSize: 13, color: '#888', margin: '0 0 24px' }}>{refundModal.profiles?.email || (refundModal.payer_email ? `${refundModal.payer_email} (탈퇴)` : '')}</p>
 
             <div style={{ background: '#f7f6f3', borderRadius: 10, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#555' }}>
               <div>결제일: <strong>{new Date(refundModal.created_at).toLocaleDateString('ko-KR')}</strong></div>
