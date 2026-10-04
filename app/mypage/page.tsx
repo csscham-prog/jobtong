@@ -22,6 +22,7 @@ export default function MyPage() {
   const [passwordSuccess, setPasswordSuccess] = useState(false)
   const [withdrawError, setWithdrawError] = useState('')
   const [isDownloading, setIsDownloading] = useState(false)
+  const [unlockableIds, setUnlockableIds] = useState<Set<string>>(new Set()) // "전체 결과 열기"가 가능한 무료 분석 기록
 
   useEffect(() => { checkAuth() }, [])
 
@@ -41,6 +42,28 @@ export default function MyPage() {
 
     if (a) setAnalyses(a)
     setLoading(false)
+
+    // 결제 페이지 등에서 ?analysis=기록ID 로 돌아온 경우 해당 기록을 펼쳐서 보여줌
+    const targetId = new URLSearchParams(window.location.search).get('analysis')
+    if (targetId && a) {
+      const target = a.find((x: any) => String(x.id) === targetId)
+      if (target) {
+        setDocTypeFilter('all')
+        setSelected(target)
+        setTimeout(() => {
+          document.getElementById(`analysis-${targetId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }, 300)
+      }
+    }
+
+    // 무료 분석 중 전체 결과를 열 수 있는 기록 확인 (전체 결과는 서버에만 보관돼 있어 서버에 물어봄)
+    try {
+      const res = await fetch('/api/analyze/unlock', { headers: { 'Authorization': `Bearer ${session.access_token}` } })
+      if (res.ok) {
+        const data = await res.json()
+        setUnlockableIds(new Set((data.ids || []).map((x: any) => String(x))))
+      }
+    } catch {}
   }
 
   const handleWithdraw = async () => {
@@ -298,6 +321,7 @@ export default function MyPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {filteredAnalyses.map((analysis) => (
               <div key={analysis.id}
+                id={`analysis-${analysis.id}`}
                 onClick={() => setSelected(selected?.id === analysis.id ? null : analysis)}
                 style={{ background: '#fff', borderRadius: 16, padding: '20px 24px', border: selected?.id === analysis.id ? '2px solid #0f2244' : '1px solid #ece9e1', cursor: 'pointer', transition: 'all 0.2s' }}>
 
@@ -331,6 +355,11 @@ export default function MyPage() {
                     ) : (
                       <span style={{ background: analysis.analyze_type === 'paid' ? '#0f2244' : '#f7f6f3', color: analysis.analyze_type === 'paid' ? '#fff' : '#888', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
                         {analysis.analyze_type === 'paid' ? '전체 분석' : '무료 분석'}
+                      </span>
+                    )}
+                    {analysis.analyze_type === 'free' && unlockableIds.has(String(analysis.id)) && (
+                      <span style={{ background: '#fef3c7', color: '#92400e', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
+                        🔓 전체 결과 열기 가능
                       </span>
                     )}
                     <span style={{ background: getScoreColor(analysis.total_score) + '20', color: getScoreColor(analysis.total_score), fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
@@ -486,6 +515,48 @@ export default function MyPage() {
                       <p style={{ fontSize: 12, fontWeight: 700, color: '#92400e', marginBottom: 8 }}>⚠️ 핵심 문제</p>
                       <p style={{ fontSize: 14, color: '#555', lineHeight: 1.8, margin: 0 }}>{analysis.result_json.mainIssue}</p>
                     </div>
+
+                    {/* 무료 분석 → 전체 결과 열기 */}
+                    {analysis.analyze_type === 'free' && unlockableIds.has(String(analysis.id)) && (() => {
+                      const id = String(analysis.id)
+                      const credits = profile?.paid_credits || 0
+                      const isAdmin = profile?.role === 'admin'
+                      return (
+                        <div onClick={e => e.stopPropagation()} style={{ marginBottom: 16, padding: '20px', background: '#fff', borderRadius: 12, border: '2px solid #fde68a', textAlign: 'center', cursor: 'default' }}>
+                          <p style={{ fontSize: 15, fontWeight: 800, color: '#0f2244', margin: '0 0 6px' }}>🔒 이 분석의 전체 결과가 보관돼 있어요</p>
+                          <p style={{ fontSize: 13, color: '#666', lineHeight: 1.7, margin: '0 0 16px' }}>
+                            항목별 세부 점수, 고쳐야 할 문장과 수정 예시, 최종 종합 조언까지<br />서류를 다시 올릴 필요 없이 바로 열어볼 수 있어요.
+                          </p>
+                          {credits > 0 || isAdmin ? (
+                            <button
+                              onClick={() => {
+                                if (isAdmin || confirm(`분석권 1회를 사용해 전체 결과를 열까요?\n(잔여 ${credits}회)`)) {
+                                  window.location.href = `/?unlock=${encodeURIComponent(id)}`
+                                }
+                              }}
+                              style={{ width: '100%', background: '#e6a800', color: '#fff', border: 'none', borderRadius: 12, padding: '14px', fontWeight: 800, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}
+                            >
+                              {isAdmin ? '전체 결과 열기 (관리자)' : `분석권 1회로 전체 결과 열기 (잔여 ${credits}회)`}
+                            </button>
+                          ) : (
+                            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                              <button
+                                onClick={() => window.location.href = `/payment?plan=plan_1&unlock=${encodeURIComponent(id)}`}
+                                style={{ flex: '1 1 160px', background: '#0f2244', color: '#fff', border: 'none', borderRadius: 12, padding: '14px 10px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}
+                              >
+                                1회권 ₩2,900로 열기
+                              </button>
+                              <button
+                                onClick={() => window.location.href = `/payment?plan=plan_5&unlock=${encodeURIComponent(id)}`}
+                                style={{ flex: '1 1 160px', background: '#e6a800', color: '#fff', border: 'none', borderRadius: 12, padding: '14px 10px', fontWeight: 800, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}
+                              >
+                                5회권 ₩9,900로 열기 ⭐
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })()}
 
                     {/* 유료 분석 전체 결과 */}
                     {analysis.analyze_type === 'paid' && analysis.result_json.scores && (
