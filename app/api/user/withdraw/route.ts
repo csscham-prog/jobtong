@@ -6,13 +6,14 @@ import { createClient } from '@supabase/supabase-js'
 // ※ 사용자 데이터가 있는 새 테이블을 만들면 반드시 여기에도 추가하세요.
 //    (auth.users를 참조하는 테이블이 여기 없으면 계정 삭제가 막혀 탈퇴가 실패합니다)
 // profiles는 마지막에 둡니다.
+// ※ payments(결제 기록)는 전자상거래법상 5년 보관 의무가 있어 삭제하지 않습니다.
+//    → 아래 3-1 단계에서 회원 연결(user_id)만 끊고 탈퇴 당시 이메일을 남겨 보관합니다.
 // ──────────────────────────────────────────
 const USER_TABLES: { table: string; column: string }[] = [
   { table: 'support_messages', column: 'user_id' },
   { table: 'mock_interview_sessions', column: 'user_id' },
   { table: 'schedule_events', column: 'user_id' },
   { table: 'analyses', column: 'user_id' },
-  { table: 'payments', column: 'user_id' },
   { table: 'profiles', column: 'id' },
 ]
 
@@ -52,6 +53,17 @@ export async function POST(req: NextRequest) {
       .eq('author_id', userId)
     if (noticeError) {
       console.error('[withdraw] notices 작성자 해제 실패:', noticeError)
+      return NextResponse.json({ error: FAIL_MESSAGE }, { status: 500 })
+    }
+
+    // 3-1. 결제 기록은 삭제하지 않고 보관 (전자상거래법 5년 보관 의무 · 환불/분쟁 대응)
+    //      회원 연결만 끊고, 관리자 명단에서 누구의 결제였는지 알 수 있도록 탈퇴 당시 이메일을 남김
+    const { error: paymentKeepError } = await supabaseAdmin
+      .from('payments')
+      .update({ payer_email: user.email || null, user_id: null })
+      .eq('user_id', userId)
+    if (paymentKeepError) {
+      console.error('[withdraw] payments 보관 처리 실패:', paymentKeepError)
       return NextResponse.json({ error: FAIL_MESSAGE }, { status: 500 })
     }
 
