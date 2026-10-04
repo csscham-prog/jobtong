@@ -397,6 +397,9 @@ function SampleResult() {
   )
 }
 
+// 로그인 전에 결제 완료 링크로 들어온 경우, 로그인 후 결과를 열기 위해 잠시 보관하는 키
+const PENDING_UNLOCK_KEY = 'jobtong-pending-unlock'
+
 export default function Home() {
   const todayScheduleCount = useTodayScheduleCount()
   const [step, setStep] = useState<'landing' | 'analyze' | 'result'>('landing')
@@ -429,6 +432,9 @@ export default function Home() {
   const [maintenance, setMaintenance] = useState(false)
   const [showPromoSlide, setShowPromoSlide] = useState(false)
   const [promoClosed, setPromoClosed] = useState(false)
+  const [analysisId, setAnalysisId] = useState<string | null>(null) // 무료 결과 '바로 열기'용 분석 ID
+  const [unlockLoading, setUnlockLoading] = useState(false)
+  const [unlockError, setUnlockError] = useState('')
   const [newsItems, setNewsItems] = useState<any[]>([])
   const [newsLoading, setNewsLoading] = useState(true)
 
@@ -447,6 +453,26 @@ export default function Home() {
       setUser(session?.user ?? null)
       if (session?.user) fetchProfile(session.user.id)
       setAuthLoading(false)
+
+      // 결제 완료 후 ?unlock=분석ID 로 돌아온 경우 → 방금 무료 분석한 결과를 바로 열기
+      if (typeof window !== 'undefined') {
+        const urlUnlock = new URLSearchParams(window.location.search).get('unlock') || ''
+        let pendingUnlock = ''
+        try { pendingUnlock = localStorage.getItem(PENDING_UNLOCK_KEY) || '' } catch {}
+        const unlockTarget = /^[A-Za-z0-9-]{1,64}$/.test(urlUnlock) ? urlUnlock
+          : /^[A-Za-z0-9-]{1,64}$/.test(pendingUnlock) ? pendingUnlock : ''
+        if (urlUnlock) window.history.replaceState(null, '', window.location.pathname)
+        if (unlockTarget) {
+          if (session?.user) {
+            try { localStorage.removeItem(PENDING_UNLOCK_KEY) } catch {}
+            handleUnlock(unlockTarget, true)
+          } else {
+            try { localStorage.setItem(PENDING_UNLOCK_KEY, unlockTarget) } catch {}
+            window.location.href = '/login'
+            return
+          }
+        }
+      }
 
       // 외부(자가진단 결과 등)에서 ?start=analyze로 들어온 경우 분석 화면으로 바로 진입
       if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('start') === 'analyze') {
@@ -477,6 +503,51 @@ export default function Home() {
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
     if (data) setUserProfile(data)
+  }
+
+  // 홍보 슬라이드인 배너 — 전체 분석 결과를 본 회원에게만 표시
+  const schedulePromoSlide = () => {
+    const closed = localStorage.getItem('jobtong-promo-closed')
+    if (!closed || Date.now() > parseInt(closed)) {
+      setTimeout(() => setShowPromoSlide(true), 3000)
+    }
+  }
+
+  // 무료 분석 결과를 분석권 1회로 "바로 열기" (AI 재분석 없이 보관된 전체 결과를 열어줌)
+  const handleUnlock = async (id: string, fromPayment = false) => {
+    setUnlockLoading(true); setUnlockError('')
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { window.location.href = '/login'; return }
+      const res = await fetch('/api/analyze/unlock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+        body: JSON.stringify({ analysisId: id }),
+      })
+      const data = await res.json()
+      if (res.status === 402 && data.needPayment) {
+        // 분석권이 없으면 결제 페이지로 (결제 후 이 결과로 다시 돌아옴)
+        window.location.href = `/payment?plan=plan_1&unlock=${encodeURIComponent(id)}`
+        return
+      }
+      if (!res.ok || !data.result) throw new Error(data.error || '결과를 여는 중 오류가 발생했습니다.')
+
+      setCompany(data.company || '')
+      setPosition(data.position || '')
+      setDocType(data.docType === 'resume' ? 'resume' : 'coverletter')
+      setAnalyzeType('paid')
+      setResult(data.result)
+      setAnalysisId(null)
+      setStep('result')
+      window.scrollTo({ top: 0 })
+      fetchProfile(session.user.id)
+      schedulePromoSlide()
+    } catch (e: any) {
+      if (fromPayment) alert(e.message || '결과를 여는 중 오류가 발생했습니다. 마이페이지에서 분석권을 확인해주세요.')
+      else setUnlockError(e.message || '결과를 여는 중 오류가 발생했습니다.')
+    } finally {
+      setUnlockLoading(false)
+    }
   }
 
   const handleLogout = async () => {
@@ -676,12 +747,11 @@ export default function Home() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || '분석 중 오류가 발생했습니다.')
       setResult(data)
+      setAnalysisId(type === 'free' ? (data.analysisId || null) : null)
+      setUnlockError('')
       setStep('result')
-      // 분석 결과 확인 후 3초 뒤 홍보 슬라이드인 배너 표시
-      const closed = localStorage.getItem('jobtong-promo-closed')
-      if (!closed || Date.now() > parseInt(closed)) {
-        setTimeout(() => setShowPromoSlide(true), 3000)
-      }
+      // 홍보 배너는 전체 분석 결과에서만 표시 (무료 결과 화면에서는 결제 고민을 방해하지 않도록 띄우지 않음)
+      if (type === 'paid') schedulePromoSlide()
 
       // 분석권 차감은 서버(app/api/analyze)에서 처리됨 — 최신 값만 다시 불러옴
       fetchProfile(user.id)
@@ -713,6 +783,18 @@ export default function Home() {
             <span style={{ fontSize: 20, fontWeight: 800, color: '#fff' }}>잡통</span>
           </div>
         </div>
+      </main>
+    )
+  }
+
+  // 결제 후 돌아와 결과를 여는 중 — 랜딩 화면이 잠깐 보이지 않도록 로딩 화면 표시
+  if (unlockLoading && step !== 'result') {
+    return (
+      <main style={{ fontFamily: "'Pretendard', -apple-system, sans-serif", background: '#f7f6f3', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <svg style={{ animation: 'spin 1s linear infinite', width: 40, height: 40, marginBottom: 20 }} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(15,34,68,0.15)" strokeWidth="4" /><path d="M4 12a8 8 0 018-8" stroke="#0f2244" strokeWidth="4" strokeLinecap="round" /></svg>
+        <p style={{ fontSize: 17, fontWeight: 800, color: '#0f2244', margin: '0 0 6px' }}>전체 분석 결과를 여는 중이에요</p>
+        <p style={{ fontSize: 14, color: '#888', margin: 0 }}>잠시만 기다려주세요.</p>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </main>
     )
   }
@@ -1946,36 +2028,113 @@ export default function Home() {
             />
           )}
 
-          {/* 무료 결과 → 결제 유도 */}
-          {!isPaid && (
-            <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #ece9e1', overflow: 'hidden', position: 'relative' }}>
-              <div style={{ padding: '32px 36px', filter: 'blur(5px)', pointerEvents: 'none', userSelect: 'none', opacity: 0.45 }}>
-                <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0f2244', marginBottom: 20 }}>📊 항목별 세부 점수</h3>
-                {['논리성', '구체성', '직무 적합성', '표현력'].map(item => (
-                  <div key={item} style={{ marginBottom: 16 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, marginBottom: 6 }}>
-                      <span style={{ fontWeight: 600, color: '#333' }}>{item}</span>
-                      <span style={{ color: '#aaa' }}>-- 점</span>
-                    </div>
-                    <div style={{ height: 8, background: '#eee', borderRadius: 4 }}>
-                      <div style={{ height: '100%', width: '65%', background: '#0f2244', borderRadius: 4 }} />
-                    </div>
+          {/* 무료 결과 → 결제 유도 ("이 결과 바로 열기") */}
+          {!isPaid && (() => {
+            const teaser = result.teaser || {}
+            const labels: string[] = Array.isArray(teaser.scoreLabels) && teaser.scoreLabels.length > 0
+              ? teaser.scoreLabels
+              : (docType === 'resume' ? ['구조·가독성', '성과 정량화', '직무 연관성', '완결성'] : ['논리성', '구체성', '직무 적합성', '표현력'])
+            const credits = userProfile?.paid_credits || 0
+            const canUseCredit = credits > 0 || userProfile?.role === 'admin'
+            const lockedItems = [
+              teaser.improvementCount > 0 && `고쳐야 할 문장 ${teaser.improvementCount}개와 수정 예시`,
+              result.aiPatternCount > 0 && `AI 작성 흔적 문장 ${result.aiPatternCount}개와 자연스럽게 고치는 법`,
+              teaser.typoCount > 0 && `맞춤법·오타 ${teaser.typoCount}건`,
+              teaser.strongPointCount > 0 && `살려야 할 강점 ${teaser.strongPointCount}가지`,
+              '항목별 세부 점수와 최종 종합 조언',
+            ].filter(Boolean) as string[]
+
+            return (
+              <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #ece9e1', overflow: 'hidden' }}>
+                {/* 내 서류 기준 항목별 점수 (점수는 가림) */}
+                <div style={{ padding: '28px 32px 8px' }}>
+                  <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0f2244', margin: '0 0 18px' }}>📊 항목별 세부 점수</h3>
+                  {labels.map(label => {
+                    const isWeakest = teaser.weakestItem === label
+                    return (
+                      <div key={label} style={{ marginBottom: 14 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 14, marginBottom: 6 }}>
+                          <span style={{ fontWeight: 600, color: '#333' }}>
+                            {label}
+                            {isWeakest && <span style={{ fontSize: 11, background: '#fef2f2', color: '#b91c1c', padding: '2px 8px', borderRadius: 20, marginLeft: 8, fontWeight: 700 }}>가장 보완이 필요해요</span>}
+                          </span>
+                          <span style={{ color: '#bbb', filter: 'blur(4px)', userSelect: 'none' }}>00점</span>
+                        </div>
+                        <div style={{ height: 8, background: '#f0ede6', borderRadius: 4, overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: '60%', background: '#d6dbe5', borderRadius: 4, filter: 'blur(2px)' }} />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* 잠긴 내용 + 바로 열기 */}
+                <div style={{ padding: '20px 32px 32px', background: 'linear-gradient(to bottom, #fff 0%, #faf9f7 100%)' }}>
+                  <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 14, padding: '18px 20px', marginBottom: 22 }}>
+                    <p style={{ fontSize: 14, fontWeight: 800, color: '#92400e', margin: '0 0 10px' }}>🔒 내 서류에서 찾아낸 내용이 잠겨 있어요</p>
+                    {lockedItems.map(item => (
+                      <p key={item} style={{ fontSize: 14, color: '#78350f', margin: '0 0 6px', lineHeight: 1.6 }}>· {item}</p>
+                    ))}
                   </div>
-                ))}
-              </div>
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.97) 30%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', padding: '40px 36px' }}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 36, marginBottom: 12 }}>🔒</div>
-                  <h3 style={{ fontSize: 20, fontWeight: 800, color: '#0f2244', marginBottom: 10 }}>전체 분석 결과 보기</h3>
-                  <p style={{ color: '#555', fontSize: 14, lineHeight: 1.8, marginBottom: 28 }}>항목별 점수, 문장 개선 제안, 최종 종합 조언까지<br />결제 후 바로 확인하세요.</p>
-                  <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <button onClick={() => window.location.href = '/payment'} style={{ background: '#0f2244', color: '#fff', border: 'none', borderRadius: 12, padding: '14px 28px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}>1회권 ₩2,900</button>
-                    <button onClick={() => window.location.href = '/payment'} style={{ background: '#e6a800', color: '#fff', border: 'none', borderRadius: 12, padding: '14px 28px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}>5회권 ₩9,900 ⭐</button>
-                  </div>
+
+                  {analysisId ? (
+                    <>
+                      <h3 style={{ fontSize: 19, fontWeight: 800, color: '#0f2244', margin: '0 0 6px', textAlign: 'center' }}>이 결과, 지금 바로 열어보세요</h3>
+                      <p style={{ color: '#666', fontSize: 14, lineHeight: 1.7, margin: '0 0 20px', textAlign: 'center' }}>
+                        서류를 다시 올릴 필요 없이, <strong style={{ color: '#0f2244' }}>방금 분석한 결과 그대로</strong> 전체 내용이 열려요.
+                      </p>
+                      {canUseCredit ? (
+                        <button
+                          onClick={() => handleUnlock(analysisId)}
+                          disabled={unlockLoading}
+                          style={{ width: '100%', background: unlockLoading ? '#f0d99a' : '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '17px', fontWeight: 800, fontSize: 16, cursor: unlockLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}
+                        >
+                          {unlockLoading ? '여는 중...' : userProfile?.role === 'admin' ? '전체 결과 바로 열기 (관리자)' : `분석권 1회로 전체 결과 열기 (잔여 ${credits}회)`}
+                        </button>
+                      ) : (
+                        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                          <button
+                            onClick={() => window.location.href = `/payment?plan=plan_1&unlock=${encodeURIComponent(analysisId)}`}
+                            style={{ flex: '1 1 200px', background: '#0f2244', color: '#fff', border: 'none', borderRadius: 14, padding: '16px 12px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}
+                          >
+                            1회권 ₩2,900로 바로 열기
+                          </button>
+                          <button
+                            onClick={() => window.location.href = `/payment?plan=plan_5&unlock=${encodeURIComponent(analysisId)}`}
+                            style={{ flex: '1 1 200px', background: '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '16px 12px', fontWeight: 800, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}
+                          >
+                            5회권 ₩9,900로 열기 ⭐
+                          </button>
+                        </div>
+                      )}
+                      {!canUseCredit && (
+                        <p style={{ fontSize: 12, color: '#888', textAlign: 'center', margin: '10px 0 0', lineHeight: 1.6 }}>
+                          5회권은 1회당 ₩1,980 · 잡통 플러스 1회 무료 증정 · 결제 후 이 결과가 바로 열려요
+                        </p>
+                      )}
+                      {unlockError && (
+                        <p style={{ fontSize: 13, color: '#b91c1c', textAlign: 'center', margin: '10px 0 0' }}>{unlockError}</p>
+                      )}
+                      <p style={{ fontSize: 12, color: '#aaa', textAlign: 'center', margin: '12px 0 0', lineHeight: 1.6 }}>
+                        ※ 채용공고 파일을 반영한 분석은 새로 분석할 때 이용할 수 있어요.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <h3 style={{ fontSize: 19, fontWeight: 800, color: '#0f2244', margin: '0 0 6px', textAlign: 'center' }}>전체 분석으로 모든 내용을 확인하세요</h3>
+                      <p style={{ color: '#666', fontSize: 14, lineHeight: 1.7, margin: '0 0 20px', textAlign: 'center' }}>
+                        분석권 구매 후 서류를 올려 전체 분석을 받아보세요.
+                      </p>
+                      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                        <button onClick={() => window.location.href = '/payment?plan=plan_1'} style={{ flex: '1 1 200px', background: '#0f2244', color: '#fff', border: 'none', borderRadius: 14, padding: '16px 12px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}>1회권 ₩2,900</button>
+                        <button onClick={() => window.location.href = '/payment?plan=plan_5'} style={{ flex: '1 1 200px', background: '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '16px 12px', fontWeight: 800, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}>5회권 ₩9,900 ⭐</button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
-            </div>
-          )}
+            )
+          })()}
 
           {!isPaid && (
             <button onClick={() => { setStep('analyze'); setResult(null); setContent(''); setFileName(''); setResumeFiles([]); removeJobPosting() }} style={{ width: '100%', background: '#fff', color: '#0f2244', border: '2px solid #0f2244', borderRadius: 14, padding: '16px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}>
