@@ -739,7 +739,7 @@ export default function Home() {
         body: JSON.stringify({
           docType,
           company, position, content, type,
-          jobPostingFile: type === 'paid' && jobPostingPath ? { path: jobPostingPath, fileName: jobPostingFileName } : null,
+          jobPostingFile: jobPostingPath ? { path: jobPostingPath, fileName: jobPostingFileName } : null,
           companyInfo,
           resumeFiles: docType === 'resume' ? resumeFiles.map(f => ({ path: f.path, fileName: f.fileName })) : [],
         }),
@@ -1541,7 +1541,7 @@ export default function Home() {
                     )}
                   </div>
 
-                  {confirmType === 'paid' && (
+                  {(
                     <div>
                       <div style={{ fontSize: 12, color: '#aaa', fontWeight: 600, marginBottom: 4 }}>채용공고 PDF</div>
                       <span style={{ fontSize: 13, color: jobPostingFileName ? '#10b981' : '#bbb', fontWeight: jobPostingFileName ? 700 : 400 }}>
@@ -1855,8 +1855,8 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* 채용공고 업로드 — 유료 분석 전용 */}
-                  {mode === 'paid' && (
+                  {/* 채용공고 업로드 — 무료/유료 공통 (무료 분석도 유료와 같은 조건으로 분석) */}
+                  {mode !== 'purchase' && (
                     <div>
                       <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#1a1a1a', marginBottom: 6 }}>채용공고 PDF</label>
                       {jobPostingFileName ? (
@@ -1902,7 +1902,7 @@ export default function Home() {
               {mode === 'both' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <button onClick={() => openConfirmModal('free')} disabled={loading} style={{ width: '100%', background: loading ? '#ccc' : '#f7f6f3', color: '#0f2244', border: '1.5px solid #ddd', borderRadius: 14, padding: '16px', fontWeight: 700, fontSize: 16, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-                    {loading ? <><svg style={{ animation: 'spin 1s linear infinite', width: 20, height: 20 }} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(15,34,68,0.2)" strokeWidth="4" /><path d="M4 12a8 8 0 018-8" stroke="#0f2244" strokeWidth="4" strokeLinecap="round" /></svg>정밀 분석 중입니다...</> : '무료 분석 (총평 + 핵심문제만)'}
+                    {loading ? <><svg style={{ animation: 'spin 1s linear infinite', width: 20, height: 20 }} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(15,34,68,0.2)" strokeWidth="4" /><path d="M4 12a8 8 0 018-8" stroke="#0f2244" strokeWidth="4" strokeLinecap="round" /></svg>정밀 분석 중입니다...</> : '무료 분석 시작하기'}
                   </button>
                   <button onClick={() => window.location.href = '/payment'} disabled={loading} style={{ width: '100%', background: loading ? '#f0d99a' : '#e6a800', color: '#fff', border: 'none', borderRadius: 14, padding: '18px', fontWeight: 800, fontSize: 17, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}>
                     전체 분석권 구매하기 →
@@ -1916,7 +1916,7 @@ export default function Home() {
                   <button onClick={() => openConfirmModal('free')} disabled={loading} style={{ width: '100%', background: loading ? '#ccc' : '#0f2244', color: '#fff', border: 'none', borderRadius: 14, padding: '18px', fontWeight: 800, fontSize: 17, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
                     {loading ? <><svg style={{ animation: 'spin 1s linear infinite', width: 20, height: 20 }} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="4" /><path d="M4 12a8 8 0 018-8" stroke="#fff" strokeWidth="4" strokeLinecap="round" /></svg>정밀 분석 중입니다...</> : '무료 분석 시작하기 →'}
                   </button>
-                  <p style={{ textAlign: 'center', color: '#aaa', fontSize: 12, marginTop: 8 }}>총평 + 핵심 문제 1가지 제공</p>
+                  <p style={{ textAlign: 'center', color: '#aaa', fontSize: 12, marginTop: 8 }}>전체 분석과 똑같은 기준으로 정밀 분석해요</p>
                 </div>
               )}
 
@@ -2006,12 +2006,12 @@ export default function Home() {
           )}
 
           {/* 채용공고 반영 여부 안내 */}
-          {isPaid && result.jobPostingApplied && (
+          {result.jobPostingApplied && (
             <div style={{ background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: 12, padding: '12px 16px', marginBottom: 16, fontSize: 13, color: '#4338ca', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
               📋 업로드하신 채용공고를 반영해 분석했습니다.
             </div>
           )}
-          {isPaid && result.jobPostingWarning && (
+          {result.jobPostingWarning && (
             <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 12, padding: '12px 16px', marginBottom: 16, fontSize: 13, color: '#92400e', fontWeight: 600 }}>
               ⚠️ {result.jobPostingWarning}
             </div>
@@ -2115,9 +2115,6 @@ export default function Home() {
                       {unlockError && (
                         <p style={{ fontSize: 13, color: '#b91c1c', textAlign: 'center', margin: '10px 0 0' }}>{unlockError}</p>
                       )}
-                      <p style={{ fontSize: 12, color: '#aaa', textAlign: 'center', margin: '12px 0 0', lineHeight: 1.6 }}>
-                        ※ 채용공고 파일을 반영한 분석은 새로 분석할 때 이용할 수 있어요.
-                      </p>
                     </>
                   ) : (
                     <>
