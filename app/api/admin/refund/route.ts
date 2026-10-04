@@ -83,6 +83,17 @@ export async function POST(req: NextRequest) {
       ? grantedCredits
       : Math.round(grantedCredits * (refundAmount / payment.amount))
 
+    // 탈퇴한 회원의 결제(user_id 없음)는 회수할 분석권이 없으므로 결제 기록만 환불 처리하고 종료
+    if (!payment.user_id) {
+      return NextResponse.json({
+        success: true,
+        refundAmount,
+        status: isFullRefund ? 'refunded' : 'partial_refunded',
+        creditsRevoked: 0,
+        message: `₩${refundAmount.toLocaleString()} 환불 처리가 완료되었습니다. (탈퇴 회원 결제 — 회수할 분석권 없음)`,
+      })
+    }
+
     const { data: userProfile } = await adminSupabase
       .from('profiles')
       .select('paid_credits, consistency_credits')
