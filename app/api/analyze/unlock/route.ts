@@ -7,6 +7,41 @@ export const dynamic = 'force-dynamic'
 // - 무료 분석 때 잠금 보관해 둔 전체 결과(analysis_locked_results)를 분석권 1회로 열어줌
 // - AI를 다시 호출하지 않음 (추가 API 비용 없음)
 // - 분석권 차감은 반드시 서버에서만 처리
+// 마이페이지용: 본인 무료 분석 중 "전체 결과 열기"가 가능한(잠금 보관본이 있는) 기록 ID 목록
+export async function GET(req: NextRequest) {
+  try {
+    const token = req.headers.get('authorization')?.replace('Bearer ', '')
+    if (!token) return NextResponse.json({ ids: [] }, { status: 401 })
+
+    const admin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const { data: { user } } = await admin.auth.getUser(token)
+    if (!user) return NextResponse.json({ ids: [] }, { status: 401 })
+
+    const { data: freeRows } = await admin
+      .from('analyses')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('analyze_type', 'free')
+
+    const freeIds = (freeRows || []).map((r: any) => r.id)
+    if (freeIds.length === 0) return NextResponse.json({ ids: [] })
+
+    const { data: lockedRows } = await admin
+      .from('analysis_locked_results')
+      .select('analysis_id')
+      .in('analysis_id', freeIds)
+
+    return NextResponse.json({ ids: (lockedRows || []).map((r: any) => String(r.analysis_id)) })
+  } catch (e: any) {
+    console.error('unlockable list error:', e)
+    return NextResponse.json({ ids: [] }, { status: 500 })
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const token = req.headers.get('authorization')?.replace('Bearer ', '')
