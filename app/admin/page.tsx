@@ -154,12 +154,16 @@ export default function AdminPage() {
 
   const loadPayments = async () => {
     setPaymentsLoading(true)
-    const { data } = await supabase
-      .from('payments')
-      .select('*, profiles(email)')
-      .in('status', ['success', 'refunded', 'partial_refunded'])
-      .order('created_at', { ascending: false })
-    if (data) setPayments(data)
+    // 결제자 이메일은 서버(service role)에서 함께 조회 — 브라우저에서는 다른 회원 정보를 읽을 수 없음
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { setPaymentsLoading(false); return }
+    const res = await fetch('/api/admin/payments', {
+      headers: { 'Authorization': `Bearer ${session.access_token}` },
+    })
+    if (res.ok) {
+      const data = await res.json()
+      setPayments(data.payments || [])
+    }
     setPaymentsLoading(false)
   }
 
