@@ -433,7 +433,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'AI 응답 오류가 발생했습니다. 다시 시도해주세요.' }, { status: 500 })
     }
 
-    if (isPaid && (!analysisResult.improvements || analysisResult.improvements.length === 0)) {
+    // 무료 분석도 전체 결과를 잠금 보관했다가 결제 시 그대로 열어주므로, 유료/무료 모두 같은 보정 적용
+    if (!analysisResult.improvements || analysisResult.improvements.length === 0) {
       analysisResult.improvements = [{
         category: '전반적 개선',
         issue: docType === 'coverletter'
@@ -457,8 +458,21 @@ export async function POST(req: NextRequest) {
       await adminSupabase.from('profiles').update(creditUpdate).eq('id', user.id)
     }
 
+    if (resumeFileErrors.length > 0) {
+      analysisResult.resumeFileWarning = resumeFileErrors.join(' ')
+    }
+
+    // 무료 분석: analyses에는 공개 범위(점수·총평·핵심 문제)만 저장하고,
+    // 전체 결과는 브라우저에서 읽을 수 없는 잠금 테이블(analysis_locked_results)에 따로 보관 → 결제 시 그대로 열어줌
+    const publicResult = {
+      totalScore: analysisResult.totalScore,
+      summary: analysisResult.summary,
+      mainIssue: analysisResult.mainIssue,
+    }
+
+    let savedAnalysisId: string | null = null
     try {
-      await adminSupabase.from('analyses').insert({
+      const { data: saved, error: saveError } = await adminSupabase.from('analyses').insert({
         user_id: user.id,
         company: company || null,
         position: position || null,
@@ -467,22 +481,60 @@ export async function POST(req: NextRequest) {
         is_free_trial: !isPaid,
         analyze_type: type,
         doc_type: docType,
-        result_json: analysisResult,
-      })
+        result_json: isPaid ? analysisResult : publicResult,
+      }).select('id').single()
+      if (saveError) throw saveError
+      savedAnalysisId = saved?.id ? String(saved.id) : null
     } catch (e) {
       console.error('저장 실패:', e)
     }
 
     // 10. 응답 반환 — 무료는 일부 필드만 노출 (퀄리티는 유료와 동일, 공개 범위만 다름)
     if (!isPaid) {
-      const aiPatterns = Array.isArray(analysisResult.aiPatternCheck) ? analysisResult.aiPatternCheck : []
-      const aiPatternCount = aiPatterns.filter((p: any) => p && p.original && p.original !== '해당 없음').length
+      const countReal = (arr: any) => Array.isArray(arr)
+        ? arr.filter((p: any) => p && p.original && p.original !== '해당 없음').length
+        : 0
+      const aiPatternCount = countReal(analysisResult.aiPatternCheck)
+
+      // 잠금 화면에 보여줄 "내 서류 기준" 숫자 (내용은 공개하지 않음)
+      const scoreLabels: Record<string, string> = docType === 'resume'
+        ? { structure: '구조·가독성', achievement: '성과 정량화', relevance: '직무 연관성', completeness: '완결성' }
+        : { logic: '논리성', specific: '구체성', fit: '직무 적합성', expression: '표현력' }
+      let weakestItem: string | null = null
+      if (analysisResult.scores && typeof analysisResult.scores === 'object') {
+        let min = Infinity
+        for (const key of Object.keys(scoreLabels)) {
+          const v = Number(analysisResult.scores[key])
+          if (!isNaN(v) && v < min) { min = v; weakestItem = scoreLabels[key] }
+        }
+      }
+      const teaser = {
+        improvementCount: Array.isArray(analysisResult.improvements) ? analysisResult.improvements.length : 0,
+        typoCount: countReal(analysisResult.typoCheck),
+        strongPointCount: Array.isArray(analysisResult.strongPoints) ? analysisResult.strongPoints.length : 0,
+        weakestItem,
+        scoreLabels: Object.values(scoreLabels),
+      }
+
+      // 전체 결과가 정상적으로 만들어진 경우에만 잠금 보관 (AI 응답이 불완전하면 "바로 열기"를 제공하지 않음)
+      let unlockableId: string | null = null
+      if (savedAnalysisId && analysisResult.scores) {
+        const { error: lockError } = await adminSupabase.from('analysis_locked_results').insert({
+          analysis_id: savedAnalysisId,
+          result_json: analysisResult,
+        })
+        if (lockError) console.error('잠금 결과 저장 실패:', lockError)
+        else unlockableId = savedAnalysisId
+      }
+
       return NextResponse.json({
         totalScore: analysisResult.totalScore,
         summary: analysisResult.summary,
         mainIssue: analysisResult.mainIssue,
         hasAiPatterns: aiPatternCount > 0,
         aiPatternCount,
+        teaser,
+        analysisId: unlockableId,
       })
     }
 
@@ -490,10 +542,6 @@ export async function POST(req: NextRequest) {
       analysisResult.jobPostingWarning = jobPostingError
     } else if (jobPostingText) {
       analysisResult.jobPostingApplied = true
-    }
-
-    if (resumeFileErrors.length > 0) {
-      analysisResult.resumeFileWarning = resumeFileErrors.join(' ')
     }
 
     return NextResponse.json(analysisResult)
