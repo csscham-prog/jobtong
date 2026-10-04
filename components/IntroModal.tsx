@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { supabase } from '@/lib/supabase'
 
 const DISMISS_KEY = 'jobtong_intro_dismissed_메인'
 const OPEN_EVENT = 'jobtong:open-intro'
@@ -67,9 +68,46 @@ interface IntroModalProps {
   autoShow?: boolean
 }
 
+// 하단 버튼 상태: 로그인 안 함 / 무료 분석 가능 / 분석권 있음 / 분석권 구매 필요
+type CtaState =
+  | { kind: 'loading' }
+  | { kind: 'guest' }
+  | { kind: 'free' }
+  | { kind: 'credits'; credits: number; isAdmin: boolean }
+  | { kind: 'purchase' }
+
 export default function IntroModal({ autoShow = false }: IntroModalProps) {
   const [open, setOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [cta, setCta] = useState<CtaState>({ kind: 'loading' })
+
+  // 모달이 열릴 때마다 회원 상태를 확인해서 하단 버튼을 결정
+  useEffect(() => {
+    if (!open) return
+    let cancelled = false
+    const loadCta = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session) { if (!cancelled) setCta({ kind: 'guest' }); return }
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('free_trial_used, paid_credits, role')
+          .eq('id', session.user.id)
+          .single()
+        if (cancelled) return
+        const credits = profile?.paid_credits || 0
+        const isAdmin = profile?.role === 'admin'
+        // 분석권이 있으면(무료 체험 사용 여부와 무관) "분석 시작하기 (잔여 N회)"
+        if (credits > 0 || isAdmin) setCta({ kind: 'credits', credits, isAdmin })
+        else if (!profile?.free_trial_used) setCta({ kind: 'free' })
+        else setCta({ kind: 'purchase' })
+      } catch {
+        if (!cancelled) setCta({ kind: 'guest' })
+      }
+    }
+    loadCta()
+    return () => { cancelled = true }
+  }, [open])
 
   useEffect(() => {
     setMounted(true)
@@ -196,6 +234,29 @@ export default function IntroModal({ autoShow = false }: IntroModalProps) {
               이 외에도 지원 일정 관리, 자소서 글자수 카운터, 실수령액 계산기, 취업 준비도 자가진단까지 — 로그인만 하면 모두 무료로 이용하실 수 있어요.
             </p>
           </div>
+          {/* 회원 상태별 시작 버튼 */}
+          {cta.kind !== 'loading' && (() => {
+            const btn = cta.kind === 'guest'
+              ? { label: '무료로 시작하기 →', href: '/login', sub: '가입하면 무료 정밀 분석 1회를 드려요', bg: '#0f2244' }
+              : cta.kind === 'free'
+              ? { label: '무료 분석하기 →', href: '/?start=analyze', sub: '전체 분석과 똑같은 기준으로 정밀 분석해요 · 채용공고 PDF를 함께 올리면 더 정확해요', bg: '#0f2244' }
+              : cta.kind === 'credits'
+              ? { label: cta.isAdmin ? '분석 시작하기 (관리자)' : `분석 시작하기 (잔여 ${cta.credits}회) →`, href: '/?start=analyze', sub: '', bg: '#0f2244' }
+              : { label: '분석권 구매하기 →', href: '/payment', sub: '1회권 ₩2,900 · 5회권 ₩9,900 (1회당 ₩1,980, 잡통 플러스 1회 증정)', bg: '#e6a800' }
+            return (
+              <div style={{ marginBottom: 10 }}>
+                <button
+                  onClick={() => { window.location.href = btn.href }}
+                  style={{ width: '100%', background: btn.bg, border: 'none', borderRadius: 12, padding: '15px', fontSize: 15.5, fontWeight: 800, color: '#fff', cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  {btn.label}
+                </button>
+                {btn.sub && (
+                  <p style={{ fontSize: 12, color: '#888', textAlign: 'center', margin: '8px 0 0', lineHeight: 1.6 }}>{btn.sub}</p>
+                )}
+              </div>
+            )
+          })()}
           <button
             onClick={handleDismissForever}
             style={{ width: '100%', background: '#f7f6f3', border: 'none', borderRadius: 12, padding: '12px', fontSize: 13, fontWeight: 700, color: '#888', cursor: 'pointer', fontFamily: 'inherit' }}
