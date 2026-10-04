@@ -19,6 +19,7 @@ export default function PaymentPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [tossReady, setTossReady] = useState(false)
+  const [unlockId, setUnlockId] = useState('') // 무료 분석 결과 '바로 열기'용 — 결제 후 해당 결과로 돌아감
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -30,6 +31,8 @@ export default function PaymentPage() {
     const params = new URLSearchParams(window.location.search)
     const plan = params.get('plan')
     if (plan === 'plan_1' || plan === 'plan_5') setSelectedPlan(plan)
+    const unlock = params.get('unlock') || ''
+    if (/^[A-Za-z0-9-]{1,64}$/.test(unlock)) setUnlockId(unlock)
 
     // 토스페이먼츠 SDK 로드
     const script = document.createElement('script')
@@ -57,7 +60,7 @@ export default function PaymentPage() {
         orderName: `잡통 ${plan.name}`,
         customerName: user.email,
         customerEmail: user.email,
-        successUrl: `${window.location.origin}/payment/success?planType=${plan.id}`,
+        successUrl: `${window.location.origin}/payment/success?planType=${plan.id}${unlockId ? `&unlock=${encodeURIComponent(unlockId)}` : ''}`,
         failUrl: `${window.location.origin}/payment/fail`,
       })
     } catch (e: any) {
