@@ -430,8 +430,6 @@ export default function Home() {
   const [showAddHomeGuide, setShowAddHomeGuide] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
   const [maintenance, setMaintenance] = useState(false)
-  const [showPromoSlide, setShowPromoSlide] = useState(false)
-  const [promoClosed, setPromoClosed] = useState(false)
   const [analysisId, setAnalysisId] = useState<string | null>(null) // 무료 결과 '바로 열기'용 분석 ID
   const [unlockLoading, setUnlockLoading] = useState(false)
   const [unlockError, setUnlockError] = useState('')
@@ -505,14 +503,6 @@ export default function Home() {
     if (data) setUserProfile(data)
   }
 
-  // 홍보 슬라이드인 배너 — 전체 분석 결과를 본 회원에게만 표시
-  const schedulePromoSlide = () => {
-    const closed = localStorage.getItem('jobtong-promo-closed')
-    if (!closed || Date.now() > parseInt(closed)) {
-      setTimeout(() => setShowPromoSlide(true), 3000)
-    }
-  }
-
   // 무료 분석 결과를 분석권 1회로 "바로 열기" (AI 재분석 없이 보관된 전체 결과를 열어줌)
   const handleUnlock = async (id: string, fromPayment = false) => {
     setUnlockLoading(true); setUnlockError('')
@@ -541,7 +531,6 @@ export default function Home() {
       setStep('result')
       window.scrollTo({ top: 0 })
       fetchProfile(session.user.id)
-      schedulePromoSlide()
     } catch (e: any) {
       if (fromPayment) alert(e.message || '결과를 여는 중 오류가 발생했습니다. 마이페이지에서 분석권을 확인해주세요.')
       else setUnlockError(e.message || '결과를 여는 중 오류가 발생했습니다.')
@@ -750,8 +739,6 @@ export default function Home() {
       setAnalysisId(type === 'free' ? (data.analysisId || null) : null)
       setUnlockError('')
       setStep('result')
-      // 홍보 배너는 전체 분석 결과에서만 표시 (무료 결과 화면에서는 결제 고민을 방해하지 않도록 띄우지 않음)
-      if (type === 'paid') schedulePromoSlide()
 
       // 분석권 차감은 서버(app/api/analyze)에서 처리됨 — 최신 값만 다시 불러옴
       fetchProfile(user.id)
@@ -2146,40 +2133,6 @@ export default function Home() {
           @media (max-width: 768px) { .jobtong-slogan { display: none; } }
         `}</style>
 
-        {/* 홍보 슬라이드인 배너 */}
-        {showPromoSlide && (
-          <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 200, width: 320, background: 'linear-gradient(135deg, #0f2244 0%, #1a3a6b 100%)', borderRadius: 20, boxShadow: '0 8px 40px rgba(0,0,0,0.25)', overflow: 'hidden', animation: 'slideInUp 0.4s ease' }}>
-            {/* 닫기 버튼 */}
-            <button
-              onClick={() => {
-                setShowPromoSlide(false)
-                setPromoClosed(true)
-                localStorage.setItem('jobtong-promo-closed', String(Date.now() + 7 * 24 * 60 * 60 * 1000))
-              }}
-              style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff', fontSize: 14, zIndex: 1 }}
-            >✕</button>
-
-            <div style={{ padding: '24px' }}>
-              <div style={{ display: 'inline-block', background: 'rgba(230,168,0,0.2)', border: '1px solid rgba(230,168,0,0.4)', borderRadius: 20, padding: '3px 12px', fontSize: 11, fontWeight: 700, color: '#e6a800', marginBottom: 12 }}>
-                🎁 홍보 이벤트
-              </div>
-              <h3 style={{ fontSize: 16, fontWeight: 900, color: '#fff', marginBottom: 8, lineHeight: 1.4 }}>
-                잡통이 도움이 됐다면,<br />주변에 알려주세요!
-              </h3>
-              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', lineHeight: 1.7, marginBottom: 16 }}>
-                SNS나 커뮤니티에 잡통을 소개하고<br />
-                링크/캡처를 <strong style={{ color: '#fff' }}>barunapplication@gmail.com</strong> 으로 보내주시면<br />
-                <strong style={{ color: '#e6a800' }}>분석권 1회를 무료로 드립니다! 🎉</strong>
-              </p>
-              <a
-                href="mailto:barunapplication@gmail.com?subject=잡통 홍보 인증&body=안녕하세요! 잡통 홍보 게시글 링크/캡처를 첨부합니다.%0A%0A채널: %0A링크 또는 캡처 첨부:"
-                style={{ display: 'block', textAlign: 'center', background: '#e6a800', color: '#fff', borderRadius: 10, padding: '11px', fontWeight: 800, fontSize: 14, textDecoration: 'none' }}
-              >
-                📧 인증 메일 보내기
-              </a>
-            </div>
-          </div>
-        )}
 
       </main>
     )
