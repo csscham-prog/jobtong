@@ -4,10 +4,13 @@ import { useEffect, useState } from 'react'
 
 export default function PaymentFailPage() {
   const [errorMsg, setErrorMsg] = useState('')
+  const [unlockId, setUnlockId] = useState('') // 무료 분석 결과 '바로 열기'에서 넘어온 결제인 경우
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     setErrorMsg(params.get('message') || '결제가 취소되었거나 오류가 발생했습니다.')
+    const unlock = params.get('unlock') || ''
+    if (/^[A-Za-z0-9-]{1,64}$/.test(unlock)) setUnlockId(unlock)
   }, [])
 
   const Emblem = () => (
@@ -29,16 +32,16 @@ export default function PaymentFailPage() {
         <p style={{ color: '#888', fontSize: 14, lineHeight: 1.8, marginBottom: 28 }}>{errorMsg}</p>
         <div style={{ display: 'flex', gap: 10 }}>
           <button
-            onClick={() => window.location.href = '/payment'}
+            onClick={() => window.location.href = unlockId ? `/payment?plan=plan_1&unlock=${encodeURIComponent(unlockId)}` : '/payment'}
             style={{ flex: 1, background: '#0f2244', color: '#fff', border: 'none', borderRadius: 12, padding: '14px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}
           >
             다시 시도
           </button>
           <button
-            onClick={() => window.location.href = '/'}
+            onClick={() => window.location.href = unlockId ? `/mypage?analysis=${encodeURIComponent(unlockId)}` : '/'}
             style={{ flex: 1, background: '#f7f6f3', color: '#555', border: '1px solid #ddd', borderRadius: 12, padding: '14px', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}
           >
-            메인으로
+            {unlockId ? '내 결과로 돌아가기' : '메인으로'}
           </button>
         </div>
       </div>
