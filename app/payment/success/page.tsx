@@ -8,6 +8,7 @@ export default function PaymentSuccessPage() {
   const [message, setMessage] = useState('')
   const [credits, setCredits] = useState(0)
   const [consistencyCreditGranted, setConsistencyCreditGranted] = useState(false)
+  const [unlockId, setUnlockId] = useState('') // 무료 분석 결과 '바로 열기'로 들어온 결제인 경우
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -15,6 +16,8 @@ export default function PaymentSuccessPage() {
     const orderId = params.get('orderId')
     const amount = params.get('amount')
     const planType = params.get('planType')
+    const unlock = params.get('unlock') || ''
+    if (/^[A-Za-z0-9-]{1,64}$/.test(unlock)) setUnlockId(unlock)
 
     if (!paymentKey || !orderId || !amount || !planType) {
       setStatus('error'); setMessage('결제 정보가 올바르지 않습니다.'); return
@@ -103,12 +106,26 @@ export default function PaymentSuccessPage() {
                 </button>
               </div>
             )}
-            <button
-              onClick={() => window.location.href = '/'}
-              style={{ width: '100%', background: '#0f2244', color: '#fff', border: 'none', borderRadius: 12, padding: '16px', fontWeight: 700, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit' }}
-            >
-              취업 서류 분석 시작하기 →
-            </button>
+            {unlockId ? (
+              <>
+                <button
+                  onClick={() => window.location.href = `/?unlock=${encodeURIComponent(unlockId)}`}
+                  style={{ width: '100%', background: '#e6a800', color: '#fff', border: 'none', borderRadius: 12, padding: '16px', fontWeight: 800, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  방금 분석한 전체 결과 바로 보기 →
+                </button>
+                <p style={{ fontSize: 12, color: '#888', margin: '10px 0 0', lineHeight: 1.6 }}>
+                  서류를 다시 올릴 필요 없어요. 분석권 1회로 방금 결과가 바로 열려요.
+                </p>
+              </>
+            ) : (
+              <button
+                onClick={() => window.location.href = '/'}
+                style={{ width: '100%', background: '#0f2244', color: '#fff', border: 'none', borderRadius: 12, padding: '16px', fontWeight: 700, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit' }}
+              >
+                취업 서류 분석 시작하기 →
+              </button>
+            )}
           </>
         )}
 
